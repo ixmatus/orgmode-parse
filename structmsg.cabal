@@ -1,11 +1,11 @@
 Name:                   structmsg
-Version:                0.0.0
-Author:                 Parnell <parnell@ixmat.us>
-Maintainer:             Parnell <parnell@ixmat.us>
+Version:                0.0.1
+Author:                 Parnell <parnell@digitalmentat.com>
+Maintainer:             Parnell <parnell@digitalmentat.com>, Joel <intractable@gmail.com>
 License:                BSD3
 License-File:           LICENSE
--- Synopsis:               
--- Description:            
+Synopsis:               A parser implementation for StructMsgs.
+Description:            A parser implementation for StructMsgs.
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
 
@@ -15,7 +15,10 @@ Library
   GHC-Options:          -Wall
   Exposed-Modules:      Data.StructMsg
   Other-Modules:        Data.StructMsg.Internal
-  Build-Depends:        base >= 4 && < 5
+
+  Build-Depends:        base        >= 4        && < 5,
+                        attoparsec  >= 0.12.1.0 && < 0.13,
+                        free        >= 4.9      && < 5
 
 Test-Suite spec
   Type:                 exitcode-stdio-1.0
@@ -29,4 +32,4 @@ Test-Suite spec
 
 Source-Repository head
   Type:                 git
---  Location:             
+  Location:             git@github.com:digitalmentat/structmsg-hs.git
