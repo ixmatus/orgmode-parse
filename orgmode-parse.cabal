@@ -22,7 +22,7 @@ Extra-Source-Files:
     LICENSE
     README.org
     TODO.org
-    CHANGELOG
+    CHANGELOG.md
 
 Library
   Default-Language:     Haskell2010
