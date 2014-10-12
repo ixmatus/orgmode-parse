@@ -11,5 +11,13 @@
 
 module Data.OrgMode.Parse
 (
--- *
+-- * Parse Document
+
+-- * Parse Headline
+module Data.OrgMode.Parse.Attoparsec.Headings
+-- * Parse Headline Metadata (properties, timestamps, etc...)
+
+-- * Parse Body
 ) where
+
+import           Data.OrgMode.Parse.Attoparsec.Headings

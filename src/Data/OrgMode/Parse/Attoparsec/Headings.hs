@@ -12,7 +12,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Data.OrgMode.Parse.Attoparsec.Headings where
+module Data.OrgMode.Parse.Attoparsec.Headings
+( Priority (..)
+, State
+, Keyword
+, heading
+, headingLevel
+, headingPriority
+, headingTitle
+, headingKeyword'
+)
+where
 
 import           Control.Applicative   (pure, (*>), (<*), (<|>))
 import           Control.Monad         (mzero)
