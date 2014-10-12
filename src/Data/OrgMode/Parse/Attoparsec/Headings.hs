@@ -16,6 +16,7 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 ( Priority (..)
 , State
 , Keyword
+, Heading (..)
 , heading
 , headingLevel
 , headingPriority
@@ -24,14 +25,12 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 )
 where
 
-import           Control.Applicative   (pure, (*>), (<*), (<|>))
-import           Control.Monad         (mzero)
+import           Control.Applicative   ((*>), (<*), (<|>))
 import           Data.Attoparsec.Text  as T
 import           Data.Attoparsec.Types as TP (Parser)
-import           Data.Char             (isAlpha, isUpper)
+import           Data.Char             (isUpper)
 import           Data.Maybe            (catMaybes, isJust)
-import           Data.Text             (Text, concat, empty, null, pack,
-                                        toUpper, unpack)
+import           Data.Text             (Text, concat, null, pack, toUpper)
 import           Prelude               hiding (concat, null, takeWhile)
 
 data Heading = Heading
