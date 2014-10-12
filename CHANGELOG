@@ -1,6 +1,10 @@
 -*- mode: org -*-
 
 * Changelog
+** 0.0.1.1
+*** Features
+    - [X] Parsing of property drawer.
+    - [X] Tests for both drawer and heading parsers.
 ** 0.0.0.2
 *** Features
     - [X] Parsers for orgmode list headlines.
