@@ -1,14 +1,15 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Internal
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Headings
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
 --
--- Internal types and utility functions.
+-- Attoparsec combinators for orgmode documents.
 ----------------------------------------------------------------------------
 
-module Data.OrgMode.Parse.Internal
-    (
-    ) where
+module Data.OrgMode.Parse
+(
+-- *
+) where

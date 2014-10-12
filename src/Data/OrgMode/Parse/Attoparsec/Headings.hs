@@ -1,7 +1,7 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.StructMsg.Attoparsec.Headings
--- Copyright   :  (C) 2014 Parnell Springmeyer
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Headings
+-- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
@@ -12,7 +12,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
-module Data.StructMsg.Attoparsec.Headings where
+module Data.OrgMode.Parse.Attoparsec.Headings where
 
 import           Control.Applicative   (pure, (*>), (<*), (<|>))
 import           Control.Monad         (mzero)
