@@ -4,6 +4,7 @@ Author:                 Parnell <parnell@digitalmentat.com>
 Maintainer:             Parnell <parnell@digitalmentat.com>
 License:                BSD3
 License-File:           LICENSE
+Category:               Data
 Synopsis:               A parser and writer for org-mode flavored documents.
 Description:
 
