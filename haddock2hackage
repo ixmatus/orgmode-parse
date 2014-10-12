@@ -11,7 +11,7 @@ CUSTOM_OPTIONS=(--haddock-options='-q aliased')
 HACKAGESERVER=hackage.haskell.org
 # whether to use cabal install (1) or copy docs directly from cabal haddock (0)
 #  some user had troubles installing their package (or dependencies)
-CABAL_INSTALL=1
+CABAL_INSTALL=0
 # put your credentials into ~/.netrc: (see man netrc)
 #   machine $HACKAGESERVER
 #   login $USERNAME
@@ -57,7 +57,7 @@ else
 fi
  
  
-prefix="${tmpdir}/prefix"
+prefix="${tmpdir}"
 docdir="${prefix}/share/doc/${name}"
 if [ "${CABAL_INSTALL}" = 1 ]; then
 	# after cabal install:
