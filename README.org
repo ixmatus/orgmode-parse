@@ -1,6 +1,6 @@
 * Welcome!
   [[https://hackage.haskell.org/package/orgmode-parse][https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat]]
-  [[https://travis-ci.org/ixmatus/orgmode-parse][https://travis-ci.org/ixmatus/orgmode-parse.svg?branch=master]]
+  [[https://travis-ci.org/digitalmentat/orgmode-parse][https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master]]
 
   This is a reference implementation of an [[https://github.com/msgheap/orgmode-grammar/blob/master/SPECIFICATION.org][orgmode-grammer]] parser in
   Haskell.
