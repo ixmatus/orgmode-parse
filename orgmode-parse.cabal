@@ -28,7 +28,7 @@ Library
     Data.OrgMode.Parse.Attoparsec.Headings
 
   Other-Modules:
-    Data.Orgmode-Parse.Internal
+    Data.OrgMode.Parse.Internal
 
   Build-Depends:
     base                      >= 4.4      && < 5,

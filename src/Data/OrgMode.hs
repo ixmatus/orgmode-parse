@@ -1,3 +1,3 @@
-module Data.StructMsg where
+module Data.OrgMode where
 
 --import Data.StructMsg.Internal
