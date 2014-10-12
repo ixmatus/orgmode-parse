@@ -21,7 +21,7 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 , headingLevel
 , headingPriority
 , headingTitle
-, headingKeyword'
+, headingKeyword
 )
 where
 
@@ -30,7 +30,8 @@ import           Data.Attoparsec.Text  as T
 import           Data.Attoparsec.Types as TP (Parser)
 import           Data.Char             (isUpper)
 import           Data.Maybe            (catMaybes, isJust)
-import           Data.Text             (Text, concat, null, pack, toUpper)
+import           Data.Text             as Text (Text, concat, length, null,
+                                                pack, toUpper)
 import           Prelude               hiding (concat, null, takeWhile)
 
 data Heading = Heading
@@ -64,16 +65,16 @@ heading = do
 
     endOfLine
 
-    return $ Heading lvl pr st tl (catMaybes (k ++ keys))
+    return $ Heading lvl pr st tl (catMaybes (k:keys))
 
   where
-    attemptKeys k | length k > 0 = many' (headingKeyword')
-                  | otherwise    = return []
+    attemptKeys (Just _) = many' (headingKeyword)
+    attemptKeys Nothing  = return []
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
 headingLevel :: TP.Parser Text Int
-headingLevel = return . length =<< manyTill (char '*') space
+headingLevel = return . Text.length =<< takeWhile1 (== '*')
 
 -- | Parse the priority indicator.
 --
@@ -101,39 +102,61 @@ headingState = do
     then return Nothing
     else return . Just $ State st
 
-takeTitleEnd :: TP.Parser Text (Text, [Maybe Keyword])
-takeTitleEnd = do
-    t <- takeTill isEndOfLine
-    return (t, [])
-
--- | Parse the title of the heading, stopping at the first keyword we
--- encounter.
-headingTitle :: TP.Parser Text (Text, [Maybe Keyword])
+-- | Title parser with alternative.
+--
+-- This function tries to parse a title with a keyword and if it fails
+-- it then attempts to parse everything till the end of the line.
+headingTitle :: TP.Parser Text (Text, Maybe Keyword)
 headingTitle = takeTitleKeys <|> takeTitleEnd
 
-takeTitleKeys :: TP.Parser Text (Text, [Maybe Keyword])
+takeTitleEnd :: TP.Parser Text (Text, Maybe Keyword)
+takeTitleEnd = do
+    t <- takeTill isEndOfLine
+    return (t, Nothing)
+
+-- | Try to parse a title that may have keys.
+--
+-- This function recurs for every occurrence of ':' and tries to parse
+-- it as a keyword. If the keyword parser fails we fold the ':' onto
+-- our title result. If it succeeds then we return the title *and the
+-- parsed keyword*.
+takeTitleKeys :: TP.Parser Text (Text, Maybe Keyword)
 takeTitleKeys = do
     t  <- takeWhile $ notInClass ":"
     cl <- char ':'
-    k  <- headingKeyword
+    k  <- headingKeyword'
 
     if isJust k
-    then char ':' *> return (t, [k])
+    then char ':' *> return (t, k)
     else do
         (t', k') <- takeTitleKeys
         return (concat [t, pack [cl], t'], k')
 
--- | Parse a heading keyword
-headingKeyword :: TP.Parser Text (Maybe Keyword)
-headingKeyword = do
+-- | Parse a heading keyword.
+--
+-- NOTE: this is meant to be used with `takeTitleKeys` since it cannot
+-- fail and we use it recursively in that function to determine
+-- whether we are hitting a keyword chunk or not (and saving it if we
+-- do!).
+--
+-- It is not exported because it is not meant to be used outside of
+-- the `takeTitleKeys` function.
+headingKeyword' :: TP.Parser Text (Maybe Keyword)
+headingKeyword' = do
     key <- takeWhile $ notInClass " :"
     if null key
     then return Nothing
     else return . Just $ Keyword key
 
--- | Parse a heading keyword
-headingKeyword' :: TP.Parser Text (Maybe Keyword)
-headingKeyword' = do
+-- | Parse a heading keyword.
+--
+-- You can use this with `many'` and `catMaybes` to get a list
+-- keywords:
+--
+-- > keys <- many' headingKeyword
+-- > return $ catMaybes keys
+headingKeyword :: TP.Parser Text (Maybe Keyword)
+headingKeyword = do
     key <- (takeWhile1 $ notInClass ":\n\r") <* char ':'
     if null key
     then return Nothing
