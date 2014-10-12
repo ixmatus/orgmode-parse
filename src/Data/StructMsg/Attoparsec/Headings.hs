@@ -14,13 +14,15 @@
 
 module Data.StructMsg.Attoparsec.Headings where
 
-import           Control.Applicative   ((*>), (<*))
+import           Control.Applicative   (pure, (*>), (<*), (<|>))
+import           Control.Monad         (mzero)
 import           Data.Attoparsec.Text  as T
 import           Data.Attoparsec.Types as TP (Parser)
 import           Data.Char             (isAlpha, isUpper)
-import           Data.Maybe            (catMaybes)
-import           Data.Text             (Text, null, pack, toUpper)
-import           Prelude               hiding (null, takeWhile)
+import           Data.Maybe            (catMaybes, isJust)
+import           Data.Text             (Text, concat, empty, null, pack,
+                                        toUpper, unpack)
+import           Prelude               hiding (concat, null, takeWhile)
 
 data Heading = Heading
     { level    :: Int
@@ -46,12 +48,18 @@ heading = do
     lvl  <- headingLevel
     pr   <- option Nothing headingPriority
     st   <- option Nothing headingState
-    tl   <- headingTitle
-    keys <- many' headingKeyword
+
+    (tl, k) <- headingTitle
+
+    keys <- attemptKeys k
 
     endOfLine
 
-    return $ Heading lvl pr st tl (catMaybes keys)
+    return $ Heading lvl pr st tl (catMaybes (k ++ keys))
+
+  where
+    attemptKeys k | length k > 0 = many' (headingKeyword')
+                  | otherwise    = return []
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
@@ -84,16 +92,40 @@ headingState = do
     then return Nothing
     else return . Just $ State st
 
+takeTitleEnd :: TP.Parser Text (Text, [Maybe Keyword])
+takeTitleEnd = do
+    t <- takeTill isEndOfLine
+    return (t, [])
+
 -- | Parse the title of the heading, stopping at the first keyword we
 -- encounter.
-headingTitle :: TP.Parser Text Text
-headingTitle = return . pack =<< manyTill anyChar headingKeyword
+headingTitle :: TP.Parser Text (Text, [Maybe Keyword])
+headingTitle = takeTitleKeys <|> takeTitleEnd
+
+takeTitleKeys :: TP.Parser Text (Text, [Maybe Keyword])
+takeTitleKeys = do
+    t  <- takeWhile $ notInClass ":"
+    cl <- char ':'
+    k  <- headingKeyword
+
+    if isJust k
+    then char ':' *> return (t, [k])
+    else do
+        (t', k') <- takeTitleKeys
+        return (concat [t, pack [cl], t'], k')
 
 -- | Parse a heading keyword
 headingKeyword :: TP.Parser Text (Maybe Keyword)
 headingKeyword = do
-    key <- char ':' *> takeWhile isAlpha
+    key <- takeWhile $ notInClass " :"
+    if null key
+    then return Nothing
+    else return . Just $ Keyword key
 
+-- | Parse a heading keyword
+headingKeyword' :: TP.Parser Text (Maybe Keyword)
+headingKeyword' = do
+    key <- (takeWhile1 $ notInClass ":\n\r") <* char ':'
     if null key
     then return Nothing
     else return . Just $ Keyword key
