@@ -23,7 +23,10 @@ Library
   Ghc-options:
     -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
-  Exposed-Modules:      Data.StructMsg
+  Exposed-Modules:
+    Data.StructMsg
+    Data.StructMsg.Attoparsec.Headings
+
   Other-Modules:        Data.StructMsg.Internal
 
   Build-Depends:
@@ -31,6 +34,26 @@ Library
     attoparsec                >= 0.12     && < 0.13,
     free                      >= 4.9      && < 5,
     text                      >= 1.0      && < 2.0
+
+Test-Suite tests
+  Type:                 exitcode-stdio-1.0
+  Default-Language:     Haskell2010
+  Hs-Source-Dirs:       test, src
+  Ghc-Options:          -Wall
+  Main-Is:              Test.hs
+  Other-Modules:
+    Data.StructMsg
+    Data.StructMsg.Internal,
+    Data.StructMsg.Attoparsec
+    Data.StructMsg.Attoparsec.Headings
+
+  Build-Depends:
+    base                       >= 4.4      && < 5,
+    text                       >= 1.0      && < 2.0,
+    attoparsec                 >= 0.12     && < 0.13,
+    HUnit                      >= 1.2.5.2  && < 1.3,
+    tasty                      >= 0.8      && < 0.9,
+    tasty-hunit                >= 0.8.0.1  && < 0.9
 
 Source-Repository head
   Type:                 git

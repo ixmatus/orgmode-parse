@@ -1,3 +1,3 @@
 module Data.StructMsg where
 
-import Data.StructMsg.Internal
+--import Data.StructMsg.Internal
