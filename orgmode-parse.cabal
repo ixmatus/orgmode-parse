@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.0.0.1
+Version:                0.0.0.2
 Author:                 Parnell <parnell@digitalmentat.com>
 Maintainer:             Parnell <parnell@digitalmentat.com>
 License:                BSD3
@@ -26,7 +26,6 @@ Library
 
   Exposed-Modules:
     Data.OrgMode.Parse
-    Data.OrgMode.Parse.Attoparsec.Headings
 
   Other-Modules:
     Data.OrgMode.Parse.Internal
@@ -59,4 +58,4 @@ Library
 
 Source-Repository head
   Type:                 git
-  Location:             git@github.com:digitalmentat/orgmode-parse.git
+  Location:             https://github.com/digitalmentat/orgmode-parse
