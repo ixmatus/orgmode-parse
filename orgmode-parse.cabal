@@ -18,6 +18,12 @@ Description:
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
 
+Extra-Source-Files:
+    LICENSE
+    README.org
+    TODO.org
+    CHANGELOG
+
 Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
