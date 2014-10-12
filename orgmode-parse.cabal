@@ -1,4 +1,4 @@
-Name:                   structmsg
+Name:                   orgmode-parse
 Version:                0.0.0.1
 Author:                 Parnell <parnell@digitalmentat.com>
 Maintainer:             Parnell <parnell@digitalmentat.com>
@@ -7,7 +7,7 @@ License-File:           LICENSE
 Synopsis:               A parser and writer for org-mode flavored documents.
 Description:
 
-  `structmsg` is a parsing and writing library for the org-mode flavor
+  `orgmode-parse` is a parsing and writing library for the org-mode flavor
   of document markup.
   .
   This library parses the human-readable and textual representation
@@ -24,10 +24,11 @@ Library
     -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
   Exposed-Modules:
-    Data.StructMsg
-    Data.StructMsg.Attoparsec.Headings
+    Data.OrgMode.Parse
+    Data.OrgMode.Parse.Attoparsec.Headings
 
-  Other-Modules:        Data.StructMsg.Internal
+  Other-Modules:
+    Data.Orgmode-Parse.Internal
 
   Build-Depends:
     base                      >= 4.4      && < 5,
@@ -42,10 +43,10 @@ Test-Suite tests
   Ghc-Options:          -Wall
   Main-Is:              Test.hs
   Other-Modules:
-    Data.StructMsg
-    Data.StructMsg.Internal,
-    Data.StructMsg.Attoparsec
-    Data.StructMsg.Attoparsec.Headings
+    Data.OrgMode.Parse
+    Data.OrgMode.Parse.Internal,
+    Data.OrgMode.Parse.Attoparsec
+    Data.OrgMode.Parse.Attoparsec.Headings
 
   Build-Depends:
     base                       >= 4.4      && < 5,
@@ -57,4 +58,4 @@ Test-Suite tests
 
 Source-Repository head
   Type:                 git
-  Location:             git@github.com:digitalmentat/structmsg-hs.git
+  Location:             git@github.com:digitalmentat/orgmode-parse.git
