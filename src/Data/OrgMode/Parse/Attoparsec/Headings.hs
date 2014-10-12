@@ -13,10 +13,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headings
-( Priority (..)
-, State
-, Keyword
-, Heading (..)
+( module Data.OrgMode.Parse.Internal
 , heading
 , headingLevel
 , headingPriority
@@ -25,39 +22,23 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 )
 where
 
-import           Control.Applicative   ((*>), (<*), (<|>))
-import           Data.Attoparsec.Text  as T
-import           Data.Attoparsec.Types as TP (Parser)
-import           Data.Char             (isUpper)
-import           Data.Maybe            (catMaybes, isJust)
-import           Data.Text             as Text (Text, concat, length, null,
-                                                pack, toUpper)
-import           Prelude               hiding (concat, null, takeWhile)
+import           Control.Applicative         ((*>), (<*), (<|>))
+import           Data.Attoparsec.Text        as T
+import           Data.Attoparsec.Types       as TP (Parser)
+import           Data.Char                   (isUpper)
+import           Data.Maybe                  (catMaybes, isJust)
+import           Data.Text                   as Text (Text, concat, length,
+                                                      null, pack)
+import           Prelude                     hiding (concat, null, takeWhile)
 
-data Heading = Heading
-    { level    :: Int
-    , priority :: Maybe Priority
-    , state    :: Maybe State
-    , title    :: Text
-    , keywords :: [Keyword]
-    } deriving (Show, Eq)
-
-
-data Priority = A | B | C
-  deriving (Show, Read, Eq, Ord)
-
-newtype State = State Text
-  deriving (Show, Eq)
-
-newtype Keyword = Keyword Text
-  deriving (Show, Eq, Ord)
+import           Data.OrgMode.Parse.Internal
 
 -- | Parse an org-mode heading.
 heading :: TP.Parser Text Heading
 heading = do
     lvl  <- headingLevel
-    pr   <- option Nothing headingPriority
     st   <- option Nothing headingState
+    pr   <- option Nothing headingPriority
 
     (tl, k) <- headingTitle
 
@@ -82,13 +63,14 @@ headingLevel = return . Text.length =<< takeWhile1 (== '*')
 -- fail: `[#A]`, `[#B]`, `[#C]`.
 headingPriority :: TP.Parser Text (Maybe Priority)
 headingPriority = do
-    _  <- char '[' <* char '#'
-    pr <- takeWhile $ inClass "ABC"
-    _  <- char ']' <* space
-
+    pr <- start *> (takeWhile $ inClass "ABC") <* end
     if null pr
     then fail "Priority must be one of [#A], [#B], or [#C]"
-    else return . read . show $ toUpper pr
+    else return . Just $ toPriority pr
+  where
+    start = char '[' *> char '#'
+    end   = char ']' <* space
+
 
 -- | Parse the state indicator {`TODO` | `DOING` | `DONE`}.
 --
@@ -96,7 +78,7 @@ headingPriority = do
 -- but wrapped with the State newtype.
 headingState :: TP.Parser Text (Maybe State)
 headingState = do
-    st <- takeWhile isUpper <* space
+    st <- space *> takeWhile isUpper <* space
 
     if null st
     then return Nothing
@@ -122,7 +104,7 @@ takeTitleEnd = do
 -- parsed keyword*.
 takeTitleKeys :: TP.Parser Text (Text, Maybe Keyword)
 takeTitleKeys = do
-    t  <- takeWhile $ notInClass ":"
+    t  <- takeWhile $ notInClass ":\n\r"
     cl <- char ':'
     k  <- headingKeyword'
 
@@ -143,7 +125,7 @@ takeTitleKeys = do
 -- the `takeTitleKeys` function.
 headingKeyword' :: TP.Parser Text (Maybe Keyword)
 headingKeyword' = do
-    key <- takeWhile $ notInClass " :"
+    key <- takeWhile $ notInClass " :\n\r"
     if null key
     then return Nothing
     else return . Just $ Keyword key
