@@ -16,10 +16,14 @@ module Data.OrgMode.Parse.Internal
 , Priority (..)
 , State    (..)
 , Keyword  (..)
+, PropertyDrawer (..)
 , toPriority
 ) where
 
-import           Data.Text (Text)
+import           Data.HashMap.Strict (HashMap)
+import           Data.Text           (Text)
+
+----------------------------------------------------------------------------
 
 data Heading = Heading
     { level    :: Int
@@ -44,3 +48,8 @@ toPriority "A" = A
 toPriority "B" = B
 toPriority "C" = C
 toPriority _   = Unknown
+
+----------------------------------------------------------------------------
+
+newtype PropertyDrawer k v = PropertyDrawer (HashMap k v)
+  deriving (Show, Eq)
