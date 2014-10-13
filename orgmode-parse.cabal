@@ -8,14 +8,14 @@ Category:               Data
 Synopsis:               A parser and writer for org-mode flavored documents.
 Description:
 
+  <<https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master>>
+  .
   `orgmode-parse` is a parsing and writing library for the org-mode flavor
   of document markup.
   .
   This library parses the human-readable and textual representation
   into an AST that can be used for output to another format (HTML?
   Markdown?), binary serialized for storage, etc...
-  .
-  <<https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master>>
 
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
