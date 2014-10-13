@@ -14,6 +14,8 @@ Description:
   This library parses the human-readable and textual representation
   into an AST that can be used for output to another format (HTML?
   Markdown?), binary serialized for storage, etc...
+  .
+  <<https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master>>
 
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
