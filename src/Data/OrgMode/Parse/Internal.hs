@@ -17,7 +17,11 @@ module Data.OrgMode.Parse.Internal
 , State    (..)
 , Keyword  (..)
 , PropertyDrawer (..)
-, Scheduled (..)
+, Schedule     (..)
+, ScheduleType (..)
+, Timestamp    (..)
+, Open         (..)
+, Close        (..)
 , toPriority
 ) where
 
@@ -57,9 +61,17 @@ newtype PropertyDrawer k v = PropertyDrawer (HashMap k v)
   deriving (Show, Eq)
 
 ----------------------------------------------------------------------------
+data Schedule = Schedule
+    { schedule_type :: ScheduleType
+    , timestamp     :: Maybe Timestamp
+    , recurring     :: Maybe Text
+    } deriving (Show, Eq)
 
-data Scheduled = SCHEDULED | DEADLINE
+data ScheduleType = SCHEDULED | DEADLINE | APPOINTMENT
   deriving (Show, Eq)
 
 data Timestamp = Active LocalTime | Inactive LocalTime
   deriving (Show, Eq)
+
+newtype Open = Open Char
+newtype Close = Close Char

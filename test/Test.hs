@@ -6,6 +6,7 @@ module Main where
 import           Headings
 import           PropertyDrawer
 import           Test.Tasty
+import           Timestamps
 
 main :: IO ()
 main = defaultMain tests
@@ -15,4 +16,5 @@ tests = testGroup
           "OrgMode Parser Tests"
           [ parserHeadingTests
           , parserPropertyDrawerTests
+          , parserTimestampTests
           ]
