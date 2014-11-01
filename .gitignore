@@ -3,6 +3,7 @@
 *.egg-info
 \#*
 .#*dist
+.#*
 cabal-dev
 dist
 *.o
