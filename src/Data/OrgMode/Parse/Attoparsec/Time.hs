@@ -37,6 +37,8 @@ import           Data.OrgMode.Parse.Internal
 activeTimestamp :: TP.Parser Text LocalTime
 activeTimestamp = do
     s'    <- skipSpace *> scheduled
+    -- TODO: need to convert the Parser type from ByteString specific
+    -- to Text!
     stamp <- skipSpace *> timeParser defaultTimeLocale formatString
     return $ buildTime stamp
   where

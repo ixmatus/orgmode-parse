@@ -17,11 +17,13 @@ module Data.OrgMode.Parse.Internal
 , State    (..)
 , Keyword  (..)
 , PropertyDrawer (..)
+, Scheduled (..)
 , toPriority
 ) where
 
-import           Data.HashMap.Strict (HashMap)
-import           Data.Text           (Text)
+import           Data.HashMap.Strict  (HashMap)
+import           Data.Text            (Text)
+import           Data.Thyme.LocalTime (LocalTime (..))
 
 ----------------------------------------------------------------------------
 
@@ -52,4 +54,12 @@ toPriority _   = Unknown
 ----------------------------------------------------------------------------
 
 newtype PropertyDrawer k v = PropertyDrawer (HashMap k v)
+  deriving (Show, Eq)
+
+----------------------------------------------------------------------------
+
+data Scheduled = SCHEDULED | DEADLINE
+  deriving (Show, Eq)
+
+data Timestamp = Active LocalTime | Inactive LocalTime
   deriving (Show, Eq)
