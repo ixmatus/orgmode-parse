@@ -36,9 +36,6 @@ Library
     Data.OrgMode.Parse
     Data.OrgMode.Parse.Types
 
-  Other-Modules:
-    Data.OrgMode.Parse.Internal
-
   Build-Depends:
     base                      >= 4.4      && < 5,
     attoparsec                >= 0.12     && < 0.13,
