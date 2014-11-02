@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.0.1.2
+Version:                0.0.2.0
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -15,7 +15,7 @@ Description:
   .
   This library parses the human-readable and textual representation
   into an AST that can be used for output to another format (HTML?
-  Markdown?), binary serialized for storage, etc...
+  Markdown?), serialized for storage, etc...
 
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
