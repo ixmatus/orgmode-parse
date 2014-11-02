@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.0.2.0
+Version:                0.0.2.1
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -34,6 +34,7 @@ Library
 
   Exposed-Modules:
     Data.OrgMode.Parse
+    Data.OrgMode.Parse.Types
 
   Other-Modules:
     Data.OrgMode.Parse.Internal

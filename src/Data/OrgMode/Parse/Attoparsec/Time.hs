@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.Headings
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Time
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -13,26 +13,25 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Time
-( module Data.OrgMode.Parse.Internal
-, parseTimestamp
+( parseTimestamp
 , scheduleType
 )
 where
 
-import           Control.Applicative         ((*>), (<$>), (<*), (<|>))
-import qualified Data.Attoparsec.ByteString  as AB
-import           Data.Attoparsec.Text        as T
-import           Data.Attoparsec.Types       as TP (Parser)
-import           Data.Maybe                  (isJust)
-import           Data.Text                   as Text (Text, isPrefixOf, unwords,
-                                                      words)
-import           Data.Text.Encoding          (encodeUtf8)
-import           Data.Thyme.Format           (buildTime, timeParser)
-import           Prelude                     hiding (concat, null, takeWhile,
-                                              unwords, words)
-import           System.Locale               (defaultTimeLocale)
+import           Control.Applicative        ((*>), (<$>), (<*), (<|>))
+import qualified Data.Attoparsec.ByteString as AB
+import           Data.Attoparsec.Text       as T
+import           Data.Attoparsec.Types      as TP (Parser)
+import           Data.Maybe                 (isJust)
+import           Data.Text                  as Text (Text, isPrefixOf, unwords,
+                                                     words)
+import           Data.Text.Encoding         (encodeUtf8)
+import           Data.Thyme.Format          (buildTime, timeParser)
+import           Prelude                    hiding (concat, null, takeWhile,
+                                             unwords, words)
+import           System.Locale              (defaultTimeLocale)
 
-import           Data.OrgMode.Parse.Internal
+import           Data.OrgMode.Parse.Types
 
 
 -- | Parse an org-mode timestamp line with user-supplied opening and

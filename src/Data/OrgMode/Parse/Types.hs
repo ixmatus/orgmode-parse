@@ -1,17 +1,17 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Internal
+-- Module      :  Data.OrgMode.Parse.Types
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
 --
--- Internal types and utility functions.
+-- Types and utility functions.
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.OrgMode.Parse.Internal
+module Data.OrgMode.Parse.Types
 ( Heading  (..)
 , Priority (..)
 , State    (..)

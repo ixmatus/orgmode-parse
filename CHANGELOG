@@ -1,6 +1,10 @@
 -*- mode: org -*-
 
 * Changelog
+** 0.0.2.1
+*** Bugfixes
+    - [X] Fixing the import for the =Internal= module (instead of
+      re-exporting it in each parser module).
 ** 0.0.2.0
 *** Features
     - [X] Added parsers for the scheduled / deadline timestamps.

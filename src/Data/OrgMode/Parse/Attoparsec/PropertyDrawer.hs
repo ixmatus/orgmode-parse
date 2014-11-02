@@ -13,20 +13,19 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
-( module Data.OrgMode.Parse.Internal
-, drawer
+( drawer
 , property
 )
 where
 
-import           Control.Applicative         ((*>), (<*))
-import           Data.Attoparsec.Text        as T
-import           Data.Attoparsec.Types       as TP (Parser)
-import           Data.HashMap.Strict         (fromList)
-import           Data.Text                   as Text (Text, strip)
-import           Prelude                     hiding (concat, null, takeWhile)
+import           Control.Applicative      ((*>), (<*))
+import           Data.Attoparsec.Text     as T
+import           Data.Attoparsec.Types    as TP (Parser)
+import           Data.HashMap.Strict      (fromList)
+import           Data.Text                as Text (Text, strip)
+import           Prelude                  hiding (concat, null, takeWhile)
 
-import           Data.OrgMode.Parse.Internal
+import           Data.OrgMode.Parse.Types
 
 -- | Parse a property drawer.
 --

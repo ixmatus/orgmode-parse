@@ -13,8 +13,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headings
-( module Data.OrgMode.Parse.Internal
-, heading
+( heading
 , headingLevel
 , headingPriority
 , headingTitle
@@ -22,16 +21,16 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 )
 where
 
-import           Control.Applicative         ((*>), (<*), (<|>))
-import           Data.Attoparsec.Text        as T
-import           Data.Attoparsec.Types       as TP (Parser)
-import           Data.Char                   (isUpper)
-import           Data.Maybe                  (catMaybes, isJust)
-import           Data.Text                   as Text (Text, concat, length,
-                                                      null, pack)
-import           Prelude                     hiding (concat, null, takeWhile)
+import           Control.Applicative      ((*>), (<*), (<|>))
+import           Data.Attoparsec.Text     as T
+import           Data.Attoparsec.Types    as TP (Parser)
+import           Data.Char                (isUpper)
+import           Data.Maybe               (catMaybes, isJust)
+import           Data.Text                as Text (Text, concat, length, null,
+                                                   pack)
+import           Prelude                  hiding (concat, null, takeWhile)
 
-import           Data.OrgMode.Parse.Internal
+import           Data.OrgMode.Parse.Types
 
 -- | Parse an org-mode heading.
 heading :: TP.Parser Text Heading
