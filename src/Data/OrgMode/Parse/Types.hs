@@ -28,8 +28,19 @@ module Data.OrgMode.Parse.Types
 import           Data.HashMap.Strict  (HashMap)
 import           Data.Text            (Text)
 import           Data.Thyme.LocalTime (LocalTime (..))
+import           Data.Tree            (Forest(..),Tree(..))
 
 ----------------------------------------------------------------------------
+data OrgDocument = OrgDocument {
+  headings :: Forest OrgSection
+  } deriving (Show, Eq)
+
+data OrgSection = OrgSection {
+    sectionHeading :: Heading
+  , sectionPropertyDrawer :: Maybe (PropertyDrawer Text Text)
+  , sectionSchedules :: [Schedule]
+  , sectionClockEntries :: [ClockEntry]
+  } deriving (Show, Eq)
 
 data Heading = Heading
     { level    :: Int
@@ -75,3 +86,7 @@ data Timestamp = Active LocalTime | Inactive LocalTime
 
 newtype Open = Open Char
 newtype Close = Close Char
+
+data ClockEntry = ClockOngoing LocalTime
+                | ClockInterval (LocalTime,LocalTime)
+                deriving (Show, Eq)

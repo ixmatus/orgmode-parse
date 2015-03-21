@@ -13,7 +13,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Time
-( parseTimestamp
+( parseTimestampLine
 , scheduleType
 )
 where
@@ -33,11 +33,27 @@ import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Parse.Types
 
+-- | Parse an org-mode timestamp (eg "[2015-03-21 Sat 09:45]") with
+-- user-supplied opening and ending brackets
+parseTimestamp :: Open -> Close -> TP.Parser Text Timestamp
+parseTimestamp (Open s) (Close e) = activeState <$>
+  char s *>
+  (timeParser1 <|> timeParser2)
+  <* AB.many' (skipSpace *> parseRecur)
+  <* char e
+  where
+    activeState = if s == '<' && e == '>'
+                  then Active else Inactive
+    timeParser1 = timeParser defaultTimeLocale "%Y-%m-%d %a %H:%M"
+    timeParser2 = timeParser defaultTimeLocale "%Y-%m-%d %a"
+--      dropRecur   = unwords . filter (not . isPrefixOf "+") . words
+    parseRecur  = char "+" *> AB.many' (digit <|> oneOf "ymdwhm") -- TODO
+    oneOf xs    = AB.choice (map char xs)
 
 -- | Parse an org-mode timestamp line with user-supplied opening and
 -- ending brackets (for either active or inactive stamps).
-parseTimestamp :: Open -> Close -> TP.Parser Text (Maybe Schedule)
-parseTimestamp (Open s) (Close e) = do
+parseTimestampLine :: Open -> Close -> TP.Parser Text (Maybe Schedule)
+parseTimestampLine (Open s) (Close e) = do
     s'    <- skipSpace *> scheduleType
     stamp <- skipSpace *> char s *> takeTill (== e) <* char e
 

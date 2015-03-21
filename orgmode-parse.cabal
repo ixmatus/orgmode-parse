@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.0.2.1
+Version:                0.0.2.2
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -37,13 +37,15 @@ Library
     Data.OrgMode.Parse.Types
 
   Build-Depends:
-    base                      >= 4.4      && < 5,
-    attoparsec                >= 0.12     && < 0.13,
-    unordered-containers      >= 0.2      && < 0.3,
-    thyme                     >= 0.3      && < 0.4,
-    old-locale                >= 1.0      && < 2.0,
-    free                      >= 4.9      && < 5,
-    text                      >= 1.0      && < 2.0
+                  attoparsec                >= 0.12     && < 0.13
+                , base                      >= 4.4      && < 5
+                , bytestring
+                , containers                >= 0.5.5    && < 0.6
+                , free                      >= 4.9      && < 5
+                , old-locale                >= 1.0      && < 2.0
+                , text                      >= 1.0      && < 2.0
+                , thyme                     >= 0.3      && < 0.4
+                , unordered-containers      >= 0.2      && < 0.3
 
 Test-Suite tests
   Type:                 exitcode-stdio-1.0
