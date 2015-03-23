@@ -37,7 +37,8 @@ Library
     Data.OrgMode.Parse.Types
 
   Build-Depends:
-                  attoparsec                >= 0.12     && < 0.13
+                  aeson
+                , attoparsec                >= 0.12     && < 0.13
                 , base                      >= 4.4      && < 5
                 , bytestring
                 , containers                >= 0.5.5    && < 0.6

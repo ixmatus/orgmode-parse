@@ -45,7 +45,7 @@ data OrgSection = OrgSection {
 data Heading = Heading
     { level    :: Int
     , priority :: Maybe Priority
-    , state    :: Maybe State
+    , state    :: Maybe TodoState
     , title    :: Text
     , keywords :: [Keyword]
     } deriving (Show, Eq)
@@ -54,7 +54,7 @@ data Heading = Heading
 data Priority = A | B | C | Unknown
   deriving (Show, Read, Eq, Ord)
 
-newtype State = State Text
+newtype TodoState = TodoState Text
   deriving (Show, Eq)
 
 newtype Keyword = Keyword Text
@@ -90,3 +90,50 @@ newtype Close = Close Char
 data ClockEntry = ClockOngoing LocalTime
                 | ClockInterval (LocalTime,LocalTime)
                 deriving (Show, Eq)
+
+instance A.ToJSON OrgSection where
+  toJSON (OrgSection secHead secProps secSched secClocks) =
+    A.Object ["heading"    .= A.toJSON secHead
+             ,"properties" .= A.toJSON segProps
+             ,"schedules"  .= A.toJSON secSched
+             ,"clocks"     .= A.toJSON segClocks
+             ]
+
+instance A.ToJSON Heading where
+  toJSON (Heading hLevel hPr hTodoState hTitle hTags) =
+    A.Object ["level"     .= A.Number hLevel
+             ,"priority"  .= A.toJSON hPr
+             ,"todoState" .= A.toJSON hTodoState
+             ,"title"     .= A.Text hTitle
+             ,"tags"      .= A.toJSON hTags
+             ]
+
+instance A.ToJSON Schedule where
+  toJSON (Schedule sType sTs sRecur) =
+    A.Object ["type"  .= show sType
+             ,"time"    .= A.toJSON sTs
+             ,"recur" .= A.toJSON sRecur
+             ]
+
+instance A.ToJSON Timestamp where
+  toJSON (Active t)   = A.Object
+                        ["timestamp"       .= show t
+                        ,"timestampActive" .= True]
+  toJSON (Inactive t) = A.Object
+                        ["timestamp"       .= show t
+                        ,"timestampActive" .= False]
+
+instance A.ToJSON v => A.ToJSON PropertDrawer Text v where
+  toJSON (PropertyDrawer m) = A.toJSON m
+
+instance A.ToJSON Priority where
+  toJSON A = A.String "A"
+  toJSON B = A.String "B"
+  toJSON C = A.String "C"
+  toJSON _ = A.Null
+
+instance A.ToJSON ClockEntry where
+  toJSON (ClockOngoing t) =
+      A.Array [A.toJSON t]
+    toJSON (ClockInterval (t1,t2)) =
+      A.Array (map A.toJSON [t1,t2])
