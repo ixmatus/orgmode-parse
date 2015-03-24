@@ -10,9 +10,12 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric     #-}
 
 module Data.OrgMode.Parse.Types
-( Heading  (..)
+( OrgDocument (..)
+, OrgSection (..)
+, Heading  (..)
 , Priority (..)
 , State    (..)
 , Keyword  (..)
@@ -23,12 +26,20 @@ module Data.OrgMode.Parse.Types
 , Open         (..)
 , Close        (..)
 , toPriority
+, DateTime (..)
+, TimeUnit (..)
+, RepeaterType (..)
+, Repeater (..)
+, DelayType (..)
+, Delay (..)
 ) where
 
 import           Data.HashMap.Strict  (HashMap)
 import           Data.Text            (Text)
-import           Data.Thyme.LocalTime (LocalTime (..))
+import           Data.Thyme.Calendar  (YearMonthDay(..))
+import           Data.Thyme.LocalTime (LocalTime (..), Hour(..),Minute(..))
 import           Data.Tree            (Forest(..),Tree(..))
+import           GHC.Generics
 
 ----------------------------------------------------------------------------
 data OrgDocument = OrgDocument {
@@ -79,10 +90,48 @@ data Schedule = Schedule
     } deriving (Show, Eq)
 
 data ScheduleType = SCHEDULED | DEADLINE | APPOINTMENT
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
 
-data Timestamp = Active LocalTime | Inactive LocalTime
-  deriving (Show, Eq)
+data Timestamp = Dairy Text
+               | Time  TimestampTime
+               deriving (Show, Eq, Generic)
+
+data TimestampTime = TimestampTime {
+    tsTimes  :: Either DateTime (DateTime, DateTime)
+  , tsActive :: Bool
+  } deriving (Eq, Show)
+
+data DateTime = DateTime {
+    yearMonthDay :: YearMonthDay
+  , dayName      :: Maybe Text
+  , hourMinute   :: (Hour,Minute)
+  , repeater     :: Maybe Repeater
+  , delay        :: Maybe Delay
+  } deriving (Eq, Show)
+
+data TimeUnit = UnitYear
+              | UnitWeek
+              | UnitMonth
+              | UnitDay
+              | UnitHour
+              deriving (Eq, Show, Generic)
+
+data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
+                  deriving (Eq, Show, Generic)
+
+data Repeater = Repeater {
+    repeaterType :: RepeaterType
+  , repeaterValue :: (Int, TimeUnit)
+  } deriving (Eq, Show, Generic)
+
+data DelayType = DelayAll | DelayFirst
+               deriving (Eq, Show, Generic)
+
+data Delay = Delay {
+    delayType :: DelayType
+  , delayValue :: (Int, TimeUnit)
+  } deriving (Eq, Show, Generic)
+
 
 newtype Open = Open Char
 newtype Close = Close Char
