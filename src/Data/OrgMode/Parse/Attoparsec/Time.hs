@@ -18,7 +18,7 @@ module Data.OrgMode.Parse.Attoparsec.Time
 )
 where
 
-import           Control.Applicative        ((*>), (<$>), (<*), (<|>))
+import           Control.Applicative        ((<*>), (*>), (<$>), (<*), (<|>), pure)
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
@@ -27,12 +27,52 @@ import           Data.Text                  as Text (Text, isPrefixOf, unwords,
                                                      words)
 import           Data.Text.Encoding         (encodeUtf8)
 import           Data.Thyme.Format          (buildTime, timeParser)
+import           Data.Thyme.LocalTime       (Hours, Minutes)
 import           Prelude                    hiding (concat, null, takeWhile,
                                              unwords, words)
 import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Parse.Types
 
+-- | Parse diary line
+parseDiary :: TP.Parser Text Timestamp
+parseDiary = string "<%%" *> manyTill (char '>') (try (char '>'))
+
+parseShortTimeRange :: TP.Parser Text ((Hours,Minutes),(Hours,Minutes))
+parseShortTimeRange = (,) <$> parseHoursMinutes <* char '-' *> parseHoursMinutes
+
+parseHoursMinutes :: TP.Parser Text (Hours,Minutes)
+parseHoursMinutes = (,) <$> decimal <* char ':' *> decimal
+
+parseRepeaterType :: TP.Parser Text RepeaterType
+parseRepeaterType = choice 
+
+parseTimeUnit :: TP.Parser Text TimeUnit
+parseTimeUnit = choice [char 'h' *> UnitHour
+                       ,char 'd' *> UnitDay
+                       ,char 'w' *> UnitWeek
+                       ,char 'm' *> UnitMonth
+                       ,char 'y' *> UnitYear]
+
+parseRepeater :: TP.Parser Text Repeater
+parseRepeater = Repeater
+                <$> choice[string "++" *> pure RepeatCumulate
+                          ,string "+"  *> pure RepeatCatchUp
+                          ,string ".+" *> pure RepeatRestart
+                          ]
+                <*> decimal
+                <*> parseTimeUnit
+
+parseDelay :: TP.Parser Text Delay
+parseDelay = Delay
+             <$> choice [string "--" *> pure DelayFirst
+                        ,string "-"  *> pure DelayAll
+                        ]
+             <*> decimal
+             <*> parseTimeUnit
+
+-- | Parse org-mode Timestamps
+parseTimestamp :: TP.Parsere Text Timestamp
 -- | Parse an org-mode timestamp (eg "[2015-03-21 Sat 09:45]") with
 -- user-supplied opening and ending brackets
 parseTimestamp :: Open -> Close -> TP.Parser Text Timestamp
