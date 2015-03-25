@@ -18,11 +18,11 @@ module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 )
 where
 
-import           Control.Applicative      ((*>), (<*))
+import           Control.Applicative      ((*>), (<*), (<*>),(<*>),pure)
 import           Data.Attoparsec.Text     as T
-import           Data.Attoparsec.Types    as TP (Parser)
+import           Data.Attoparsec.Types    as TP
 import           Data.HashMap.Strict      (fromList)
-import           Data.Text                as Text (Text, strip)
+import           Data.Text                as Text (Text, strip, pack, unpack)
 import           Prelude                  hiding (concat, null, takeWhile)
 
 import           Data.OrgMode.Parse.Types

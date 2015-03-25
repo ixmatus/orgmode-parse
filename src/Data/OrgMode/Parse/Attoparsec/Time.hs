@@ -20,6 +20,7 @@ import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
 import qualified Data.ByteString.Char8      as BS
+import           Data.HashMap.Strict        (fromList)
 import           Data.Maybe                 (listToMaybe, fromJust, isJust)
 import           Data.Text                  as Text (Text, isPrefixOf, unwords,
                                                      pack, unpack, words)
@@ -32,6 +33,15 @@ import           Prelude                    hiding (concat, null, takeWhile,
 import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Parse.Types
+
+
+parsePlannings :: TP.Parser Text (HashMap PlanningType Timestamp)
+parsePlannings = fromList <$> (many' (planning <* skipSpace))
+parsePlanning =  (,) <$> pType <* char ':' *> skipSpace *> parseTimestamp
+  where pType = choice [string "SCHEDULED" *> pure SCHEDULED
+                       ,string "DEADLINE"  *> pure DEADLINE
+                       ,string "CLOSED"    *> pure CLOSED
+                       ]
 
 parseTimestamp :: TP.Parser Text Timestamp
 parseTimestamp = do
