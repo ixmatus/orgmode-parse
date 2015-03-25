@@ -47,64 +47,67 @@ data OrgDocument = OrgDocument {
   } deriving (Show, Eq)
 
 data OrgSection = OrgSection {
-    sectionHeading :: Heading
-  , sectionPropertyDrawer :: Maybe (PropertyDrawer Text Text)
-  , sectionSchedules :: [Schedule]
-  , sectionClockEntries :: [ClockEntry]
+      sectionHeading  :: Heading
+    , sectionElements :: [Element]
   } deriving (Show, Eq)
 
 data Heading = Heading
     { level    :: Int
+    , keyword  :: Maybe TodoKeyword
     , priority :: Maybe Priority
-    , state    :: Maybe TodoState
     , title    :: Text
-    , keywords :: [Keyword]
+    , tags     :: [Text]
+    , stats    :: Maybe Stats
     } deriving (Show, Eq)
 
 
-data Priority = A | B | C | Unknown
+data Priority = A | B | C
   deriving (Show, Read, Eq, Ord)
 
-newtype TodoState = TodoState Text
+data TodoKeyword = TODO
+                 | DONE
+                 | OtherKeyword Text
   deriving (Show, Eq)
 
 newtype Keyword = Keyword Text
   deriving (Show, Eq, Ord)
 
+-- TODO Parse priority rather than pattern matching here
 toPriority :: Text -> Priority
 toPriority "A" = A
 toPriority "B" = B
 toPriority "C" = C
-toPriority _   = Unknown
+
+data Stats = StatsPtc Int
+           | StatsOf  Int Int
+           deriving (Eq, Show, Generic)
 
 ----------------------------------------------------------------------------
+data Element = Clock    (Maybe Timestamp) (Maybe Duration)
+             | Planning [(PlanningType, Maybe Timestamp)]
+             | PropertyDrawer (HashMap Text Text)
+             deriving (Eq, Show, Generic)
 
-newtype PropertyDrawer k v = PropertyDrawer (HashMap k v)
-  deriving (Show, Eq)
+type Duration = (Hour,Minute)
 
-----------------------------------------------------------------------------
-data Schedule = Schedule
-    { schedule_type :: ScheduleType
-    , timestamp     :: Maybe Timestamp
-    , recurring     :: Maybe Text
-    } deriving (Show, Eq)
-
-data ScheduleType = SCHEDULED | DEADLINE | APPOINTMENT
+data PlanningType = SCHEDULED | DEADLINE | APPOINTMENT
   deriving (Show, Eq, Generic)
 
-data Timestamp = Dairy Text
-               | Time  TimestampTime
-               deriving (Show, Eq, Generic)
+-- -- This might be the form to use if we were supporting <diary> timestamps
+-- data Timestamp = Dairy Text
+--                | Time  TimestampTime
+--               deriving (Show, Eq, Generic)
 
-data TimestampTime = TimestampTime {
-    tsTimes  :: Either DateTime (DateTime, DateTime)
-  , tsActive :: Bool
+data Timestamp = Timestamp {
+    tsTime    :: DateTime
+  , tsActive  :: Bool
+  , tsEndTime :: Maybe DateTime
   } deriving (Eq, Show)
 
 data DateTime = DateTime {
     yearMonthDay :: YearMonthDay
   , dayName      :: Maybe Text
-  , hourMinute   :: (Hour,Minute)
+  , hourMinute   :: Maybe (Hour,Minute)
   , repeater     :: Maybe Repeater
   , delay        :: Maybe Delay
   } deriving (Eq, Show)
@@ -120,69 +123,69 @@ data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
                   deriving (Eq, Show, Generic)
 
 data Repeater = Repeater {
-    repeaterType :: RepeaterType
-  , repeaterValue :: (Int, TimeUnit)
+    repeaterType  :: RepeaterType
+  , repeaterValue :: Int
+  , repeaterUnit  :: TimeUnit
   } deriving (Eq, Show, Generic)
 
 data DelayType = DelayAll | DelayFirst
                deriving (Eq, Show, Generic)
 
 data Delay = Delay {
-    delayType :: DelayType
-  , delayValue :: (Int, TimeUnit)
+    delayType  :: DelayType
+  , delayValue :: Int
+  , delayUnit  :: TimeUnit
   } deriving (Eq, Show, Generic)
 
 
-newtype Open = Open Char
-newtype Close = Close Char
 
 data ClockEntry = ClockOngoing LocalTime
                 | ClockInterval (LocalTime,LocalTime)
                 deriving (Show, Eq)
 
-instance A.ToJSON OrgSection where
-  toJSON (OrgSection secHead secProps secSched secClocks) =
-    A.Object ["heading"    .= A.toJSON secHead
-             ,"properties" .= A.toJSON segProps
-             ,"schedules"  .= A.toJSON secSched
-             ,"clocks"     .= A.toJSON segClocks
-             ]
+-- instance A.ToJSON OrgSection where
+--   toJSON (OrgSection secHead secProps secSched secClocks) =
+--     A.Object ["heading"    .= A.toJSON secHead
+--              ,"properties" .= A.toJSON segProps
+--              ,"schedules"  .= A.toJSON secSched
+--              ,"clocks"     .= A.toJSON segClocks
+--              ]
 
-instance A.ToJSON Heading where
-  toJSON (Heading hLevel hPr hTodoState hTitle hTags) =
-    A.Object ["level"     .= A.Number hLevel
-             ,"priority"  .= A.toJSON hPr
-             ,"todoState" .= A.toJSON hTodoState
-             ,"title"     .= A.Text hTitle
-             ,"tags"      .= A.toJSON hTags
-             ]
+-- instance A.ToJSON Heading where
+--   toJSON (Heading hLevel hPr hTodoState hTitle hTags) =
+--     A.Object ["level"     .= A.Number hLevel
+--              ,"priority"  .= A.toJSON hPr
+--              ,"todoState" .= A.toJSON hTodoState
+--              ,"title"     .= A.Text hTitle
+--              ,"tags"      .= A.toJSON hTags
+--              ]
 
-instance A.ToJSON Schedule where
-  toJSON (Schedule sType sTs sRecur) =
-    A.Object ["type"  .= show sType
-             ,"time"    .= A.toJSON sTs
-             ,"recur" .= A.toJSON sRecur
-             ]
+-- instance A.ToJSON Schedule where
+--   toJSON (Schedule sType sTs sRecur) =
+--     A.Object ["type"  .= show sType
+--              ,"time"    .= A.toJSON sTs
+--              ,"recur" .= A.toJSON sRecur
+--              ]
 
-instance A.ToJSON Timestamp where
-  toJSON (Active t)   = A.Object
-                        ["timestamp"       .= show t
-                        ,"timestampActive" .= True]
-  toJSON (Inactive t) = A.Object
-                        ["timestamp"       .= show t
-                        ,"timestampActive" .= False]
+-- instance A.ToJSON Timestamp where
+--   toJSON (Active t)   = A.Object
+--                         ["timestamp"       .= show t
+--                         ,"timestampActive" .= True]
+--   toJSON (Inactive t) = A.Object
+--                         ["timestamp"       .= show t
+--                         ,"timestampActive" .= False]
 
-instance A.ToJSON v => A.ToJSON PropertDrawer Text v where
-  toJSON (PropertyDrawer m) = A.toJSON m
+-- instance A.ToJSON v => A.ToJSON PropertDrawer Text v where
+--   toJSON (PropertyDrawer m) = A.toJSON m
 
-instance A.ToJSON Priority where
-  toJSON A = A.String "A"
-  toJSON B = A.String "B"
-  toJSON C = A.String "C"
-  toJSON _ = A.Null
+-- instance A.ToJSON Priority where
+--   toJSON A = A.String "A"
+--   toJSON B = A.String "B"
+--   toJSON C = A.String "C"
+--   toJSON _ = A.Null
 
-instance A.ToJSON ClockEntry where
-  toJSON (ClockOngoing t) =
-      A.Array [A.toJSON t]
-    toJSON (ClockInterval (t1,t2)) =
-      A.Array (map A.toJSON [t1,t2])
+-- instance A.ToJSON ClockEntry where
+--   toJSON (ClockOngoing t) =
+--       A.Array [A.toJSON t]
+--     toJSON (ClockInterval (t1,t2)) =
+--       A.Array (map A.toJSON [t1,t2])
