@@ -20,11 +20,10 @@ import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
 import qualified Data.ByteString.Char8      as BS
-import           Data.HashMap.Strict        (HashMap(..),fromList)
-import           Data.Maybe                 (listToMaybe, fromJust, isJust)
-import           Data.Text                  as Text (Text, isPrefixOf, unwords,
-                                                     pack, unpack, words)
-import           Data.Text.Encoding         (encodeUtf8)
+import           Data.HashMap.Strict        (HashMap,fromList)
+import           Data.Maybe                 (listToMaybe)
+import           Data.Text                  as Text (Text, unwords,
+                                                     pack, unpack )
 import           Data.Thyme.Calendar        (YearMonthDay(..))
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
@@ -96,6 +95,7 @@ parseBracketedDateTime = do
       return ( DateTime datePart dName (Just t1)repPart delPart
              , Just t2
              , activeBracket '<')
+    Nothing -> fail "Failed to parse a timestamp (HH:MM)"
 
     where activeBracket = (=='<')
           complementaryBracket '<' = '>'

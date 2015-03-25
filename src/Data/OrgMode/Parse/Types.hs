@@ -22,6 +22,8 @@ module Data.OrgMode.Parse.Types
 , PlanningKeyword (..)
 , Timestamp    (..)
 , DateTime (..)
+, Stats (..)
+, Tag
 , TimeUnit (..)
 , RepeaterType (..)
 , Repeater (..)
@@ -33,8 +35,7 @@ import           Data.Hashable        (Hashable(..))
 import           Data.HashMap.Strict  (HashMap)
 import           Data.Text            (Text)
 import           Data.Thyme.Calendar  (YearMonthDay(..))
-import           Data.Thyme.LocalTime (LocalTime (..), Hour(..),Minute(..))
-import           Data.Tree            (Forest(..),Tree(..))
+import           Data.Thyme.LocalTime (Hour, Minute)
 import           GHC.Generics
 
 ----------------------------------------------------------------------------
@@ -56,7 +57,7 @@ data Heading = Heading
     , priority    :: Maybe Priority     -- Header line
     , title       :: Text               -- properties
     , stats       :: Maybe Stats        --
-    , tags        :: [Text]             --
+    , tags        :: [Tag]             --
     , section     :: Section            -- Next-line
     , subHeadings :: [Heading]          -- elements
     } deriving (Show, Eq, Generic)
@@ -70,8 +71,9 @@ data TodoKeyword = TODO
                  | OtherKeyword Text
   deriving (Show, Eq, Generic)
 
+type Tag = Text
 
-data Stats = StatsPtc Int
+data Stats = StatsPct Int
            | StatsOf  Int Int
            deriving (Show, Eq, Generic)
 

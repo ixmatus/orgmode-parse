@@ -13,7 +13,7 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
-( drawer
+( parseDrawer
 , property
 )
 where
@@ -21,7 +21,7 @@ where
 import           Control.Applicative      ((*>), (<*), (<*>),(<*>),pure)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP
-import           Data.HashMap.Strict      (fromList)
+import           Data.HashMap.Strict      (HashMap(..),fromList)
 import           Data.Text                as Text (Text, strip, pack, unpack)
 import           Prelude                  hiding (concat, null, takeWhile)
 
@@ -33,10 +33,10 @@ import           Data.OrgMode.Parse.Types
 -- > :DATE: [2014-12-14 11:00]
 -- > :NOTE: Something really crazy happened today!
 -- > :END:
-drawer :: TP.Parser Text (PropertyDrawer Text Text)
-drawer = do
+parseDrawer :: TP.Parser Text (HashMap Text Text)
+parseDrawer = do
     props <- begin *> manyTill property end
-    return . PropertyDrawer $ fromList props
+    return $ fromList props
   where
     begin   = ident "PROPERTIES"
     end     = ident "END"
