@@ -20,7 +20,7 @@ import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
 import qualified Data.ByteString.Char8      as BS
-import           Data.HashMap.Strict        (fromList)
+import           Data.HashMap.Strict        (HashMap(..),fromList)
 import           Data.Maybe                 (listToMaybe, fromJust, isJust)
 import           Data.Text                  as Text (Text, isPrefixOf, unwords,
                                                      pack, unpack, words)
@@ -35,13 +35,20 @@ import           System.Locale              (defaultTimeLocale)
 import           Data.OrgMode.Parse.Types
 
 
-parsePlannings :: TP.Parser Text (HashMap PlanningType Timestamp)
+parsePlannings :: TP.Parser Text (HashMap PlanningKeyword Timestamp)
 parsePlannings = fromList <$> (many' (planning <* skipSpace))
-parsePlanning =  (,) <$> pType <* char ':' *> skipSpace *> parseTimestamp
-  where pType = choice [string "SCHEDULED" *> pure SCHEDULED
-                       ,string "DEADLINE"  *> pure DEADLINE
-                       ,string "CLOSED"    *> pure CLOSED
-                       ]
+  where planning :: TP.Parser Text (PlanningKeyword, Timestamp)
+        planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
+        pType    = choice [string "SCHEDULED" *> pure SCHEDULED
+                          ,string "DEADLINE"  *> pure DEADLINE
+                          ,string "CLOSED"    *> pure CLOSED
+                          ]
+
+parseClock :: TP.Parser Text (Maybe Timestamp, Maybe Duration)
+parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
+  where ts  = option Nothing (Just <$> parseTimestamp)
+        dur = option Nothing (Just <$> (string " => "
+                              *> skipSpace *> parseHM))
 
 parseTimestamp :: TP.Parser Text Timestamp
 parseTimestamp = do
@@ -139,64 +146,3 @@ parseDelay = Delay
              <*> decimal
              <*> parseTimeUnit
 
--- -- | Parse org-mode Timestamps
--- parseTimestamp :: TP.Parsere Text Timestamp
--- -- | Parse an org-mode timestamp (eg "[2015-03-21 Sat 09:45]") with
--- -- user-supplied opening and ending brackets
--- parseTimestamp :: Open -> Close -> TP.Parser Text Timestamp
--- parseTimestamp (Open s) (Close e) = activeState <$>
---   char s *>
---   (timeParser1 <|> timeParser2)
---   <* AB.many' (skipSpace *> parseRecur)
---   <* char e
---   where
---     activeState = if s == '<' && e == '>'
---                   then Active else Inactive
---     timeParser1 = timeParser defaultTimeLocale "%Y-%m-%d %a %H:%M"
---     timeParser2 = timeParser defaultTimeLocale "%Y-%m-%d %a"
--- --      dropRecur   = unwords . filter (not . isPrefixOf "+") . words
---     parseRecur  = char "+" *> AB.many' (digit <|> oneOf "ymdwhm") -- TODO
---     oneOf xs    = AB.choice (map char xs)
-
--- | Parse an org-mode timestamp line with user-supplied opening and
--- ending brackets (for either active or inactive stamps).
-parseTimestampLine :: Open -> Close -> TP.Parser Text (Maybe Schedule)
-parseTimestampLine (Open s) (Close e) = do
-    s'    <- skipSpace *> scheduleType
-    stamp <- skipSpace *> char s *> takeTill (== e) <* char e
-
-    let parts  = words stamp
-        r      = if recur parts then Just $ last parts else Nothing
-        parsed = undefined
-        stamp' = undefined -- Drop code refering to old Schedule structure, allow to compile
-        sched  = undefined -- ^
-
-    if isJust $ timestamp sched
-    then return $ Just sched
-    else return Nothing
-
-  where
-    recur p = isPrefixOf "+" $ last p
-
-    stitch p | recur p   = unwords $ init p
-             | otherwise = unwords p
-
-    timeParser1 = timeParser defaultTimeLocale "%Y-%m-%d %a %H:%M"
-    timeParser2 = timeParser defaultTimeLocale "%Y-%m-%d %a"
-
-    parseStamp p = either (return Nothing) (fmap buildTime) $
-      AB.parseOnly
-        (option Nothing (Just <$> (timeParser1 <|> timeParser2)))
-        (encodeUtf8 $ stitch p)
-
--- | Parse the type of schedule.
-scheduleType :: TP.Parser Text ScheduleType
-scheduleType = do
-    sd <- option Nothing sched <* skipWhile (== ':')
-    return $ case sd of
-        Just "DEADLINE"  -> DEADLINE
-        Just "SCHEDULED" -> SCHEDULED
-        Just _           -> APPOINTMENT
-        Nothing          -> APPOINTMENT
-  where
-    sched = Just <$> (string "DEADLINE" <|> string "SCHEDULED")

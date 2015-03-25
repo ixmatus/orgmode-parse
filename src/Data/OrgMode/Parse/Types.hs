@@ -19,6 +19,7 @@ module Data.OrgMode.Parse.Types
 , Priority (..)
 , TodoKeyword  (..)
 , Duration
+, PlanningKeyword (..)
 , Timestamp    (..)
 , DateTime (..)
 , TimeUnit (..)
@@ -28,6 +29,7 @@ module Data.OrgMode.Parse.Types
 , Delay (..)
 ) where
 
+import           Data.Hashable        (Hashable(..))
 import           Data.HashMap.Strict  (HashMap)
 import           Data.Text            (Text)
 import           Data.Thyme.Calendar  (YearMonthDay(..))
@@ -77,7 +79,10 @@ data Stats = StatsPtc Int
 type Duration = (Hour,Minute)
 
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Enum, Ord, Generic)
+
+instance Hashable PlanningKeyword where
+  hashWithSalt salt k = hashWithSalt salt (fromEnum k)
 
 -- -- This might be the form to use if we were supporting <diary> timestamps
 -- data Timestamp = Dairy Text
