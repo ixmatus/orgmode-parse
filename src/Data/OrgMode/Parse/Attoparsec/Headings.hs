@@ -47,7 +47,7 @@ headingBelowLevel otherKeywords levelReq = do
     endOfLine
     sect <- parseSection otherKeywords
     subs <- many' (headingBelowLevel otherKeywords (levelReq + 1))
-    return $ Heading lvl td pr tl s (fromMaybe [] k) undefined subs
+    return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
 
 -- | Parse the asterisk indicated heading level until a space is
