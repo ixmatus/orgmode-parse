@@ -31,6 +31,7 @@ module Data.OrgMode.Parse.Types
 , Delay (..)
 ) where
 
+import qualified Data.Aeson           as A
 import           Data.Hashable        (Hashable(..))
 import           Data.HashMap.Strict  (HashMap)
 import           Data.Text            (Text)
@@ -44,12 +45,18 @@ data Document = Document {
   , topHeadings :: [Heading]
   } deriving (Show, Eq, Generic)
 
+instance A.ToJSON Document where
+instance A.FromJSON Document where
+
 data Section = Section {
       sectionPlannings  :: HashMap PlanningKeyword Timestamp
     , sectionProperties :: HashMap Text         Text
     , sectionClocks     :: [(Maybe Timestamp, Maybe Duration)]
     , sectionParagraph  :: Text
   } deriving (Show, Eq, Generic)
+
+instance A.ToJSON Section where
+instance A.FromJSON Section where
 
 data Heading = Heading
     { level       :: Int                --
@@ -62,14 +69,22 @@ data Heading = Heading
     , subHeadings :: [Heading]          -- elements
     } deriving (Show, Eq, Generic)
 
+instance A.ToJSON Heading where
+instance A.FromJSON Heading where
 
 data Priority = A | B | C
   deriving (Show, Read, Eq, Ord, Generic)
+
+instance A.ToJSON Priority where
+instance A.FromJSON Priority where
 
 data TodoKeyword = TODO
                  | DONE
                  | OtherKeyword Text
   deriving (Show, Eq, Generic)
+
+instance A.ToJSON TodoKeyword where
+instance A.FromJSON TodoKeyword where
 
 type Tag = Text
 
@@ -77,11 +92,16 @@ data Stats = StatsPct Int
            | StatsOf  Int Int
            deriving (Show, Eq, Generic)
 
+instance A.ToJSON Stats where
+instance A.FromJSON Stats where
 
 type Duration = (Hour,Minute)
 
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
+
+instance A.ToJSON PlanningKeyword where
+instance A.FromJSON PlanningKeyword where
 
 instance Hashable PlanningKeyword where
   hashWithSalt salt k = hashWithSalt salt (fromEnum k)
@@ -97,13 +117,50 @@ data Timestamp = Timestamp {
   , tsEndTime :: Maybe DateTime
   } deriving (Show, Eq, Generic)
 
+instance A.ToJSON Timestamp where
+instance A.FromJSON Timestamp where
+
+
 data DateTime = DateTime {
-    yearMonthDay :: YearMonthDay
+    yearMonthDay :: YearMonthDay'
   , dayName      :: Maybe Text
   , hourMinute   :: Maybe (Hour,Minute)
   , repeater     :: Maybe Repeater
   , delay        :: Maybe Delay
   } deriving (Show, Eq, Generic)
+
+instance A.ToJSON DateTime where
+instance A.FromJSON DateTime where
+
+data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
+                  deriving (Show, Eq, Generic)
+
+instance A.ToJSON RepeaterType
+instance A.FromJSON RepeaterType
+
+data Repeater = Repeater {
+    repeaterType  :: RepeaterType
+  , repeaterValue :: Int
+  , repeaterUnit  :: TimeUnit
+  } deriving (Show, Eq, Generic)
+
+instance A.ToJSON Repeater where
+instance A.FromJSON Repeater where
+
+data DelayType = DelayAll | DelayFirst
+               deriving (Show, Eq, Generic)
+
+instance A.ToJSON   DelayType where
+instance A.FromJSON DelayType where
+
+data Delay = Delay {
+    delayType  :: DelayType
+  , delayValue :: Int
+  , delayUnit  :: TimeUnit
+  } deriving (Show, Eq, Generic)
+
+instance A.ToJSON Delay where
+instance A.FromJSON Delay where
 
 data TimeUnit = UnitYear
               | UnitWeek
@@ -112,20 +169,18 @@ data TimeUnit = UnitYear
               | UnitHour
               deriving (Show, Eq, Generic)
 
-data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
-                  deriving (Show, Eq, Generic)
+instance A.ToJSON TimeUnit where
+instance A.FromJSON TimeUnit where
 
-data Repeater = Repeater {
-    repeaterType  :: RepeaterType
-  , repeaterValue :: Int
-  , repeaterUnit  :: TimeUnit
-  } deriving (Show, Eq, Generic)
 
-data DelayType = DelayAll | DelayFirst
-               deriving (Show, Eq, Generic)
+newtype YearMonthDay' = YMD' YearMonthDay
 
-data Delay = Delay {
-    delayType  :: DelayType
-  , delayValue :: Int
-  , delayUnit  :: TimeUnit
-  } deriving (Show, Eq, Generic)
+instance A.ToJSON YearMonthDay' where
+  toJSON (YMD' (YearMonthDay y m d)) =
+    A.Object ["ymdYear"  .= y
+             ,"ymdMonth" .= m
+             ,"ymdDay"   .= d]
+  fromJSON (Object v) = (YearMonthDay' . YearMonthDay)
+                        <$> v .: "ymdYear"
+                        <*> v .: "ymdMonth"
+                        <*> v .: "ymdDay"
