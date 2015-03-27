@@ -24,7 +24,6 @@ import           Data.HashMap.Strict        (HashMap,fromList)
 import           Data.Maybe                 (listToMaybe)
 import           Data.Text                  as Text (Text, unwords,
                                                      pack, unpack )
-import           Data.Thyme.Calendar        (YearMonthDay(..))
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
 import           Prelude                    hiding (concat, null, takeWhile,

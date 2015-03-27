@@ -21,6 +21,7 @@ module Data.OrgMode.Parse.Types
 , TodoKeyword  (..)
 , Duration
 , PlanningKeyword (..)
+, Properties
 , Timestamp    (..)
 , DateTime (..)
 , Stats (..)
@@ -58,11 +59,13 @@ data Heading = Heading
     , subHeadings :: [Heading]          -- elements
     } deriving (Show, Eq, Generic)
 
+type Properties = HashMap Text Text
+type Clock      = (Maybe Timestamp, Maybe Duration)
 
 data Section = Section {
       sectionPlannings  :: Plannings
-    , sectionProperties :: HashMap Text         Text
-    , sectionClocks     :: [(Maybe Timestamp, Maybe Duration)]
+    , sectionProperties :: Properties
+    , sectionClocks     :: [Clock]
     , sectionParagraph  :: Text
   } deriving (Show, Eq, Generic)
 

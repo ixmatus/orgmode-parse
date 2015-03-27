@@ -10,7 +10,6 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 ( parseDrawer
@@ -18,11 +17,11 @@ module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 )
 where
 
-import           Control.Applicative      ((*>), (<*), (<*>),(<*>),pure)
+import           Control.Applicative      ((*>), (<*))
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP
-import           Data.HashMap.Strict      (HashMap(..),fromList)
-import           Data.Text                as Text (Text, strip, pack, unpack)
+import           Data.HashMap.Strict      (fromList)
+import           Data.Text                as Text (Text, strip)
 import           Prelude                  hiding (concat, null, takeWhile)
 
 import           Data.OrgMode.Parse.Types
@@ -33,7 +32,7 @@ import           Data.OrgMode.Parse.Types
 -- > :DATE: [2014-12-14 11:00]
 -- > :NOTE: Something really crazy happened today!
 -- > :END:
-parseDrawer :: TP.Parser Text (HashMap Text Text)
+parseDrawer :: TP.Parser Text Properties
 parseDrawer = do
     props <- begin *> manyTill property end
     return $ fromList props
