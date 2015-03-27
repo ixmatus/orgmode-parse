@@ -16,6 +16,7 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
 , headingLevel
 , headingPriority
+, parseDocument
 )
 where
 
@@ -34,7 +35,8 @@ import           Data.OrgMode.Parse.Types
 import Data.OrgMode.Parse.Attoparsec.Time
 import Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 
-
+parseDocument :: [Text] -> TP.Parser Text [Heading] -- Not quit a document yet
+parseDocument otherKeywords = many' (headingBelowLevel otherKeywords 0)
 ------------------------------------------------------------------------------
 -- | Parse an org-mode heading.
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
@@ -43,9 +45,9 @@ headingBelowLevel otherKeywords levelReq = do
     td   <- option Nothing
              (Just <$> parseTodoKeyword otherKeywords) <* skipSpace
     pr   <- option Nothing (Just <$> headingPriority)  <* skipSpace
-    (tl, s, k) <- takeTitleExtras
+    (tl, s, k) <- takeTitleExtras                      <* skipSpace
 
-    sect <- option emptySection (parseSection otherKeywords)
+    sect <- option emptySection (parseSection otherKeywords) <* skipSpace
     subs <- many' (headingBelowLevel otherKeywords (levelReq + 1))
     return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
@@ -57,7 +59,7 @@ headingLevel :: Int -> TP.Parser Text Int
 headingLevel levelReq = do
   stars <- takeWhile1 (== '*')
   let lvl = Text.length stars
-  when (lvl < levelReq) (fail "Heading level too high")
+  when (lvl <= levelReq) (fail "Heading level too high")
   return lvl
 
 -- | Parse the priority indicator.
@@ -79,7 +81,10 @@ parseSection td = do
   props <- parseDrawer
   clks  <- many' parseClock
   leftovers <- pack <$>
-               manyTill anyChar (void (headingBelowLevel td 0) <|> endOfInput <|> endOfLine)
+               manyTill anyChar (void (headingBelowLevel td 0)
+                                 <|> endOfInput
+                                 <|> endOfLine)
+  --void (endOfLine <|> endOfInput)
   return (Section (Plns plns) props clks leftovers)
 
 emptySection :: Section
