@@ -17,6 +17,7 @@ module Data.OrgMode.Parse.Types
 , Section (..)
 , Heading  (..)
 , Priority (..)
+, Plannings (..)
 , TodoKeyword  (..)
 , Duration
 , PlanningKeyword (..)
@@ -29,34 +30,22 @@ module Data.OrgMode.Parse.Types
 , Repeater (..)
 , DelayType (..)
 , Delay (..)
+, YearMonthDay(..)
+, YearMonthDay'(..)
 ) where
 
+import           Control.Applicative
+import           Control.Monad        (mzero)
 import qualified Data.Aeson           as A
+import           Data.Aeson           ((.=),(.:))
 import           Data.Hashable        (Hashable(..))
-import           Data.HashMap.Strict  (HashMap)
-import           Data.Text            (Text)
+import           Data.HashMap.Strict  (HashMap, fromList, toList, keys)
+import           Data.Text            (Text, pack)
 import           Data.Thyme.Calendar  (YearMonthDay(..))
 import           Data.Thyme.LocalTime (Hour, Minute)
+import           Data.Traversable
 import           GHC.Generics
 
-----------------------------------------------------------------------------
-data Document = Document {
-    openingText :: Text
-  , topHeadings :: [Heading]
-  } deriving (Show, Eq, Generic)
-
-instance A.ToJSON Document where
-instance A.FromJSON Document where
-
-data Section = Section {
-      sectionPlannings  :: HashMap PlanningKeyword Timestamp
-    , sectionProperties :: HashMap Text         Text
-    , sectionClocks     :: [(Maybe Timestamp, Maybe Duration)]
-    , sectionParagraph  :: Text
-  } deriving (Show, Eq, Generic)
-
-instance A.ToJSON Section where
-instance A.FromJSON Section where
 
 data Heading = Heading
     { level       :: Int                --
@@ -69,47 +58,14 @@ data Heading = Heading
     , subHeadings :: [Heading]          -- elements
     } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Heading where
-instance A.FromJSON Heading where
 
-data Priority = A | B | C
-  deriving (Show, Read, Eq, Ord, Generic)
+data Section = Section {
+      sectionPlannings  :: Plannings
+    , sectionProperties :: HashMap Text         Text
+    , sectionClocks     :: [(Maybe Timestamp, Maybe Duration)]
+    , sectionParagraph  :: Text
+  } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Priority where
-instance A.FromJSON Priority where
-
-data TodoKeyword = TODO
-                 | DONE
-                 | OtherKeyword Text
-  deriving (Show, Eq, Generic)
-
-instance A.ToJSON TodoKeyword where
-instance A.FromJSON TodoKeyword where
-
-type Tag = Text
-
-data Stats = StatsPct Int
-           | StatsOf  Int Int
-           deriving (Show, Eq, Generic)
-
-instance A.ToJSON Stats where
-instance A.FromJSON Stats where
-
-type Duration = (Hour,Minute)
-
-data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
-  deriving (Show, Eq, Enum, Ord, Generic)
-
-instance A.ToJSON PlanningKeyword where
-instance A.FromJSON PlanningKeyword where
-
-instance Hashable PlanningKeyword where
-  hashWithSalt salt k = hashWithSalt salt (fromEnum k)
-
--- -- This might be the form to use if we were supporting <diary> timestamps
--- data Timestamp = Dairy Text
---                | Time  TimestampTime
---               deriving (Show, Eq, Generic)
 
 data Timestamp = Timestamp {
     tsTime    :: DateTime
@@ -120,6 +76,23 @@ data Timestamp = Timestamp {
 instance A.ToJSON Timestamp where
 instance A.FromJSON Timestamp where
 
+
+newtype YearMonthDay' = YMD' YearMonthDay
+                        deriving (Show, Eq, Generic)
+
+instance A.ToJSON YearMonthDay' where
+  toJSON (YMD' (YearMonthDay y m d)) =
+    A.object ["ymdYear"  .= y
+             ,"ymdMonth" .= m
+             ,"ymdDay"   .= d]
+
+instance A.FromJSON YearMonthDay' where
+  parseJSON (A.Object v) = do
+    y <- v .: "ymdYear"
+    m <- v .: "ymdMonth"
+    d <- v .: "ymdDay"
+    return (YMD' (YearMonthDay y m d))
+  parseJSON _ = mzero
 
 data DateTime = DateTime {
     yearMonthDay :: YearMonthDay'
@@ -172,15 +145,74 @@ data TimeUnit = UnitYear
 instance A.ToJSON TimeUnit where
 instance A.FromJSON TimeUnit where
 
+---------------------------------------------------------------------------
+data Document = Document {
+    openingText :: Text
+  , topHeadings :: [Heading]
+  } deriving (Show, Eq, Generic)
 
-newtype YearMonthDay' = YMD' YearMonthDay
+--instance A.ToJSON Document where
+--instance A.FromJSON Document where
 
-instance A.ToJSON YearMonthDay' where
-  toJSON (YMD' (YearMonthDay y m d)) =
-    A.Object ["ymdYear"  .= y
-             ,"ymdMonth" .= m
-             ,"ymdDay"   .= d]
-  fromJSON (Object v) = (YearMonthDay' . YearMonthDay)
-                        <$> v .: "ymdYear"
-                        <*> v .: "ymdMonth"
-                        <*> v .: "ymdDay"
+data TodoKeyword = TODO
+                 | DONE
+                 | OtherKeyword Text
+  deriving (Show, Eq, Generic)
+
+instance A.ToJSON TodoKeyword where
+instance A.FromJSON TodoKeyword where
+
+
+data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
+  deriving (Show, Eq, Enum, Ord, Generic)
+
+instance A.ToJSON PlanningKeyword where
+instance A.FromJSON PlanningKeyword where
+
+--instance (A.ToJSON k, A.ToJSON v) => A.ToJSON (HashMap k v) where
+--  toJSON hm = A.object hm
+
+newtype Plannings = Plns (HashMap PlanningKeyword Timestamp)
+                  deriving (Show, Eq, Generic)
+
+instance A.ToJSON Plannings where
+  toJSON (Plns hm) = A.object $ map jPair (toList hm)
+    where jPair (k, v) = pack (show k) .= A.toJSON v
+
+instance A.FromJSON Plannings where
+  parseJSON (A.Object v) = Plns . fromList <$> (traverse jPair (keys v))
+    where jPair k = v .: k
+  parseJSON _ = mzero
+
+instance A.ToJSON Section where
+instance A.FromJSON Section where
+
+instance A.ToJSON Heading where
+instance A.FromJSON Heading where
+
+data Priority = A | B | C
+  deriving (Show, Read, Eq, Ord, Generic)
+
+instance A.ToJSON Priority where
+instance A.FromJSON Priority where
+type Tag = Text
+
+data Stats = StatsPct Int
+           | StatsOf  Int Int
+           deriving (Show, Eq, Generic)
+
+instance A.ToJSON Stats where
+instance A.FromJSON Stats where
+
+type Duration = (Hour,Minute)
+
+instance Hashable PlanningKeyword where
+  hashWithSalt salt k = hashWithSalt salt (fromEnum k)
+
+-- -- This might be the form to use if we were supporting <diary> timestamps
+-- data Timestamp = Dairy Text
+--                | Time  TimestampTime
+--               deriving (Show, Eq, Generic)
+
+
+

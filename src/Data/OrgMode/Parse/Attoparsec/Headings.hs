@@ -21,7 +21,8 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 where
 
 import           Control.Applicative      ((*>), (<*), (<|>),(<$>), pure, (<*>))
-import           Control.Monad            (when)
+import           Control.Monad            (when, void)
+import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
 import           Data.Char                (isUpper)
@@ -44,14 +45,15 @@ headingBelowLevel otherKeywords levelReq = do
              (Just <$> parseTodoKeyword otherKeywords) <* skipSpace
     pr   <- option Nothing (Just <$> headingPriority)  <* skipSpace
     (tl, s, k) <- takeTitleExtras
-    endOfLine
-    sect <- parseSection otherKeywords
+
+    sect <- option emptySection (parseSection otherKeywords)
     subs <- many' (headingBelowLevel otherKeywords (levelReq + 1))
     return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
+-- Constrain to levelReq level or its children
 headingLevel :: Int -> TP.Parser Text Int
 headingLevel levelReq = do
   stars <- takeWhile1 (== '*')
@@ -78,8 +80,11 @@ parseSection td = do
   props <- parseDrawer
   clks  <- many' parseClock
   leftovers <- pack <$>
-               manyTill anyChar (headingBelowLevel td 0)
-  return (Section plns props clks leftovers)
+               manyTill anyChar (void (headingBelowLevel td 0) <|> endOfInput)
+  return (Section (Plns plns) props clks leftovers)
+
+emptySection :: Section
+emptySection = Section (Plns mempty) mempty mempty mempty
 
 -- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
 --
@@ -104,10 +109,11 @@ takeTitleKeys = (,) <$> takeTill (== ':') <*> (Just <$> parseTags)
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
   titleStart <- takeTill (inClass "[:")
-  stats      <- option Nothing (Just <$> parseStats)
-  tags       <- option Nothing (Just <$> parseTags)
-  leftovers  <- takeTill (== '\n')
-  return (append titleStart leftovers, stats, tags)
+  s          <- option Nothing (Just <$> parseStats) <* skipSpace
+  t          <- option Nothing (Just <$> parseTags)  <* skipSpace
+  leftovers  <- option mempty (takeTill (== '\n'))
+  void (char '\n')
+  return (append titleStart leftovers, s, t)
 
 takeTitleEnd :: TP.Parser Text (Text, Maybe [Tag])
 takeTitleEnd = do

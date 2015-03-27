@@ -88,11 +88,11 @@ parseBracketedDateTime = do
 
   case timePart of
     Just (Left (h,m)) ->
-      return ( DateTime datePart dName (Just (h,m)) repPart delPart
+      return ( DateTime (YMD' datePart) dName (Just (h,m)) repPart delPart
              , Nothing
              , activeBracket '<')
     Just (Right (t1,t2)) ->
-      return ( DateTime datePart dName (Just t1)repPart delPart
+      return ( DateTime (YMD' datePart) dName (Just t1)repPart delPart
              , Just t2
              , activeBracket '<')
     Nothing -> fail "Failed to parse a timestamp (HH:MM)"
