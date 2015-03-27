@@ -48,8 +48,9 @@ headingBelowLevel otherKeywords levelReq = do
     (tl, s, k) <- takeTitleExtras                      <* skipSpace
 
     --sect <- option emptySection (parseSection otherKeywords) <* skipSpace
-    sect <- parseSection otherKeywords
-    subs <- many' (headingBelowLevel otherKeywords (levelReq + 1))
+    sect <- parseSection otherKeywords                 <* skipSpace
+    subs <- option [] $ many' (headingBelowLevel otherKeywords (levelReq + 1))
+    skipSpace
     return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
 
@@ -86,6 +87,7 @@ parseSection td = do
                                  <|> endOfInput
                                  <|> endOfLine)
   --void (endOfLine <|> endOfInput)
+  skipSpace
   return (Section (Plns plns) props clks leftovers)
 
 emptySection :: Section
