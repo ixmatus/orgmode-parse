@@ -16,7 +16,6 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
 , headingLevel
 , headingPriority
-, headingTitle
 )
 where
 
@@ -80,7 +79,7 @@ parseSection td = do
   props <- parseDrawer
   clks  <- many' parseClock
   leftovers <- pack <$>
-               manyTill anyChar (void (headingBelowLevel td 0) <|> endOfInput)
+               manyTill anyChar (void (headingBelowLevel td 0) <|> endOfInput <|> endOfLine)
   return (Section (Plns plns) props clks leftovers)
 
 emptySection :: Section
@@ -98,27 +97,15 @@ parseTodoKeyword otherKeywords =
             map (\k -> OtherKeyword <$> string k) otherKeywords)
 
 
--- This function tries to parse a title with a keyword and if it fails
--- it then attempts to parse everything till the end of the line.
-headingTitle :: TP.Parser Text (Text, Maybe [Tag])
-headingTitle = takeTitleKeys <|> takeTitleEnd
-
-takeTitleKeys :: TP.Parser Text (Text, Maybe [Tag])
-takeTitleKeys = (,) <$> takeTill (== ':') <*> (Just <$> parseTags)
-
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
-  titleStart <- takeTill (inClass "[:")
-  s          <- option Nothing (Just <$> parseStats) <* skipSpace
-  t          <- option Nothing (Just <$> parseTags)  <* skipSpace
+  titleStart <- takeTill (inClass "[:\n")
+  s          <- option Nothing (Just <$> parseStats) <* many' (char ' ')
+  t          <- option Nothing (Just <$> parseTags)  <* many' (char ' ')
   leftovers  <- option mempty (takeTill (== '\n'))
   void (char '\n')
   return (append titleStart leftovers, s, t)
-
-takeTitleEnd :: TP.Parser Text (Text, Maybe [Tag])
-takeTitleEnd = do
-    t <- takeTill isEndOfLine
-    return (t, Nothing)
+  --return (titleStart, s, t)
 
 parseStats :: TP.Parser Text Stats
 parseStats = sPct <|> sOf
@@ -179,3 +166,18 @@ parseTags = char ':' *> many1 parseTag
 --     if null key
 --     then return Nothing
 --     else return . Just $ Keyword key
+-- This function tries to parse a title with a keyword and if it fails
+-- it then attempts to parse everything till the end of the line.
+
+
+-- headingTitle :: TP.Parser Text (Text, Maybe [Tag])
+-- headingTitle = takeTitleKeys <|> takeTitleEnd
+
+-- takeTitleKeys :: TP.Parser Text (Text, Maybe [Tag])
+-- takeTitleKeys = (,) <$> takeTill (== ':') <*> (Just <$> parseTags)
+
+-- takeTitleEnd :: TP.Parser Text (Text, Maybe [Tag])
+-- takeTitleEnd = do
+--     t <- takeTill isEndOfLine
+--     return (t, Nothing)
+
