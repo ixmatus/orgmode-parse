@@ -47,7 +47,8 @@ headingBelowLevel otherKeywords levelReq = do
     pr   <- option Nothing (Just <$> headingPriority)  <* skipSpace
     (tl, s, k) <- takeTitleExtras                      <* skipSpace
 
-    sect <- option emptySection (parseSection otherKeywords) <* skipSpace
+    --sect <- option emptySection (parseSection otherKeywords) <* skipSpace
+    sect <- parseSection otherKeywords
     subs <- many' (headingBelowLevel otherKeywords (levelReq + 1))
     return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
@@ -77,9 +78,9 @@ headingPriority = start
 
 parseSection :: [Text] -> TP.Parser Text Section
 parseSection td = do
-  plns  <- parsePlannings
-  props <- parseDrawer
   clks  <- many' parseClock
+  plns  <- parsePlannings
+  props <- option mempty parseDrawer
   leftovers <- pack <$>
                manyTill anyChar (void (headingBelowLevel td 0)
                                  <|> endOfInput
