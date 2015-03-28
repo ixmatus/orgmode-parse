@@ -33,9 +33,14 @@ import           Data.OrgMode.Parse.Types
 import Data.OrgMode.Parse.Attoparsec.Time
 import Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 
-parseDocument :: [Text] -> TP.Parser Text [Heading] -- Not quit a document yet
-parseDocument otherKeywords = many' (headingBelowLevel otherKeywords 0)
+
+
 ------------------------------------------------------------------------------
+parseDocument :: [Text] -> TP.Parser Text Document
+parseDocument otherKeywords = Document
+                              <$> (unlines <$> many' nonHeaderLine)
+                              <*> many' (headingBelowLevel otherKeywords 0)
+
 -- | Parse an org-mode heading.
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
 headingBelowLevel otherKeywords levelReq = do

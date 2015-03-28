@@ -47,6 +47,11 @@ import           Data.Thyme.LocalTime (Hour, Minute)
 import           Data.Traversable
 import           GHC.Generics
 
+data Document = Document {
+    openingText :: Text
+  , topHeadings :: [Heading]
+  } deriving (Show, Eq, Generic)
+
 
 data Heading = Heading
     { level       :: Int                --
@@ -149,11 +154,6 @@ instance A.ToJSON TimeUnit where
 instance A.FromJSON TimeUnit where
 
 ---------------------------------------------------------------------------
-data Document = Document {
-    openingText :: Text
-  , topHeadings :: [Heading]
-  } deriving (Show, Eq, Generic)
-
 --instance A.ToJSON Document where
 --instance A.FromJSON Document where
 
