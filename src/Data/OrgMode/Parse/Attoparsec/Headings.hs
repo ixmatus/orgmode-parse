@@ -24,15 +24,27 @@ import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
 import           Data.Maybe               (fromMaybe)
-import           Data.Text                as Text (Text, append,
-                                                   length, pack, unlines)
+import           Data.Text                as Text (Text, append, length)
 import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
 
 import           Data.OrgMode.Parse.Types
-import Data.OrgMode.Parse.Attoparsec.Section
+import           Data.OrgMode.Parse.Attoparsec.Section
 
 
--- | Parse an org-mode heading.
+-- | Parse an org-mode heading and its contained entities
+--   (see orgmode.org/worg/dev/org-syntax.html Header guidance)
+--   Headers include a hierarchy level indicated by '*'s,
+--   optional Todo-like state, priority level, %-done stats, and tags
+--   e.g.:  ** TODO [#B] Polish Poetry Essay  [25%]   :HOMEWORK:POLISH:WRITING:
+--
+--   Headings contain directly:
+--     * A 'section' with Planning and Clock entries
+--     * A number of other not-yet-implemented entities (code blocks, lists)
+--     * Unstructured text
+--     * Other heading deeper in the hierarchy
+--
+--   headingBelowLevel takes a list of terms to consider StateKeyword's,
+--     and a minumum hierarchy depth. Use 0 to parse any heading
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
 headingBelowLevel stateKeywords levelReq = do
     lvl  <- headingLevel levelReq                       <* skipSpace
@@ -79,6 +91,10 @@ headingPriority = start
     start         = string "[#"
     end           = char   ']'
 
+-- | Parse title, optional Stats block, and optional Tag listToMaybe
+--
+-- Stats may be either [m/n] or [n%].
+-- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
   titleStart <- takeTill (inClass "[:\n")
@@ -88,6 +104,11 @@ takeTitleExtras = do
   void endOfLine
   return (append titleStart leftovers, s, t)
 
+
+-- | Parse a Stats block.
+--
+-- Accepts either form: "[m/n]" or "[n%]"
+-- There is no restriction on m or n other than that they are integers
 parseStats :: TP.Parser Text Stats
 parseStats = sPct <|> sOf
   where sPct = StatsPct
@@ -96,6 +117,9 @@ parseStats = sPct <|> sOf
                <$> (char '[' *> decimal)
                <*> (char '/' *> decimal <* char ']')
 
+-- | Parse a colon-separated list of Tags
+--
+-- e.g. :HOMEWORK:POETRY:WRITING:
 parseTags :: TP.Parser Text [Tag]
 parseTags = char ':' *> many1 parseTag
   where parseTag = takeWhile (notInClass "\n\t:") <* char ':'

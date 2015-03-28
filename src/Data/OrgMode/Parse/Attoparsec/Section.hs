@@ -2,7 +2,7 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                     ((<$>), (<*))
+import           Control.Applicative                     ((<$>), (<*), (<*>))
 import           Data.Attoparsec.Text                    as T
 import           Data.Attoparsec.Types                   as TP
 import           Data.Monoid                             (mempty)
@@ -13,15 +13,17 @@ import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 
 
+-- | Parse a heading section
+--
+-- Heading sections contain optionally a property drawer,
+-- a list of clock entries, code blocks (not yet implemented),
+-- plain lists (not yet implemented), and unstructured text.
 parseSection :: TP.Parser Text Section
-parseSection = do
-  clks  <- many' parseClock
-  plns  <- parsePlannings
-  props <- option mempty parseDrawer <* skipSpace
-  leftovers <- unlines <$> many' nonHeaderLine
-  return (Section (Plns plns) props clks leftovers)
-
-
-nonHeaderLine :: TP.Parser Text Text
-nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
+parseSection = Section
+               <$> (Plns <$> parsePlannings)
+               <*> option mempty parseDrawer <* skipSpace
+               <*> many' parseClock
+               <*> (unlines <$> many' nonHeaderLine)
+  where
+    nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
 
