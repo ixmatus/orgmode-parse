@@ -18,7 +18,7 @@ module Data.OrgMode.Parse.Types
 , Heading  (..)
 , Priority (..)
 , Plannings (..)
-, TodoKeyword  (..)
+, StateKeyword  (..)
 , Duration
 , PlanningKeyword (..)
 , Properties
@@ -55,7 +55,7 @@ data Document = Document {
 
 data Heading = Heading
     { level       :: Int                --
-    , keyword     :: Maybe TodoKeyword  --
+    , keyword     :: Maybe StateKeyword --
     , priority    :: Maybe Priority     -- Header line
     , title       :: Text               -- properties
     , stats       :: Maybe Stats        --
@@ -157,13 +157,11 @@ instance A.FromJSON TimeUnit where
 --instance A.ToJSON Document where
 --instance A.FromJSON Document where
 
-data TodoKeyword = TODO
-                 | DONE
-                 | OtherKeyword Text
+newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
 
-instance A.ToJSON TodoKeyword where
-instance A.FromJSON TodoKeyword where
+instance A.ToJSON StateKeyword where
+instance A.FromJSON StateKeyword where
 
 
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED

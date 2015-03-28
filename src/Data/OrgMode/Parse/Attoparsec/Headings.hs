@@ -34,14 +34,14 @@ import Data.OrgMode.Parse.Attoparsec.Section
 
 -- | Parse an org-mode heading.
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
-headingBelowLevel otherKeywords levelReq = do
-    lvl  <- headingLevel levelReq                      <* skipSpace
+headingBelowLevel stateKeywords levelReq = do
+    lvl  <- headingLevel levelReq                       <* skipSpace
     td   <- option Nothing
-             (Just <$> parseTodoKeyword otherKeywords) <* skipSpace
-    pr   <- option Nothing (Just <$> headingPriority)  <* skipSpace
-    (tl, s, k) <- takeTitleExtras                      <* skipSpace
+             (Just <$> parseStateKeyword stateKeywords) <* skipSpace
+    pr   <- option Nothing (Just <$> headingPriority)   <* skipSpace
+    (tl, s, k) <- takeTitleExtras                       <* skipSpace
     sect <- parseSection
-    subs <- option [] $ many' (headingBelowLevel otherKeywords (levelReq + 1))
+    subs <- option [] $ many' (headingBelowLevel stateKeywords (levelReq + 1))
     skipSpace
     return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
@@ -55,6 +55,16 @@ headingLevel levelReq = do
   let lvl = Text.length stars
   when (lvl <= levelReq) (fail "Heading level too high")
   return lvl
+
+
+-- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
+--
+-- These can be custom so we're parsing additional state
+-- identifiers as Text
+parseStateKeyword :: [Text] -> TP.Parser Text StateKeyword
+parseStateKeyword stateKeywords = StateKeyword <$>
+                                  choice (map string stateKeywords)
+
 
 -- | Parse the priority indicator.
 --
