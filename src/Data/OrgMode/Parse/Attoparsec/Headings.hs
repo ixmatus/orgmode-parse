@@ -29,8 +29,6 @@ import           Data.Text                as Text (Text, append,
 import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
 
 import           Data.OrgMode.Parse.Types
-import Data.OrgMode.Parse.Attoparsec.Time
-import Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 import Data.OrgMode.Parse.Attoparsec.Section
 
 
@@ -74,10 +72,10 @@ headingPriority = start
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
   titleStart <- takeTill (inClass "[:\n")
-  s          <- option Nothing (Just <$> parseStats) <* many' (char ' ')
-  t          <- option Nothing (Just <$> parseTags)  <* many' (char ' ')
+  s          <- option Nothing (Just <$> parseStats) <* skipSpace
+  t          <- option Nothing (Just <$> parseTags)  <* skipSpace
   leftovers  <- option mempty (takeTill (== '\n'))
-  void (char '\n')
+  void endOfLine
   return (append titleStart leftovers, s, t)
 
 parseStats :: TP.Parser Text Stats
