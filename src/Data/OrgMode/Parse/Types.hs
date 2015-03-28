@@ -48,8 +48,8 @@ import           Data.Traversable
 import           GHC.Generics
 
 data Document = Document {
-    openingText :: Text
-  , topHeadings :: [Heading]
+    documentText     :: Text
+  , documentHeadings :: [Heading]
   } deriving (Show, Eq, Generic)
 
 

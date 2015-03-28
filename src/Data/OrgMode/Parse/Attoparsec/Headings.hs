@@ -15,7 +15,6 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
 , headingLevel
 , headingPriority
-, parseDocument
 )
 where
 
@@ -32,14 +31,8 @@ import           Prelude                  hiding (concat, null, takeWhile, seque
 import           Data.OrgMode.Parse.Types
 import Data.OrgMode.Parse.Attoparsec.Time
 import Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+import Data.OrgMode.Parse.Attoparsec.Section
 
-
-
-------------------------------------------------------------------------------
-parseDocument :: [Text] -> TP.Parser Text Document
-parseDocument otherKeywords = Document
-                              <$> (unlines <$> many' nonHeaderLine)
-                              <*> many' (headingBelowLevel otherKeywords 0)
 
 -- | Parse an org-mode heading.
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
@@ -77,30 +70,6 @@ headingPriority = start
     mkPParser c p = char c *> pure p
     start         = string "[#"
     end           = char   ']'
-
-parseSection :: TP.Parser Text Section
-parseSection = do
-  clks  <- many' parseClock
-  plns  <- parsePlannings
-  props <- option mempty parseDrawer <* skipSpace
-  leftovers <- unlines <$> many' nonHeaderLine
-  return (Section (Plns plns) props clks leftovers)
-
-nonHeaderLine :: TP.Parser Text Text
-nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
-
-
--- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
---
--- These can be custom so we're parsing additional state
--- identifiers as Text
-parseTodoKeyword :: [Text] -> TP.Parser Text TodoKeyword
-parseTodoKeyword otherKeywords =
-    choice ([string "TODO" *> pure TODO
-            ,string "DONE" *> pure DONE
-            ] ++
-            map (\k -> OtherKeyword <$> string k) otherKeywords)
-
 
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
