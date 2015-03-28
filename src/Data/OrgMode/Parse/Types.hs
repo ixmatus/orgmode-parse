@@ -1,13 +1,12 @@
------------------------------------------------------------------------------
--- |
--- Module      :  Data.OrgMode.Parse.Types
--- Copyright   :  © 2014 Parnell Springmeyer
--- License     :  All Rights Reserved
--- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
--- Stability   :  stable
---
--- Types and utility functions.
-----------------------------------------------------------------------------
+{-|
+Module      :  Data.OrgMode.Parse.Types
+Copyright   :  © 2014 Parnell Springmeyer
+License     :  All Rights Reserved
+Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
+Stability   :  experimental
+
+Types and utility functions.
+-}
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric     #-}
@@ -48,15 +47,15 @@ import           Data.Traversable
 import           GHC.Generics
 
 data Document = Document {
-    documentText     :: Text
-  , documentHeadings :: [Heading]
+    documentText     :: Text      -- ^ Text occurring before any Org headlines
+  , documentHeadings :: [Heading] -- ^ Toplevel Org headlines
   } deriving (Show, Eq, Generic)
 
 
 data Heading = Heading
-    { level       :: Int                --
-    , keyword     :: Maybe StateKeyword --
-    , priority    :: Maybe Priority     -- Header line
+    { level       :: Int                -- ^ Org headline nesting level (1 is at the top)
+    , keyword     :: Maybe StateKeyword -- ^ State of the headline (e.g. TODO, DONE)
+    , priority    :: Maybe Priority     --
     , title       :: Text               -- properties
     , stats       :: Maybe Stats        --
     , tags        :: [Tag]             --
