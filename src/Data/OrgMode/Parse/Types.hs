@@ -68,8 +68,8 @@ type Clock      = (Maybe Timestamp, Maybe Duration)
 
 data Section = Section {
       sectionPlannings  :: Plannings
-    , sectionProperties :: Properties
     , sectionClocks     :: [Clock]
+    , sectionProperties :: Properties
     , sectionParagraph  :: Text
   } deriving (Show, Eq, Generic)
 

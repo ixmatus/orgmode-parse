@@ -2,7 +2,7 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                     ((<$>), (<*), (<*>))
+import           Control.Applicative                     ((<$>), (<*>))
 import           Data.Attoparsec.Text                    as T
 import           Data.Attoparsec.Types                   as TP
 import           Data.Monoid                             (mempty)
@@ -21,9 +21,8 @@ import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 parseSection :: TP.Parser Text Section
 parseSection = Section
                <$> (Plns <$> parsePlannings)
-               <*> option mempty parseDrawer <* skipSpace
                <*> many' parseClock
+               <*> option mempty parseDrawer
                <*> (unlines <$> many' nonHeaderLine)
   where
     nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
-

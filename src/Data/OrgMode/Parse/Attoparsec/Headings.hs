@@ -15,6 +15,7 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
 , headingLevel
 , headingPriority
+, parseStats
 )
 where
 
@@ -24,7 +25,7 @@ import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
 import           Data.Maybe               (fromMaybe)
-import           Data.Text                as Text (Text, append, length)
+import           Data.Text                as Text (Text, append, length, null, pack, strip)
 import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
 
 import           Data.OrgMode.Parse.Types
@@ -47,11 +48,11 @@ import           Data.OrgMode.Parse.Attoparsec.Section
 --     and a minumum hierarchy depth. Use 0 to parse any heading
 headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
 headingBelowLevel stateKeywords levelReq = do
-    lvl  <- headingLevel levelReq                       <* skipSpace
+    lvl  <- headingLevel levelReq                       <* skipSpace'
     td   <- option Nothing
-             (Just <$> parseStateKeyword stateKeywords) <* skipSpace
-    pr   <- option Nothing (Just <$> headingPriority)   <* skipSpace
-    (tl, s, k) <- takeTitleExtras                       <* skipSpace
+             (Just <$> parseStateKeyword stateKeywords <* skipSpace')
+    pr   <- option Nothing (Just <$> headingPriority   <* skipSpace')
+    (tl, s, k) <- takeTitleExtras
     sect <- parseSection
     subs <- option [] $ many' (headingBelowLevel stateKeywords (levelReq + 1))
     skipSpace
@@ -97,12 +98,17 @@ headingPriority = start
 -- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
 takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
 takeTitleExtras = do
-  titleStart <- takeTill (inClass "[:\n")
-  s          <- option Nothing (Just <$> parseStats) <* skipSpace
-  t          <- option Nothing (Just <$> parseTags)  <* skipSpace
-  leftovers  <- option mempty (takeTill (== '\n'))
+  titleStart <- takeTill (\c -> inClass "[:" c || isEndOfLine c)
+  -- skipSpace' doesn't skip newlines. Used here to restrict this
+  -- parser to consuming from a single line
+  s          <- option Nothing (Just <$> parseStats <* skipSpace')
+  t          <- option Nothing (Just <$> parseTags  <* skipSpace')
+  leftovers  <- option mempty  (takeTill (== '\n'))
   void endOfLine
-  return (append titleStart leftovers, s, t)
+  let titleText
+        | null leftovers = strip titleStart
+        | otherwise      = append titleStart leftovers
+  return (titleText, s, t)
 
 
 -- | Parse a Stats block.
@@ -121,5 +127,8 @@ parseStats = sPct <|> sOf
 --
 -- e.g. :HOMEWORK:POETRY:WRITING:
 parseTags :: TP.Parser Text [Tag]
-parseTags = char ':' *> many1 parseTag
-  where parseTag = takeWhile (notInClass "\n\t:") <* char ':'
+parseTags = map pack <$>
+             (char ':' *> (many' anyChar `sepBy` char ':') <* char ':')
+
+skipSpace' :: TP.Parser Text ()
+skipSpace' = void (takeWhile (inClass " \t"))
