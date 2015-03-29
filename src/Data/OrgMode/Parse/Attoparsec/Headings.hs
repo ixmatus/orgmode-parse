@@ -16,6 +16,7 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 , headingLevel
 , headingPriority
 , parseStats
+, parseTags
 )
 where
 
@@ -25,7 +26,7 @@ import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
 import           Data.Maybe               (fromMaybe)
-import           Data.Text                as Text (Text, append, length, null, pack, strip)
+import           Data.Text                as Text (Text, append, init, last, length, null, pack, splitOn, strip, tail)
 import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
 
 import           Data.OrgMode.Parse.Types
@@ -127,8 +128,12 @@ parseStats = sPct <|> sOf
 --
 -- e.g. :HOMEWORK:POETRY:WRITING:
 parseTags :: TP.Parser Text [Tag]
-parseTags = map pack <$>
-             (char ':' *> (many' anyChar `sepBy` char ':') <* char ':')
+parseTags = do
+  tagsStr <-  (char ':' *> takeWhile (/= '\n'))
+  when (Text.last tagsStr /= ':' || Text.length tagsStr < 2) (fail "Not a valid tags set")
+  return (splitOn ":" (Text.init  $ tagsStr))
+
+--             (char ':' *> ((takeWhile (\c -> c /= ':' && c /= '\n')) `sepBy` char ':') <* char ':')
 
 skipSpace' :: TP.Parser Text ()
 skipSpace' = void (takeWhile (inClass " \t"))
