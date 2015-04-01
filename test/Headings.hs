@@ -20,4 +20,4 @@ parserHeadingTests = testGroup "Attoparsec Heading"
     , (testCase "Parse Heading Full"                $ testHeading "* DONE [#B] A heading : with [[http://somelink.com][a link]] :WITH:KEYWORDS:\n")
     ]
   where
-    testHeading = testParser (heading)
+    testHeading = testParser (headingBelowLevel ["TODO","CANCELED","DONE"] 0)
