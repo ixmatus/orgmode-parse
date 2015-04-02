@@ -36,7 +36,8 @@ import           Data.OrgMode.Parse.Types
 
 -- | Parse a planning line
 --
--- Plannings live in a heading section and are formatted as a keyword and a timestamp
+-- Plannings live in a heading section and are formatted as a keyword
+-- and a timestamp.
 -- There can be more than one, but they are all on the same line
 -- e.g. DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-16 12:00>
 parsePlannings :: TP.Parser Text (HashMap PlanningKeyword Timestamp)
@@ -112,12 +113,15 @@ parseBracketedDateTime = do
     Just (Left (h,m)) ->
       return ( DateTime (YMD' datePart) dName (Just (h,m)) repeatPart delayPart
              , Nothing
-             , activeBracket '<')
+             , activeBracket oBracket)
     Just (Right (t1,t2)) ->
       return ( DateTime (YMD' datePart) dName (Just t1)repeatPart delayPart
              , Just t2
-             , activeBracket '<')
-    Nothing -> fail "Failed to parse a timestamp (HH:MM)"
+             , activeBracket oBracket)
+    Nothing ->
+      return (DateTime (YMD' datePart) dName Nothing repeatPart delayPart
+             , Nothing
+             , activeBracket oBracket)
 
     where activeBracket = (=='<')
           complementaryBracket '<' = '>'
