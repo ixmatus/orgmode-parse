@@ -1,6 +1,7 @@
 language: haskell
 ghc: 7.8.3
 script:
+  - sudo apt-get install libgmp-dev
   - cabal configure --enable-tests
   - cabal build
   - cabal test
