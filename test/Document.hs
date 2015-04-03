@@ -19,7 +19,7 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   [ testCase "Parse Empty Document"   $ testDocS "" (Document "" [])
   , testCase "Parse No Headlines"     $ testDocS pText (Document pText [])
   , testCase "Parse Heading Sample A" $ testDocS sampleAText sampleAParse
-  , testCase "Parse Heading no \n"    $    -- TODO This test fails
+  , testCase "Parse Heading no \n"    $
       testDocS "* T" (Document "" [emptyHeading {title="T"}])
   ]
   where testDocS s r = expectParse (parseDocument kw) s (Right r)

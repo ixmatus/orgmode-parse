@@ -105,7 +105,7 @@ takeTitleExtras = do
   s          <- option Nothing (Just <$> parseStats <* skipSpace')
   t          <- option Nothing (Just <$> parseTags  <* skipSpace')
   leftovers  <- option mempty  (takeTill (== '\n'))
-  void endOfLine
+  void (endOfLine <|> endOfInput)
   let titleText
         | null leftovers = strip titleStart
         | otherwise      = append titleStart leftovers
