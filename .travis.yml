@@ -1,10 +1,4 @@
 language: haskell
 ghc: 7.8.4
-script:
-  - cabal sandbox init
-  - cabal install --only-dependencies --enable-tests
-  - cabal configure --enable-tests
-  - cabal build
-  - cabal test
 notifications:
   email: false
