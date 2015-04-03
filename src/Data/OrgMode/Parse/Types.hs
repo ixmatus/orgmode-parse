@@ -51,6 +51,8 @@ data Document = Document {
   , documentHeadings :: [Heading] -- ^ Toplevel Org headlines
   } deriving (Show, Eq, Generic)
 
+instance A.ToJSON Document where
+instance A.FromJSON Document where
 
 data Heading = Heading
     { level       :: Int                -- ^ Org headline nesting level (1 is at the top)
