@@ -17,4 +17,4 @@ parserPropertyDrawerTests = testGroup "Attoparsec PropertyDrawer"
   where
     emptyDrawer = ":PROPERTIES:\n:END:\n"
     drawerWKeys = ":PROPERTIES:\n    :URL: http://someurl.com?query\n :notes: you should be taking them\n:END:\n"
-    testProps = testParser (drawer)
+    testProps = testParser (parseDrawer)

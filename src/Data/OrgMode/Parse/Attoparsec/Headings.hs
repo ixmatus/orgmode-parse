@@ -10,135 +10,130 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headings
-( heading
+( headingBelowLevel
 , headingLevel
 , headingPriority
-, headingTitle
-, headingKeyword
+, parseStats
+, parseTags
 )
 where
 
-import           Control.Applicative      ((*>), (<*), (<|>))
+import           Control.Applicative      ((*>), (<*), (<|>),(<$>), pure, (<*>))
+import           Control.Monad            (when, void)
+import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
-import           Data.Char                (isUpper)
-import           Data.Maybe               (catMaybes, isJust)
-import           Data.Text                as Text (Text, concat, length, null,
-                                                   pack)
-import           Prelude                  hiding (concat, null, takeWhile)
+import           Data.Maybe               (fromMaybe)
+import           Data.Text                as Text (Text, append, init, last, length, null, pack, splitOn, strip, tail)
+import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
 
 import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Parse.Attoparsec.Section
 
--- | Parse an org-mode heading.
-heading :: TP.Parser Text Heading
-heading = do
-    lvl  <- headingLevel
-    st   <- option Nothing headingState
-    pr   <- option Nothing headingPriority
 
-    (tl, k) <- headingTitle
+-- | Parse an org-mode heading and its contained entities
+--   (see orgmode.org/worg/dev/org-syntax.html Header guidance)
+--   Headers include a hierarchy level indicated by '*'s,
+--   optional Todo-like state, priority level, %-done stats, and tags
+--   e.g.:  ** TODO [#B] Polish Poetry Essay  [25%]   :HOMEWORK:POLISH:WRITING:
+--
+--   Headings contain directly:
+--     * A 'section' with Planning and Clock entries
+--     * A number of other not-yet-implemented entities (code blocks, lists)
+--     * Unstructured text
+--     * Other heading deeper in the hierarchy
+--
+--   headingBelowLevel takes a list of terms to consider StateKeyword's,
+--     and a minumum hierarchy depth. Use 0 to parse any heading
+headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
+headingBelowLevel stateKeywords levelReq = do
+    lvl  <- headingLevel levelReq                       <* skipSpace'
+    td   <- option Nothing
+             (Just <$> parseStateKeyword stateKeywords <* skipSpace')
+    pr   <- option Nothing (Just <$> headingPriority   <* skipSpace')
+    (tl, s, k) <- takeTitleExtras
+    sect <- parseSection
+    subs <- option [] $ many' (headingBelowLevel stateKeywords (levelReq + 1))
+    skipSpace
+    return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
-    keys <- attemptKeys k
-
-    endOfLine
-
-    return $ Heading lvl pr st tl (catMaybes (k:keys))
-
-  where
-    attemptKeys (Just _) = many' (headingKeyword)
-    attemptKeys Nothing  = return []
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
-headingLevel :: TP.Parser Text Int
-headingLevel = return . Text.length =<< takeWhile1 (== '*')
+-- Constrain to levelReq level or its children
+headingLevel :: Int -> TP.Parser Text Int
+headingLevel levelReq = do
+  stars <- takeWhile1 (== '*')
+  let lvl = Text.length stars
+  when (lvl <= levelReq) (fail "Heading level too high")
+  return lvl
+
+
+-- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
+--
+-- These can be custom so we're parsing additional state
+-- identifiers as Text
+parseStateKeyword :: [Text] -> TP.Parser Text StateKeyword
+parseStateKeyword stateKeywords = StateKeyword <$>
+                                  choice (map string stateKeywords)
+
 
 -- | Parse the priority indicator.
 --
 -- If anything but these priority indicators are used the parser will
 -- fail: `[#A]`, `[#B]`, `[#C]`.
-headingPriority :: TP.Parser Text (Maybe Priority)
-headingPriority = do
-    pr <- start *> (takeWhile $ inClass "ABC") <* end
-    if null pr
-    then fail "Priority must be one of [#A], [#B], or [#C]"
-    else return . Just $ toPriority pr
+headingPriority :: TP.Parser Text Priority
+headingPriority = start
+                  *> choice (zipWith mkPParser "ABC" [A,B,C])
+                  <* end
   where
-    start = char '[' *> char '#'
-    end   = char ']' <* space
+    mkPParser c p = char c *> pure p
+    start         = string "[#"
+    end           = char   ']'
 
-
--- | Parse the state indicator {`TODO` | `DOING` | `DONE`}.
+-- | Parse title, optional Stats block, and optional Tag listToMaybe
 --
--- These can be custom so we're parsing the state identifier as Text
--- but wrapped with the State newtype.
-headingState :: TP.Parser Text (Maybe State)
-headingState = do
-    st <- space *> takeWhile isUpper <* space
+-- Stats may be either [m/n] or [n%].
+-- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
+takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
+takeTitleExtras = do
+  titleStart <- takeTill (\c -> inClass "[:" c || isEndOfLine c)
+  -- skipSpace' doesn't skip newlines. Used here to restrict this
+  -- parser to consuming from a single line
+  s          <- option Nothing (Just <$> parseStats <* skipSpace')
+  t          <- option Nothing (Just <$> parseTags  <* skipSpace')
+  leftovers  <- option mempty  (takeTill (== '\n'))
+  void (endOfLine <|> endOfInput)
+  let titleText
+        | null leftovers = strip titleStart
+        | otherwise      = append titleStart leftovers
+  return (titleText, s, t)
 
-    if null st
-    then return Nothing
-    else return . Just $ State st
 
--- | Title parser with alternative.
+-- | Parse a Stats block.
 --
--- This function tries to parse a title with a keyword and if it fails
--- it then attempts to parse everything till the end of the line.
-headingTitle :: TP.Parser Text (Text, Maybe Keyword)
-headingTitle = takeTitleKeys <|> takeTitleEnd
+-- Accepts either form: "[m/n]" or "[n%]"
+-- There is no restriction on m or n other than that they are integers
+parseStats :: TP.Parser Text Stats
+parseStats = sPct <|> sOf
+  where sPct = StatsPct
+               <$> (char '[' *> decimal <* string "%]")
+        sOf  = StatsOf
+               <$> (char '[' *> decimal)
+               <*> (char '/' *> decimal <* char ']')
 
-takeTitleEnd :: TP.Parser Text (Text, Maybe Keyword)
-takeTitleEnd = do
-    t <- takeTill isEndOfLine
-    return (t, Nothing)
+-- | Parse a colon-separated list of Tags
+--
+-- e.g. :HOMEWORK:POETRY:WRITING:
+parseTags :: TP.Parser Text [Tag]
+parseTags = do
+  tagsStr <-  (char ':' *> takeWhile (/= '\n'))
+  when (Text.last tagsStr /= ':' || Text.length tagsStr < 2) (fail "Not a valid tags set")
+  return (splitOn ":" (Text.init  $ tagsStr))
 
--- | Try to parse a title that may have keys.
---
--- This function recurs for every occurrence of ':' and tries to parse
--- it as a keyword. If the keyword parser fails we fold the ':' onto
--- our title result. If it succeeds then we return the title *and the
--- parsed keyword*.
-takeTitleKeys :: TP.Parser Text (Text, Maybe Keyword)
-takeTitleKeys = do
-    t  <- takeWhile $ notInClass ":\n\r"
-    cl <- char ':'
-    k  <- headingKeyword'
+--             (char ':' *> ((takeWhile (\c -> c /= ':' && c /= '\n')) `sepBy` char ':') <* char ':')
 
-    if isJust k
-    then char ':' *> return (t, k)
-    else do
-        (t', k') <- takeTitleKeys
-        return (concat [t, pack [cl], t'], k')
-
--- | Parse a heading keyword.
---
--- NOTE: this is meant to be used with `takeTitleKeys` since it cannot
--- fail and we use it recursively in that function to determine
--- whether we are hitting a keyword chunk or not (and saving it if we
--- do!).
---
--- It is not exported because it is not meant to be used outside of
--- the `takeTitleKeys` function.
-headingKeyword' :: TP.Parser Text (Maybe Keyword)
-headingKeyword' = do
-    key <- takeWhile $ notInClass " :\n\r"
-    if null key
-    then return Nothing
-    else return . Just $ Keyword key
-
--- | Parse a heading keyword.
---
--- You can use this with `many'` and `catMaybes` to get a list
--- keywords:
---
--- > keys <- many' headingKeyword
--- > return $ catMaybes keys
-headingKeyword :: TP.Parser Text (Maybe Keyword)
-headingKeyword = do
-    key <- (takeWhile1 $ notInClass ":\n\r") <* char ':'
-    if null key
-    then return Nothing
-    else return . Just $ Keyword key
+skipSpace' :: TP.Parser Text ()
+skipSpace' = void (takeWhile (inClass " \t"))

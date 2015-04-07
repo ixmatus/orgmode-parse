@@ -7,6 +7,7 @@ import           Headings
 import           PropertyDrawer
 import           Test.Tasty
 import           Timestamps
+import           Document
 
 main :: IO ()
 main = defaultMain tests
@@ -17,4 +18,5 @@ tests = testGroup
           [ parserHeadingTests
           , parserPropertyDrawerTests
           , parserTimestampTests
+          , parserSmallDocumentTests
           ]
