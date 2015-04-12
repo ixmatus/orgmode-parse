@@ -12,11 +12,10 @@ import           Data.OrgMode.Parse.Attoparsec.Headings
 
 ------------------------------------------------------------------------------
 parseDocument :: [Text] -> TP.Parser Text Document
-parseDocument otherKeywords = Document
-                              <$> (unlines <$> many' nonHeaderLine)
-                              <*> many' (headingBelowLevel otherKeywords 0)
+parseDocument otherKeywords =
+  Document
+    <$> (unlines <$> many' nonHeaderLine)
+    <*> many' (headingBelowLevel otherKeywords 0)
 
 nonHeaderLine :: TP.Parser Text Text
 nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
-
-
