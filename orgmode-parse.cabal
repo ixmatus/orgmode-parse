@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.1.0.3
+Version:                0.1.0.4
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -36,6 +36,11 @@ Library
   Exposed-Modules:
                   Data.OrgMode.Parse
                   Data.OrgMode.Parse.Types
+                  Data.OrgMode.Parse.Attoparsec.Document
+                  Data.OrgMode.Parse.Attoparsec.Headings
+                  Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+                  Data.OrgMode.Parse.Attoparsec.Section
+                  Data.OrgMode.Parse.Attoparsec.Time
 
   Build-Depends:
                 base                      >= 4.4      && < 5
