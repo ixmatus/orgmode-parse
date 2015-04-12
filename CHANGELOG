@@ -1,6 +1,11 @@
 -*- mode: org -*-
 
 * Changelog
+** 0.1.0.4
+*** Miscellany
+    - Comment improvement wibbles.
+    - Adding the =Attoparsec= combinator modules to the export module
+      list in the cabal package definition.
 ** 0.1.0.3
 *** Features
     - Sub-headings are now parsed and tracked by its parent.
