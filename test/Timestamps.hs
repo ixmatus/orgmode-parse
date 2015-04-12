@@ -3,11 +3,10 @@
 
 module Timestamps where
 
-import           Control.Applicative      ((<*))
-import           Data.Attoparsec.Text     (endOfLine)
+import           Control.Applicative  ((<*))
+import           Data.Attoparsec.Text (endOfLine)
 import           Data.HashMap.Strict
 import           Data.OrgMode.Parse
-import           Data.OrgMode.Parse.Types
 import           Test.Tasty
 import           Test.Tasty.HUnit
 

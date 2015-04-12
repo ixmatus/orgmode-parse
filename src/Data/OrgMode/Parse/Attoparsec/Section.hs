@@ -1,17 +1,29 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Section
+-- Copyright   :  © 2015 Parnell Springmeyer
+-- License     :  All Rights Reserved
+-- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
+-- Stability   :  stable
+--
+-- Parsing combinators for org-mode sections.
+----------------------------------------------------------------------------
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                     ((<$>), (<*>))
-import           Data.Attoparsec.Text                    as T
-import           Data.Attoparsec.Types                   as TP
-import           Data.Monoid                             (mempty)
-import           Prelude                                 hiding (unlines)
-import           Data.Text                               (Text, pack, unlines)
-import           Data.OrgMode.Parse.Types
-import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+import           Control.Applicative                          ((<$>), (<*>))
+import           Data.Attoparsec.Text                         as T
+import           Data.Attoparsec.Types                        as TP
+import           Data.Monoid                                  (mempty)
+import           Data.Text                                    (Text, pack,
+                                                               unlines)
+import           Prelude                                      hiding (unlines)
 
+import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+import           Data.OrgMode.Parse.Attoparsec.Time
+import           Data.OrgMode.Parse.Types
 
 -- | Parse a heading section
 --

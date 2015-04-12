@@ -8,9 +8,9 @@ Stability   :  experimental
 Types and utility functions.
 -}
 
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module Data.OrgMode.Parse.Types
 ( Document (..)
@@ -38,12 +38,12 @@ module Data.OrgMode.Parse.Types
 
 import           Control.Applicative
 import           Control.Monad        (mzero)
+import           Data.Aeson           ((.:), (.=))
 import qualified Data.Aeson           as A
-import           Data.Aeson           ((.=),(.:))
-import           Data.Hashable        (Hashable(..))
-import           Data.HashMap.Strict  (HashMap, fromList, toList, keys)
+import           Data.Hashable        (Hashable (..))
+import           Data.HashMap.Strict  (HashMap, fromList, keys, toList)
 import           Data.Text            (Text, pack)
-import           Data.Thyme.Calendar  (YearMonthDay(..))
+import           Data.Thyme.Calendar  (YearMonthDay (..))
 import           Data.Thyme.LocalTime (Hour, Minute)
 import           Data.Traversable
 import           GHC.Generics

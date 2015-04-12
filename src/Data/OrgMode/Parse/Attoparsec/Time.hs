@@ -16,7 +16,7 @@ module Data.OrgMode.Parse.Attoparsec.Time where
 
 import           Control.Applicative        (pure, (*>), (<$>), (<*), (<*>),
                                              (<|>))
-import           Control.Monad              (when)
+import           Control.Monad              (liftM)
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
@@ -75,79 +75,116 @@ parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
 -- delay flag.
 parseTimestamp :: TP.Parser Text Timestamp
 parseTimestamp = do
-  (ts1,ts1b,active1) <- parseBracketedDateTime
+  (ts1, tsb1, act) <- transformBracketedDateTime <$> parseBracketedDateTime
 
-  t2 <- option Nothing (Just <$> (string "--" *> parseBracketedDateTime))
+  -- Such ew, so gross, much clean, very needed
+  blk2 <- liftM (maybe Nothing (Just . transformBracketedDateTime))
+                optionalBracketedDateTime
 
-  case (ts1b,t2) of
-
-    (Nothing,      Nothing) ->
-       return (Timestamp ts1 active1 Nothing)
-    (Nothing, Just (ts2,Nothing,_)) ->
-      return  (Timestamp ts1 active1 (Just ts2))
+  -- TODO: this is grody, I'd like to refactor this truth table logic
+  -- and make the transformations chainable and composable as opposed
+  -- to depending on case matching blocks. - Parnell
+  case (tsb1, blk2) of
+    (Nothing, Nothing) ->
+      return (Timestamp ts1 act Nothing)
+    (Nothing, Just (ts2, Nothing, _)) ->
+      return (Timestamp ts1 act (Just ts2))
     (Nothing, Just _) ->
       fail "Illegal time range in second timerange timestamp"
     (Just (h',m'), Nothing) ->
-      return (Timestamp ts1 active1
+      return (Timestamp ts1 act
                (Just $ ts1 {hourMinute = Just (h',m')
                            ,repeater   = Nothing
                            ,delay      = Nothing}))
     (Just _, Just _) -> fail "Illegal mix of time range and timestamp range"
 
+  where
+    optionalBracketedDateTime =
+      option Nothing (Just <$> (string "--" *> parseBracketedDateTime))
+
+type Weekday = Text
+
+data BracketedDateTime =
+     BracketedDateTime
+     { datePart    :: YearMonthDay
+     , dayNamePart :: Maybe Weekday
+     , timePart    :: Maybe TimePart
+     , repeat      :: Maybe Repeater
+     , delayPart   :: Maybe Delay
+     , isActive    :: Bool
+     } deriving (Show, Eq)
 
 -- | Parse a single time part
 --
--- e.g. [2015-03-27 Fri 10:20 +4h]
+-- > [2015-03-27 Fri 10:20 +4h]
+--
 -- returning:
 --   * The basic timestamp
 --   * Whether there was a time interval in place of a single time
---       (this will be handled upstream by parseTimestamp)
+--     (this will be handled upstream by parseTimestamp)
 --   * Whether the time is active or inactive
-parseBracketedDateTime :: TP.Parser Text (DateTime, Maybe (Hours,Minutes), Bool)
+-- (DateTime, Maybe (Hours, Minutes), Bool)
+parseBracketedDateTime :: TP.Parser Text BracketedDateTime
 parseBracketedDateTime = do
-  oBracket   <- char '<' <|> char '['
-  datePart   <- parseDate                            <* skipSpace
+  openingBracket <- char '<' <|> char '['
+  brkDateTime    <- BracketedDateTime <$>
+            parseDate <* skipSpace
+        <*> optionalParse parseDay
+        <*> optionalParse parseTime'
+        <*> maybeListParse parseRepeater
+        <*> maybeListParse parseDelay
+        <*> pure (activeBracket openingBracket)
 
-  dName      <- option Nothing (Just <$> parseDay)   <* skipSpace
-  timePart   <- option Nothing (Just <$> parseTime') <* skipSpace
+  closingBracket <- char '>' <|> char ']'
+  finally brkDateTime openingBracket closingBracket
+  where
+    optionalParse p  = option Nothing (Just <$> p) <* skipSpace
+    maybeListParse p = listToMaybe <$> many' p  <* skipSpace
+    activeBracket = (=='<')
 
-  repeatPart <- listToMaybe <$> many' parseRepeater  <* skipSpace
-  delayPart  <- listToMaybe <$> many' parseDelay     <* skipSpace
+    finally bkd ob cb | complementaryBracket ob /= cb =
+                          fail "Mismatched timestamp brackets"
+                      | otherwise = return bkd
 
-  cBracket   <- char '>' <|> char ']'
+    complementaryBracket '<' = '>'
+    complementaryBracket '[' = ']'
+    complementaryBracket x   = x
 
-  when (complementaryBracket oBracket /= cBracket)
-    (fail "Bad timestamp parse, mismatched brackets")
-
-  case timePart of
-    Just (Left (h,m)) ->
-      return ( DateTime (YMD' datePart) dName (Just (h,m)) repeatPart delayPart
-             , Nothing
-             , activeBracket oBracket)
-    Just (Right (t1,t2)) ->
-      return ( DateTime (YMD' datePart) dName (Just t1)repeatPart delayPart
-             , Just t2
-             , activeBracket oBracket)
-    Nothing ->
-      return (DateTime (YMD' datePart) dName Nothing repeatPart delayPart
-             , Nothing
-             , activeBracket oBracket)
-
-    where activeBracket = (=='<')
-          complementaryBracket '<' = '>'
-          complementaryBracket '[' = ']'
-          complementaryBracket x   = x
+-- TODO: this function is also grody but it's better than having this
+-- logic in the primary parseBracketedDateTime function. - Parnell
+transformBracketedDateTime :: BracketedDateTime -> (DateTime, Maybe (Hours, Minutes), Bool)
+transformBracketedDateTime
+  (BracketedDateTime dp dn tp rp dly act) =
+    case tp of
+        Just (TimePart (Left (h,m))) ->
+            ( DateTime (YMD' dp) dn (Just (h,m)) rp dly
+            , Nothing
+            , act)
+        Just (TimePart (Right (t1, t2))) ->
+            ( DateTime (YMD' dp) dn (Just t1) rp dly
+            , Just t2
+            , act)
+        Nothing ->
+            ( DateTime (YMD' dp) dn Nothing rp dly
+            , Nothing
+            , act)
 
 -- | Parse a 3-character day name
 parseDay :: TP.Parser Text Text
 parseDay = choice (map string ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
 
+type AbsoluteTime   = (Hours, Minutes)
+type TimestampRange = (AbsoluteTime, AbsoluteTime)
+
+newtype TimePart = TimePart (Either AbsoluteTime TimestampRange)
+  deriving (Eq, Ord, Show)
+
 -- | Parse the time-of-day part of a time part, as a single point or a time range
-parseTime' :: TP.Parser Text (Either (Hours,Minutes) ((Hours,Minutes),(Hours,Minutes)))
+parseTime' :: TP.Parser Text TimePart
 parseTime' =
-    choice [ Right <$> ((,) <$> parseHM <* char '-' <*> parseHM)
-           , Left  <$> parseHM
-           ]
+    TimePart <$> choice [ Right <$> ((,) <$> parseHM <* char '-' <*> parseHM)
+                        , Left  <$> parseHM
+                        ]
 
 -- | Parse the YYYY-MM-DD part of a time part.
 parseDate :: TP.Parser Text YearMonthDay
