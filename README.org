@@ -7,10 +7,8 @@
 
 ** What's Finished
    We have built attoparsec parsers for parsing org-mode document
-   structures and meta-data.
-
-   Here is a list of all the syntax features that have a complete
-   parsing implementation and not:
+   structures and meta-data. Here is a list of all the syntax features
+   that have a complete parsing implementation and not:
 
    - [X] Headings
      - [X] State keywords
