@@ -39,7 +39,7 @@ import           Data.OrgMode.Parse.Attoparsec.Section
 --   optional Todo-like state, priority level, %-done stats, and tags
 --   e.g.:  ** TODO [#B] Polish Poetry Essay  [25%]   :HOMEWORK:POLISH:WRITING:
 --
---   Headings contain directly:
+--   Headings contain:
 --     * A 'section' with Planning and Clock entries
 --     * A number of other not-yet-implemented entities (code blocks, lists)
 --     * Unstructured text

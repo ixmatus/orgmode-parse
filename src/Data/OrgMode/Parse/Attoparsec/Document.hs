@@ -3,7 +3,7 @@ module Data.OrgMode.Parse.Attoparsec.Document (
 ) where
 
 import           Control.Applicative                     ((<$>), (<*>))
-import           Data.Attoparsec.Text                    as T
+import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types                   as TP
 import           Prelude                                 hiding (unlines)
 import           Data.Text                               (Text, pack, unlines)

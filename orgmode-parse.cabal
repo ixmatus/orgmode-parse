@@ -38,17 +38,17 @@ Library
                   Data.OrgMode.Parse.Types
 
   Build-Depends:
-                aeson                     >= 0.8.0.2  && < 0.9
-              , attoparsec                >= 0.12     && < 0.13
-              , base                      >= 4.4      && < 5
-              , bytestring                >= 0.10.4   && < 0.11
-              , containers                >= 0.5.5    && < 0.6
-              , free                      >= 4.9      && < 5
-              , hashable                  >= 1.2      && < 1.3
-              , old-locale                >= 1.0      && < 2.0
-              , text                      >= 1.0      && < 2.0
-              , thyme                     >= 0.3      && < 0.4
-              , unordered-containers      >= 0.2      && < 0.3
+                base                      >= 4.4      && < 5
+              , aeson                     >= 0.8.0.2
+              , attoparsec                >= 0.12
+              , bytestring                >= 0.10.4
+              , containers                >= 0.5.5
+              , free                      >= 4.9
+              , hashable                  >= 1.2
+              , old-locale                >= 1.0
+              , text                      >= 1.0
+              , thyme                     >= 0.3
+              , unordered-containers      >= 0.2
 
 Test-Suite tests
   Type:                 exitcode-stdio-1.0
@@ -60,18 +60,18 @@ Test-Suite tests
                 Data.OrgMode.Parse
 
   Build-Depends:
-                base                       >= 4.4      && < 5
-              , aeson                      >= 0.8      && < 0.9
-              , bytestring                 >= 0.10     && < 0.11
-              , text                       >= 1.0      && < 2.0
-              , attoparsec                 >= 0.12     && < 0.13
-              , hashable                   >= 1.2      && < 1.3
-              , unordered-containers       >= 0.2      && < 0.3
-              , thyme                      >= 0.3      && < 0.4
-              , old-locale                 >= 1.0      && < 2.0
-              , HUnit                      >= 1.2.5.2  && < 1.3
-              , tasty                      >= 0.8      && < 0.11
-              , tasty-hunit                >= 0.8.0.1  && < 0.9
+                base                       >= 4.4
+              , aeson                      >= 0.8
+              , bytestring                 >= 0.10
+              , text                       >= 1.0
+              , attoparsec                 >= 0.12
+              , hashable                   >= 1.2
+              , unordered-containers       >= 0.2
+              , thyme                      >= 0.3
+              , old-locale                 >= 1.0
+              , HUnit                      >= 1.2.5.2
+              , tasty                      >= 0.8
+              , tasty-hunit                >= 0.8.0.1
               , containers
 
 Source-Repository head
