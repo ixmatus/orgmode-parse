@@ -33,12 +33,13 @@ import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Parse.Types
 
--- | Parse a planning line
+-- | Parse a planning line.
 --
--- Plannings live in a heading section and are formatted as a keyword
--- and a timestamp.
--- There can be more than one, but they are all on the same line
--- e.g. DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-16 12:00>
+-- Plannings inhabit a heading section and are formatted as a keyword
+-- and a timestamp. There can be more than one, but they are all on
+-- the same line e.g:
+--
+-- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: TP.Parser Text (HashMap PlanningKeyword Timestamp)
 parsePlannings = fromList <$> (many' (planning <* skipSpace))
   where planning :: TP.Parser Text (PlanningKeyword, Timestamp)
@@ -48,7 +49,7 @@ parsePlannings = fromList <$> (many' (planning <* skipSpace))
                           ,string "CLOSED"    *> pure CLOSED
                           ]
 
--- | Parse a clock line
+-- | Parse a clock line.
 --
 -- A heading's section contains one line per clock entry. Clocks may
 -- have a timestamp, a duration, both, or neither e.g.:
@@ -61,7 +62,7 @@ parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
     dur = option Nothing (Just <$> (string " => "
                                     *> skipSpace *> parseHM))
 
--- | Parse a timestamp
+-- | Parse a timestamp.
 --
 -- Timestamps may be timepoints or timeranges, and they indicate
 -- whether they are active or closed by using angle or square brackets
@@ -114,16 +115,15 @@ data BracketedDateTime =
      , isActive    :: Bool
      } deriving (Show, Eq)
 
--- | Parse a single time part
+-- | Parse a single time part.
 --
 -- > [2015-03-27 Fri 10:20 +4h]
 --
--- returning:
---   * The basic timestamp
---   * Whether there was a time interval in place of a single time
---     (this will be handled upstream by parseTimestamp)
---   * Whether the time is active or inactive
--- (DateTime, Maybe (Hours, Minutes), Bool)
+-- Returns:
+-- - The basic timestamp
+-- - Whether there was a time interval in place of a single time
+-- (this will be handled upstream by parseTimestamp)
+-- - Whether the time is active or inactive
 parseBracketedDateTime :: TP.Parser Text BracketedDateTime
 parseBracketedDateTime = do
   openingBracket <- char '<' <|> char '['
@@ -169,7 +169,7 @@ transformBracketedDateTime
             , Nothing
             , act)
 
--- | Parse a 3-character day name
+-- | Parse a 3-character day name.
 parseDay :: TP.Parser Text Text
 parseDay = choice (map string ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
 
@@ -179,7 +179,8 @@ type TimestampRange = (AbsoluteTime, AbsoluteTime)
 newtype TimePart = TimePart (Either AbsoluteTime TimestampRange)
   deriving (Eq, Ord, Show)
 
--- | Parse the time-of-day part of a time part, as a single point or a time range
+-- | Parse the time-of-day part of a time part, as a single point or a
+-- time range.
 parseTime' :: TP.Parser Text TimePart
 parseTime' =
     TimePart <$> choice [ Right <$> ((,) <$> parseHM <* char '-' <*> parseHM)

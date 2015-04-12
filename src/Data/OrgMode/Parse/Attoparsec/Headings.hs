@@ -42,20 +42,23 @@ import           Data.OrgMode.Parse.Attoparsec.Section
 import           Data.OrgMode.Parse.Types
 
 
--- | Parse an org-mode heading and its contained entities
---   (see orgmode.org/worg/dev/org-syntax.html Header guidance)
---   Headers include a hierarchy level indicated by '*'s,
---   optional Todo-like state, priority level, %-done stats, and tags
---   e.g.:  ** TODO [#B] Polish Poetry Essay  [25%]   :HOMEWORK:POLISH:WRITING:
+-- | Parse an org-mode heading and its contained entities (see <http://orgmode.org/worg/dev/org-syntax.html OrgSyntax>).
 --
---   Headings contain:
---     * A 'section' with Planning and Clock entries
---     * A number of other not-yet-implemented entities (code blocks, lists)
---     * Unstructured text
---     * Other heading deeper in the hierarchy
+-- Headers include a hierarchy level indicated by asterisks, optional
+-- todo states, priority level, %-done stats, and tags.
 --
---   headingBelowLevel takes a list of terms to consider StateKeyword's,
---     and a minumum hierarchy depth. Use 0 to parse any heading
+-- > ** TODO [#B] Polish Poetry Essay [25%] :HOMEWORK:POLISH:WRITING:
+--
+-- Headings may contain:
+--
+-- - A section with Planning and Clock entries
+-- - A number of other not-yet-implemented entities (code blocks, lists)
+-- - Unstructured text
+-- - Other heading deeper in the hierarchy
+--
+-- 'headingBelowLevel' takes a list of terms to consider, state
+-- keywords, and a minumum hierarchy depth. Use 0 to parse any
+-- heading.
 headingBelowLevel :: [Text] -> LevelDepth -> TP.Parser Text Heading
 headingBelowLevel stateKeywords depth = do
     lvl  <- headingLevel depth <* skipSpace'
@@ -74,7 +77,7 @@ headingBelowLevel stateKeywords depth = do
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
 --
--- Constrain to LevelDepth or its children
+-- Constrain it to LevelDepth or its children.
 headingLevel :: LevelDepth -> TP.Parser Text Level
 headingLevel (LevelDepth d) = takeLevel >>= test
   where
@@ -82,17 +85,23 @@ headingLevel (LevelDepth d) = takeLevel >>= test
     test l | l <= d    = fail $ printf "Heading level of %d cannot be higher than depth %d" l d
            | otherwise = return $ Level l
 
--- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
+-- | Parse the state indicator.
 --
--- These can be custom so we're parsing additional state
--- identifiers as Text
+-- > {`TODO` | `DONE` | custom }
+--
+-- These can be custom so we're parsing additional state identifiers
+-- as Text.
 parseStateKeyword :: [Text] -> TP.Parser Text StateKeyword
 parseStateKeyword (map string -> sk) = StateKeyword <$> choice sk
 
 -- | Parse the priority indicator.
 --
 -- If anything but these priority indicators are used the parser will
--- fail: `[#A]`, `[#B]`, `[#C]`.
+-- fail:
+--
+-- - @[#A]@
+-- - @[#B]@
+-- - @[#C]@
 headingPriority :: TP.Parser Text Priority
 headingPriority = start *> zipChoice <* end
   where
@@ -101,10 +110,10 @@ headingPriority = start *> zipChoice <* end
     start         = string "[#"
     end           = char   ']'
 
--- | Parse title, optional Stats block, and optional Tag listToMaybe
+-- | Parse the title, optional stats block, and optional tag.
 --
--- Stats may be either [m/n] or [n%].
--- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
+-- Stats may be either [m/n] or [n%] and tags are colon-separated, e.g:
+-- > :HOMEWORK:POETRY:WRITING:
 takeTitleExtras :: TP.Parser Text TitleMeta
 takeTitleExtras =
   liftM5 mkTitleMeta
@@ -126,10 +135,10 @@ mkTitleMeta start stats' tags' leftovers _ =
     transformTitle t l | null leftovers = strip t
                        | otherwise      = append t l
 
--- | Parse a Stats block.
+-- | Parse a stats block.
 --
--- Accepts either form: "[m/n]" or "[n%]"
--- There is no restriction on m or n other than that they are integers
+-- Accepts either form: "[m/n]" or "[n%]" and there is no restriction
+-- on m or n other than that they are integers.
 parseStats :: TP.Parser Text Stats
 parseStats = sPct <|> sOf
   where sPct = StatsPct
@@ -140,7 +149,7 @@ parseStats = sPct <|> sOf
 
 -- | Parse a colon-separated list of Tags
 --
--- e.g. :HOMEWORK:POETRY:WRITING:
+-- > :HOMEWORK:POETRY:WRITING:
 parseTags :: TP.Parser Text [Tag]
 parseTags = tags' >>= test
   where
