@@ -11,6 +11,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
+
 module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 ( parseDrawer
 , property
@@ -26,6 +27,9 @@ import           Prelude                  hiding (concat, null, takeWhile)
 
 import           Data.OrgMode.Parse.Types
 
+type PropertyKey = Text
+type PropertyVal = Text
+
 -- | Parse a property drawer.
 --
 -- > :PROPERTIES:
@@ -33,9 +37,7 @@ import           Data.OrgMode.Parse.Types
 -- > :NOTE: Something really crazy happened today!
 -- > :END:
 parseDrawer :: TP.Parser Text Properties
-parseDrawer = do
-    props <- begin *> manyTill property end
-    return $ fromList props
+parseDrawer = return . fromList =<< begin *> manyTill property end
   where
     begin   = ident "PROPERTIES"
     end     = ident "END"
@@ -48,7 +50,7 @@ parseDrawer = do
 -- Properties *must* be a `:KEY: value` pair, the key can be of any
 -- case and contain any characters except for newlines and colons
 -- (since they delimit the start and end of the key).
-property :: TP.Parser Text (Text, Text)
+property :: TP.Parser Text (PropertyKey, PropertyVal)
 property = do
     key <- skipSpace *> skip (== ':') *> takeWhile1 (/= ':') <* skip (== ':')
     val <- skipSpace *> takeValue
