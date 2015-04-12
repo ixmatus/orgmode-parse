@@ -32,6 +32,8 @@ module Data.OrgMode.Parse.Types
 , Repeater (..)
 , DelayType (..)
 , Delay (..)
+, LevelDepth (..)
+, TitleMeta (..)
 , YearMonthDay(..)
 , YearMonthDay'(..)
 ) where
@@ -55,6 +57,12 @@ data Document = Document {
 
 instance A.ToJSON Document where
 instance A.FromJSON Document where
+
+newtype LevelDepth = LevelDepth Int
+  deriving (Eq, Show, Num)
+
+data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
+  deriving (Eq, Show)
 
 data Heading = Heading
     { level       :: Level              -- ^ Org headline nesting level (1 is at the top)

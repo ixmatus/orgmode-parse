@@ -9,7 +9,9 @@
 -- Parsing combinators for org-list headings.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings, ViewPatterns, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ViewPatterns               #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
@@ -20,24 +22,25 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 )
 where
 
-import           Control.Applicative      ((*>), (<*), (<|>),(<$>), pure, (<*>))
-import           Control.Monad            (void, liftM5)
-import           Data.Monoid              (mempty)
-import           Data.Attoparsec.Text     as T
-import           Data.Attoparsec.Types    as TP (Parser)
-import           Data.Maybe               (fromMaybe)
-import           Data.Text                as Text (Text, append, init, last, length, null, splitOn, strip)
-import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
+import           Control.Applicative                   (pure, (*>), (<$>), (<*),
+                                                        (<*>), (<|>))
+import           Control.Monad                         (liftM5, void)
+import           Data.Attoparsec.Text                  as T
+import           Data.Attoparsec.Types                 as TP (Parser)
+import           Data.Maybe                            (fromMaybe)
+import           Data.Monoid                           (mempty)
+import           Data.Text                             as Text (Text, append,
+                                                                init, last,
+                                                                length, null,
+                                                                splitOn, strip)
+import           Prelude                               hiding (concat, null,
+                                                        sequence_, takeWhile,
+                                                        unlines)
 import           Text.Printf
-                 
-import           Data.OrgMode.Parse.Types
+
 import           Data.OrgMode.Parse.Attoparsec.Section
+import           Data.OrgMode.Parse.Types
 
-newtype LevelDepth = LevelDepth Int
-  deriving (Eq, Show, Num)
-
-data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
-  deriving (Eq, Show)
 
 -- | Parse an org-mode heading and its contained entities
 --   (see orgmode.org/worg/dev/org-syntax.html Header guidance)
@@ -70,7 +73,7 @@ headingBelowLevel stateKeywords depth = do
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
--- 
+--
 -- Constrain to LevelDepth or its children
 headingLevel :: LevelDepth -> TP.Parser Text Level
 headingLevel (LevelDepth d) = takeLevel >>= test
@@ -103,7 +106,7 @@ headingPriority = start *> zipChoice <* end
 -- Stats may be either [m/n] or [n%].
 -- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
 takeTitleExtras :: TP.Parser Text TitleMeta
-takeTitleExtras = 
+takeTitleExtras =
   liftM5 mkTitleMeta
     titleStart
     (optionalMetadata parseStats)
