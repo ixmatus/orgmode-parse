@@ -9,7 +9,7 @@
 -- Parsing combinators for org-list headings.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ViewPatterns, GeneralizedNewtypeDeriving #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headings
 ( headingBelowLevel
@@ -21,17 +21,23 @@ module Data.OrgMode.Parse.Attoparsec.Headings
 where
 
 import           Control.Applicative      ((*>), (<*), (<|>),(<$>), pure, (<*>))
-import           Control.Monad            (when, void)
+import           Control.Monad            (void, liftM5)
 import           Data.Monoid              (mempty)
 import           Data.Attoparsec.Text     as T
 import           Data.Attoparsec.Types    as TP (Parser)
 import           Data.Maybe               (fromMaybe)
-import           Data.Text                as Text (Text, append, init, last, length, null, pack, splitOn, strip, tail)
+import           Data.Text                as Text (Text, append, init, last, length, null, splitOn, strip)
 import           Prelude                  hiding (concat, null, takeWhile, sequence_, unlines)
-
+import           Text.Printf
+                 
 import           Data.OrgMode.Parse.Types
 import           Data.OrgMode.Parse.Attoparsec.Section
 
+newtype LevelDepth = LevelDepth Int
+  deriving (Eq, Show, Num)
+
+data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
+  deriving (Eq, Show)
 
 -- | Parse an org-mode heading and its contained entities
 --   (see orgmode.org/worg/dev/org-syntax.html Header guidance)
@@ -47,48 +53,47 @@ import           Data.OrgMode.Parse.Attoparsec.Section
 --
 --   headingBelowLevel takes a list of terms to consider StateKeyword's,
 --     and a minumum hierarchy depth. Use 0 to parse any heading
-headingBelowLevel :: [Text] -> Int -> TP.Parser Text Heading
-headingBelowLevel stateKeywords levelReq = do
-    lvl  <- headingLevel levelReq                       <* skipSpace'
-    td   <- option Nothing
-             (Just <$> parseStateKeyword stateKeywords <* skipSpace')
+headingBelowLevel :: [Text] -> LevelDepth -> TP.Parser Text Heading
+headingBelowLevel stateKeywords depth = do
+    lvl  <- headingLevel depth <* skipSpace'
+    td   <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipSpace')
     pr   <- option Nothing (Just <$> headingPriority   <* skipSpace')
-    (tl, s, k) <- takeTitleExtras
-    sect <- parseSection
-    subs <- option [] $ many' (headingBelowLevel stateKeywords (levelReq + 1))
-    skipSpace
-    return $ Heading lvl td pr tl s (fromMaybe [] k) sect subs
 
+    TitleMeta tl stats' (fromMaybe [] -> tags') <- takeTitleExtras
+
+    sect <- parseSection
+    subs <- option [] $ many' (headingBelowLevel stateKeywords (depth + 1))
+
+    skipSpace
+
+    return $ Heading lvl td pr tl stats' tags' sect subs
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
--- Constrain to levelReq level or its children
-headingLevel :: Int -> TP.Parser Text Int
-headingLevel levelReq = do
-  stars <- takeWhile1 (== '*')
-  let lvl = Text.length stars
-  when (lvl <= levelReq) (fail "Heading level too high")
-  return lvl
-
+-- 
+-- Constrain to LevelDepth or its children
+headingLevel :: LevelDepth -> TP.Parser Text Level
+headingLevel (LevelDepth d) = takeLevel >>= test
+  where
+    takeLevel = Text.length <$> takeWhile1 (== '*')
+    test l | l <= d    = fail $ printf "Heading level of %d cannot be higher than depth %d" l d
+           | otherwise = return $ Level l
 
 -- | Parse the state indicator {`TODO` | `DONE` | otherTodoKeywords }.
 --
 -- These can be custom so we're parsing additional state
 -- identifiers as Text
 parseStateKeyword :: [Text] -> TP.Parser Text StateKeyword
-parseStateKeyword stateKeywords = StateKeyword <$>
-                                  choice (map string stateKeywords)
-
+parseStateKeyword (map string -> sk) = StateKeyword <$> choice sk
 
 -- | Parse the priority indicator.
 --
 -- If anything but these priority indicators are used the parser will
 -- fail: `[#A]`, `[#B]`, `[#C]`.
 headingPriority :: TP.Parser Text Priority
-headingPriority = start
-                  *> choice (zipWith mkPParser "ABC" [A,B,C])
-                  <* end
+headingPriority = start *> zipChoice <* end
   where
+    zipChoice     = choice (zipWith mkPParser "ABC" [A,B,C])
     mkPParser c p = char c *> pure p
     start         = string "[#"
     end           = char   ']'
@@ -97,20 +102,26 @@ headingPriority = start
 --
 -- Stats may be either [m/n] or [n%].
 -- Tags are colon-separated, e.g.  :HOMEWORK:POETRY:WRITING:
-takeTitleExtras :: TP.Parser Text (Text, Maybe Stats, Maybe [Tag])
-takeTitleExtras = do
-  titleStart <- takeTill (\c -> inClass "[:" c || isEndOfLine c)
-  -- skipSpace' doesn't skip newlines. Used here to restrict this
-  -- parser to consuming from a single line
-  s          <- option Nothing (Just <$> parseStats <* skipSpace')
-  t          <- option Nothing (Just <$> parseTags  <* skipSpace')
-  leftovers  <- option mempty  (takeTill (== '\n'))
-  void (endOfLine <|> endOfInput)
-  let titleText
-        | null leftovers = strip titleStart
-        | otherwise      = append titleStart leftovers
-  return (titleText, s, t)
+takeTitleExtras :: TP.Parser Text TitleMeta
+takeTitleExtras = 
+  liftM5 mkTitleMeta
+    titleStart
+    (optionalMetadata parseStats)
+    (optionalMetadata parseTags)
+    leftovers
+    (void $ endOfLine <|> endOfInput)
+  where
+    titleStart = takeTill (\c -> inClass "[:" c || isEndOfLine c)
+    leftovers  = option mempty $ takeTill (== '\n')
+    optionalMetadata p = option Nothing (Just <$> p <* skipSpace')
 
+
+mkTitleMeta :: Text -> Maybe Stats -> Maybe [Tag] -> Text -> () -> TitleMeta
+mkTitleMeta start stats' tags' leftovers _ =
+    TitleMeta (transformTitle start leftovers) stats' tags'
+  where
+    transformTitle t l | null leftovers = strip t
+                       | otherwise      = append t l
 
 -- | Parse a Stats block.
 --
@@ -128,12 +139,13 @@ parseStats = sPct <|> sOf
 --
 -- e.g. :HOMEWORK:POETRY:WRITING:
 parseTags :: TP.Parser Text [Tag]
-parseTags = do
-  tagsStr <-  (char ':' *> takeWhile (/= '\n'))
-  when (Text.last tagsStr /= ':' || Text.length tagsStr < 2) (fail "Not a valid tags set")
-  return (splitOn ":" (Text.init  $ tagsStr))
-
---             (char ':' *> ((takeWhile (\c -> c /= ':' && c /= '\n')) `sepBy` char ':') <* char ':')
+parseTags = tags' >>= test
+  where
+    tags' = (char ':' *> takeWhile (/= '\n'))
+    test t | (Text.last t /= ':' || Text.length t < 2) = fail "Not a valid tag set"
+           | otherwise = return (splitOn ":" (Text.init t))
 
 skipSpace' :: TP.Parser Text ()
-skipSpace' = void (takeWhile (inClass " \t"))
+skipSpace' = void $ takeWhile spacePred
+  where
+    spacePred s = s == ' ' || s == '\t'
