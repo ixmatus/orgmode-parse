@@ -8,12 +8,14 @@ Stability   :  experimental
 Types and utility functions.
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Data.OrgMode.Parse.Types
 ( Document (..)
 , Section (..)
+, Level (..)
 , Heading  (..)
 , Priority (..)
 , Plannings (..)
@@ -55,7 +57,7 @@ instance A.ToJSON Document where
 instance A.FromJSON Document where
 
 data Heading = Heading
-    { level       :: Int                -- ^ Org headline nesting level (1 is at the top)
+    { level       :: Level              -- ^ Org headline nesting level (1 is at the top)
     , keyword     :: Maybe StateKeyword -- ^ State of the headline (e.g. TODO, DONE)
     , priority    :: Maybe Priority     --
     , title       :: Text               -- properties
@@ -64,6 +66,8 @@ data Heading = Heading
     , section     :: Section            -- Next-line
     , subHeadings :: [Heading]          -- elements
     } deriving (Show, Eq, Generic)
+
+newtype Level = Level Int deriving (Eq, Show, Num, Generic)
 
 type Properties = HashMap Text Text
 type Clock      = (Maybe Timestamp, Maybe Duration)
@@ -157,6 +161,9 @@ instance A.FromJSON TimeUnit where
 ---------------------------------------------------------------------------
 --instance A.ToJSON Document where
 --instance A.FromJSON Document where
+
+instance A.ToJSON Level where
+instance A.FromJSON Level where
 
 newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
