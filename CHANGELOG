@@ -1,6 +1,14 @@
 -*- mode: org -*-
 
 * Changelog
+** 0.1.0.3
+*** Features
+    - Sub-headings are now parsed and tracked by its parent.
+    - Much more robust timestamp / clock / schedule parsing.
+
+*** Miscellany
+    - A good mount of code cleanup and comment improvement.
+
 ** 0.0.2.1
 *** Bugfixes
     - [X] Fixing the import for the =Internal= module (instead of
