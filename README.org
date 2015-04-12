@@ -5,3 +5,39 @@
   This is a reference implementation of an [[https://github.com/digitalmentat/orgmode-grammar/blob/master/SPECIFICATION.org][orgmode-grammar]] parser in
   Haskell.
 
+** What's Finished
+   We have built attoparsec parsers for parsing org-mode document
+   structures and meta-data.
+
+   - [X] Headings
+     - [X] State keywords
+     - [X] Priority indicator
+     - [X] Title
+     - [X] Status / progress indicator
+     - [X] Tag list
+   - [X] Property drawers
+   - [X] State keyword changelogs
+   - [X] Scheduled and deadline timestamps (timestamp, range,
+     duration, periodicity)
+     - [X] Active and inactive timestamps
+   - [X] Clock timestamps
+   - [ ] Markup
+     - [ ] Emphasis
+       - [ ] Bold
+       - [ ] Italic
+       - [ ] Strikethrough
+       - [ ] Underline
+       - [ ] Superscript
+       - [ ] Subscript
+       - [ ] Code / monospaced
+     - [ ] Tables
+     - [ ] Lists
+       - [ ] Unordered lists
+       - [ ] Numbered lists
+       - [ ] Checkbox modified lists
+     - [ ] Blocks (src / quote / example blocks)
+
+   Org-mode markup is currently being worked on.
+
+* License
+  [[https://github.com/digitalmentat/orgmode-parse/blob/master/LICENSE][BSD3 Open Source Software License]]
