@@ -1,5 +1,5 @@
 prog = ghc
-path = /usr/local/bin/ghc-7.8.3
+path = /usr/local/bin/ghc-7.8.4
 
 all: deps build install docs licenses
 
