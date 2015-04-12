@@ -120,6 +120,7 @@ data BracketedDateTime =
 -- > [2015-03-27 Fri 10:20 +4h]
 --
 -- Returns:
+--
 -- - The basic timestamp
 -- - Whether there was a time interval in place of a single time
 -- (this will be handled upstream by parseTimestamp)
