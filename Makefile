@@ -1,3 +1,5 @@
+.PHONY: test
+
 prog = ghc
 path = /usr/local/bin/ghc-7.8.4
 
@@ -16,7 +18,7 @@ deps:
 	cabal install --only-dependencies --enable-documentation -w $(path)
 
 test:
-	cabal test -w $(path)
+	cabal test
 
 docs:
 	cabal haddock --executables
