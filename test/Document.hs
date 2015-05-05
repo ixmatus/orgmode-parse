@@ -38,8 +38,7 @@ sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
                [emptyHeading {title="Test1", tags=["Hi there"]}
-               ,emptyHeading
-               ,emptyHeading
+               ,emptyHeading {section=emptySection{sectionParagraph=" *\n"}}
                ,emptyHeading {title="Test2", tags=["Two","Tags"]}
                ]
 
