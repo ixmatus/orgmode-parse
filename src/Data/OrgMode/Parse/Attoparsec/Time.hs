@@ -170,9 +170,11 @@ transformBracketedDateTime
             , Nothing
             , act)
 
--- | Parse a 3-character day name.
+-- | Parse a day name. TODO: support more languages.
 parseDay :: TP.Parser Text Text
-parseDay = choice (map string ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+parseDay = choice $ map string $
+  ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
+   "日", "月", "火", "水", "木", "金", "土"]
 
 type AbsoluteTime   = (Hours, Minutes)
 type TimestampRange = (AbsoluteTime, AbsoluteTime)
