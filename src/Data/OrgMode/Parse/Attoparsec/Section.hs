@@ -13,7 +13,7 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                          ((<$>), (<*>))
+import           Control.Applicative                          ((<$>), (<*>), (<|>))
 import           Data.Attoparsec.Text                         as T
 import           Data.Attoparsec.Types                        as TP
 import           Data.Monoid                                  (mempty)
@@ -37,4 +37,9 @@ parseSection = Section
                <*> option mempty parseDrawer
                <*> (unlines <$> many' nonHeaderLine)
   where
-    nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
+    nonHeaderLine = nonHeaderLine0 <|> nonHeaderLine1
+    nonHeaderLine0 = endOfLine >> return (pack "")
+    nonHeaderLine1 = pack <$> do
+      h <- notChar '*'
+      t <- manyTill anyChar endOfLine
+      return (h:t)
