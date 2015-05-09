@@ -37,7 +37,11 @@ parseSection = Section
                <*> option mempty parseDrawer
                <*> (unlines <$> many' nonHeaderLine)
   where
-    nonHeaderLine = nonHeaderLine0 <|> nonHeaderLine1
+
+-- | Parse a non-heading line of a section.
+nonHeaderLine :: TP.Parser Text Text
+nonHeaderLine = nonHeaderLine0 <|> nonHeaderLine1
+  where
     nonHeaderLine0 = endOfLine >> return (pack "")
     nonHeaderLine1 = pack <$> do
       h <- notChar '*'
