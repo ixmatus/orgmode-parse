@@ -2,3 +2,14 @@
 
 Please place stray thought TODOs in here.
 
+* Enhance the Weekday Parser test.
+  At the moment, parserWeekdayTests for some locales are not
+  supported, because in such locales the weekdays strings
+
+  - contain characters that are not lexically correct as Haskell strings.
+  - contain digits, which should also be rejected by emacs org-mode's parser.
+
+  see test/Weekdays.hs and test/Timestamps.hs .
+
+  Current test for parserWeekdayTests skips such cases. Whether or how
+  to support such locales are future work.
