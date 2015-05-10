@@ -54,7 +54,7 @@ emptyHeading = Heading {level = 1
                        }
 
 sampleParagraph :: Text
-sampleParagraph = "This is some sample text in a paragraph.\n\n"
+sampleParagraph = "This is some sample text in a paragraph which may contain * , : , and other special characters.\n\n"
 
 spaces :: Int -> Text
 spaces = flip Text.replicate " "

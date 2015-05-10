@@ -9,6 +9,7 @@ import           Prelude                                 hiding (unlines)
 import           Data.Text                               (Text, pack, unlines)
 import           Data.OrgMode.Parse.Types
 import           Data.OrgMode.Parse.Attoparsec.Headings
+import           Data.OrgMode.Parse.Attoparsec.Section (nonHeaderLine)
 
 ------------------------------------------------------------------------------
 parseDocument :: [Text] -> TP.Parser Text Document
@@ -16,6 +17,3 @@ parseDocument otherKeywords =
   Document
     <$> (unlines <$> many' nonHeaderLine)
     <*> many' (headingBelowLevel otherKeywords 0)
-
-nonHeaderLine :: TP.Parser Text Text
-nonHeaderLine = pack <$> manyTill (notChar '*') endOfLine
