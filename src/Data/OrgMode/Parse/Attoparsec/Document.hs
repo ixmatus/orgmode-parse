@@ -2,14 +2,14 @@ module Data.OrgMode.Parse.Attoparsec.Document (
  parseDocument
 ) where
 
-import           Control.Applicative                     ((<$>), (<*>))
+import           Control.Applicative                    ((<$>), (<*>))
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types                   as TP
-import           Prelude                                 hiding (unlines)
-import           Data.Text                               (Text, pack, unlines)
-import           Data.OrgMode.Parse.Types
+import           Data.Attoparsec.Types                  as TP
 import           Data.OrgMode.Parse.Attoparsec.Headings
-import           Data.OrgMode.Parse.Attoparsec.Section (nonHeaderLine)
+import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeaderLine)
+import           Data.OrgMode.Parse.Types
+import           Data.Text                              (Text, unlines)
+import           Prelude                                hiding (unlines)
 
 ------------------------------------------------------------------------------
 parseDocument :: [Text] -> TP.Parser Text Document
