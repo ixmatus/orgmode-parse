@@ -4,11 +4,15 @@
 module Timestamps where
 
 import           Control.Applicative  ((<*))
+import           Control.Monad (guard)
 import           Data.Attoparsec.Text (endOfLine)
 import           Data.HashMap.Strict
 import           Data.OrgMode.Parse
+import           Data.Monoid ((<>))
+import qualified Data.Text as T
 import           Test.Tasty
 import           Test.Tasty.HUnit
+import           Weekdays(weekdays)
 
 import           Util
 
@@ -41,3 +45,20 @@ parserTimestampTests = testGroup "Attoparsec Timestamp"
     ]
   where
     testTimestamp t = testParser (parseTimestamp <* endOfLine) t
+
+
+parserWeekdayTests :: TestTree
+parserWeekdayTests = testGroup "Attoparsec Weekday"
+  [testCase ("Parse Weekday in " ++ loc) $ mkTest w | (loc,ws) <- weekdays, w <- ws, isOrgParsable w]
+  where
+    mkTest w = expectParse parseTimestamp str (Right res)
+      where
+        str = "<2004-02-29 " <> w <> " 10:20>"
+        res = Timestamp (DateTime
+                         (YMD' (YearMonthDay 2004 2 29))
+                         (Just w)
+                         (Just (10,20))
+                         Nothing
+                         Nothing) True Nothing
+
+    isOrgParsable w = T.find (\c -> c `elem` "]+0123456789>\r\n -") w == Nothing

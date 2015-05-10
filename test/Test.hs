@@ -19,4 +19,5 @@ tests = testGroup
           , parserPropertyDrawerTests
           , parserTimestampTests
           , parserSmallDocumentTests
+          , parserWeekdayTests
           ]

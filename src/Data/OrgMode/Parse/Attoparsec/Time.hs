@@ -14,12 +14,13 @@
 
 module Data.OrgMode.Parse.Attoparsec.Time where
 
-import           Control.Applicative        (pure, (*>), (<$>), (<*), (<*>),
-                                             (<|>))
+import           Control.Applicative        (pure, some,
+                                             (*>), (<$>), (<*), (<*>), (<|>))
 import           Control.Monad              (liftM)
 import qualified Data.Attoparsec.ByteString as AB
 import           Data.Attoparsec.Text       as T
 import           Data.Attoparsec.Types      as TP (Parser)
+import           Data.Attoparsec.Combinator as TP
 import qualified Data.ByteString.Char8      as BS
 import           Data.HashMap.Strict        (HashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
@@ -170,9 +171,17 @@ transformBracketedDateTime
             , Nothing
             , act)
 
--- | Parse a 3-character day name.
+-- | Parse a day name in the same way as org-mode does.
 parseDay :: TP.Parser Text Text
-parseDay = choice (map string ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"])
+parseDay = pack <$> some (TP.satisfyElem isDayChar)
+  where
+    isDayChar :: Char -> Bool
+    isDayChar c = not (c `elem` "]+0123456789>\r\n -")
+    -- The above syntax is based on [^]+0-9>\r\n -]+
+    -- a part of regexp named org-ts-regexp0
+    -- in org.el .
+
+
 
 type AbsoluteTime   = (Hours, Minutes)
 type TimestampRange = (AbsoluteTime, AbsoluteTime)
