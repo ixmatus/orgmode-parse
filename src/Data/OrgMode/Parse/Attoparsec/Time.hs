@@ -42,7 +42,7 @@ import           Data.OrgMode.Parse.Types
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: TP.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> (many' (planning <* skipSpace))
+parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
   where planning :: TP.Parser Text (PlanningKeyword, Timestamp)
         planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
         pType    = choice [string "SCHEDULED" *> pure SCHEDULED
