@@ -49,7 +49,8 @@ parserTimestampTests = testGroup "Attoparsec Timestamp"
 
 parserWeekdayTests :: TestTree
 parserWeekdayTests = testGroup "Attoparsec Weekday"
-  [testCase ("Parse Weekday in " ++ loc) $ mkTest w | (loc,ws) <- weekdays, w <- ws, isOrgParsable w]
+  [testCase ("Parse Weekday in " ++ loc) $ mkTest w
+  | (loc,ws) <- weekdays, w <- ws, isOrgParsable w]
   where
     mkTest w = expectParse parseTimestamp str (Right res)
       where
@@ -61,4 +62,5 @@ parserWeekdayTests = testGroup "Attoparsec Weekday"
                          Nothing
                          Nothing) True Nothing
 
-    isOrgParsable w = T.find (\c -> c `elem` "]+0123456789>\r\n -") w == Nothing
+    dayChars = "]+0123456789>\r\n -" :: String
+    isOrgParsable w = T.find (\c -> c `elem` dayChars) w == Nothing
