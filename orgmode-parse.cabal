@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.1.0.4
+Version:                0.1.1.0
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -16,7 +16,7 @@ Description:
   .
   The provided Attoparsec combinators parse the human-readable and
   textual representation into a simple AST for storage or output to
-  another format (HTML?  Markdown?).
+  another format (HTML? Markdown?).
 
 Cabal-Version:          >= 1.10
 Build-Type:             Simple

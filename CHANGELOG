@@ -1,6 +1,11 @@
 -*- mode: org -*-
 
 * Changelog
+** 0.1.1.0
+*** Bugfixes
+    - The weekday parser now correctly parses weekday appellations of
+      other languages (thank you nushio3!) using a combinator-style
+      version of the regex found in org-mode.
 ** 0.1.0.4
 *** Miscellany
     - Comment improvement wibbles.
