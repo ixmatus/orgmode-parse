@@ -176,7 +176,9 @@ parseDay :: TP.Parser Text Text
 parseDay = pack <$> some (TP.satisfyElem isDayChar)
   where
     isDayChar :: Char -> Bool
-    isDayChar c = not (c `elem` "]+0123456789>\r\n -")
+    isDayChar = (`notElem` nonDayChars)
+    nonDayChars :: String
+    nonDayChars = "]+0123456789>\r\n -"
     -- The above syntax is based on [^]+0-9>\r\n -]+
     -- a part of regexp named org-ts-regexp0
     -- in org.el .
