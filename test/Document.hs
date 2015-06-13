@@ -12,6 +12,7 @@ import Test.Tasty.HUnit
 
 import Data.OrgMode.Parse.Types
 import Data.OrgMode.Parse.Attoparsec.Document
+import Data.OrgMode.Parse.Attoparsec.Time
 import Util
 
 parserSmallDocumentTests :: TestTree
@@ -19,6 +20,7 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   [ testCase "Parse Empty Document"   $ testDocS "" (Document "" [])
   , testCase "Parse No Headlines"     $ testDocS pText (Document pText [])
   , testCase "Parse Heading Sample A" $ testDocS sampleAText sampleAParse
+  , testCase "Parse Heading with Planning" $ testDocS samplePText samplePParse
   , testCase "Parse Heading no \n"    $
       testDocS "* T" (Document "" [emptyHeading {title="T"}])
   ]
@@ -41,6 +43,22 @@ sampleAParse = Document
                ,emptyHeading {section=emptySection{sectionParagraph=" *\n"}}
                ,emptyHeading {title="Test2", tags=["Two","Tags"]}
                ]
+
+samplePText :: Text
+samplePText = Text.concat ["* Test3\n"
+                          ,"    SCHEDULED: <2015-06-12 Fri>"
+                          ]
+
+samplePParse :: Document
+samplePParse = Document
+               ""
+               [emptyHeading {title="Test3",section=emptySection{sectionPlannings=plns}}
+               ]
+  where
+    plns :: Plannings
+    plns = Plns con
+
+    Right con = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
 
 emptyHeading :: Heading
 emptyHeading = Heading {level = 1
