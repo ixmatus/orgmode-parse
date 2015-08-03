@@ -2,18 +2,18 @@
 
 module Document where
 
-import Control.Applicative
-import Data.Attoparsec.Text
-import Data.Monoid
-import Data.Text
-import qualified Data.Text as Text
-import Test.Tasty
-import Test.Tasty.HUnit
+import           Data.Attoparsec.Text
+import           Data.Monoid
+import           Data.Text
+import qualified Data.Text                              as Text
+import qualified Data.Text.IO                           as TextIO
+import           Test.Tasty
+import           Test.Tasty.HUnit
 
-import Data.OrgMode.Parse.Types
-import Data.OrgMode.Parse.Attoparsec.Document
-import Data.OrgMode.Parse.Attoparsec.Time
-import Util
+import           Data.OrgMode.Parse.Attoparsec.Document
+import           Data.OrgMode.Parse.Attoparsec.Time
+import           Data.OrgMode.Parse.Types
+import           Util
 
 parserSmallDocumentTests :: TestTree
 parserSmallDocumentTests = testGroup "Attoparsec Small Document"
@@ -23,11 +23,17 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   , testCase "Parse Heading with Planning" $ testDocS samplePText samplePParse
   , testCase "Parse Heading no \n"    $
       testDocS "* T" (Document "" [emptyHeading {title="T"}])
+  , testCase "Parse Document from File" $ testDocFile
   ]
   where testDocS s r = expectParse (parseDocument kw) s (Right r)
         testDocF s   = expectParse (parseDocument kw) s (Left "Some failure")
+        testDocFile  = do
+          doc <- TextIO.readFile "test/test-document.org"
+          assertBool "Expected to parse document" . parseSucceeded $ parseOnly (parseDocument kw) doc
         kw           = ["TODO", "CANCELED", "DONE"]
         pText        = "Paragraph text\n.No headline here.\n##--------\n"
+        parseSucceeded (Right _) = True
+        parseSucceeded (Left _ ) = False
 
 
 sampleAText :: Text

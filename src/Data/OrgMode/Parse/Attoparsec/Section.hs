@@ -13,7 +13,8 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                          ((<$>), (<*>), (<|>))
+import           Control.Applicative                          ((<$>), (<*),
+                                                               (<*>), (<|>))
 import           Data.Attoparsec.Text                         as T
 import           Data.Attoparsec.Types                        as TP
 import           Data.Monoid                                  (mempty)
