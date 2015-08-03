@@ -6,3 +6,5 @@
   This should be parsed by the document parser combinator.
 
   Another WTF
+
+** A sub-heading
