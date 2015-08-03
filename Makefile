@@ -22,6 +22,3 @@ test:
 
 docs:
 	cabal haddock --executables
-
-licenses:
-	rm -f DEPENDENCY-LICENSES.org && cabal-dependency-licenses | sed 's/#/*/' > DEPENDENCY-LICENSES.org
