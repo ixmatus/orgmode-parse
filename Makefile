@@ -3,7 +3,7 @@
 prog = ghc
 path = /usr/local/bin/ghc-7.8.4
 
-all: deps build install docs licenses
+all: deps build install docs
 
 tags:
 	hasktags --etags --output='TAGS' *
