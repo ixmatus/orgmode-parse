@@ -154,8 +154,10 @@ parseTags :: TP.Parser Text [Tag]
 parseTags = tags' >>= test
   where
     tags' = (char ':' *> takeWhile (/= '\n'))
-    test t | (Text.last t /= ':' || Text.length t < 2) = fail "Not a valid tag set"
-           | otherwise = return (splitOn ":" (Text.init t))
+    test t
+       | Text.null t = fail "no data after ':'"
+       | (Text.last t /= ':' || Text.length t < 2) = fail "Not a valid tag set"
+       | otherwise = return (splitOn ":" (Text.init t))
 
 skipSpace' :: TP.Parser Text ()
 skipSpace' = void $ takeWhile spacePred
