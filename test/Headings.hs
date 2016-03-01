@@ -12,6 +12,7 @@ import           Util
 parserHeadingTests :: TestTree
 parserHeadingTests = testGroup "Attoparsec Heading"
     [ (testCase "Parse Heading Bare"                $ testHeading "* This is a title\n")
+    , (testCase "Parse Heading Bare with end colon" $ testHeading "* This heading ends in a colon:")
     , (testCase "Parse Heading Bare w/ Levels"      $ testHeading "*** This is a title\n")
     , (testCase "Parse Heading w/ Priority"         $ testHeading "* [#A] An important heading\n")
     , (testCase "Parse Heading w/ Priority & State" $ testHeading "* TODO [#A] An important heading with a state indicator\n")
