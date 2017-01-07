@@ -3,11 +3,11 @@
 
 module Main where
 
-import           Headings
+import           Document
+import           Headline
 import           PropertyDrawer
 import           Test.Tasty
 import           Timestamps
-import           Document
 
 main :: IO ()
 main = defaultMain tests
@@ -15,7 +15,7 @@ main = defaultMain tests
 tests :: TestTree
 tests = testGroup
           "OrgMode Parser Tests"
-          [ parserHeadingTests
+          [ parserHeadlineTests
           , parserPropertyDrawerTests
           , parserTimestampTests
           , parserSmallDocumentTests

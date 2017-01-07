@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.Headings
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Headline
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -13,7 +13,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ViewPatterns               #-}
 
-module Data.OrgMode.Parse.Attoparsec.Headings
+module Data.OrgMode.Parse.Attoparsec.Headline
 ( headingBelowLevel
 , headingLevel
 , headingPriority
@@ -49,7 +49,7 @@ import           Data.OrgMode.Parse.Types
 --
 -- > ** TODO [#B] Polish Poetry Essay [25%] :HOMEWORK:POLISH:WRITING:
 --
--- Headings may contain:
+-- Headlines may contain:
 --
 -- - A section with Planning and Clock entries
 -- - A number of other not-yet-implemented entities (code blocks, lists)
@@ -59,7 +59,7 @@ import           Data.OrgMode.Parse.Types
 -- 'headingBelowLevel' takes a list of terms to consider, state
 -- keywords, and a minumum hierarchy depth. Use 0 to parse any
 -- heading.
-headingBelowLevel :: [Text] -> LevelDepth -> TP.Parser Text Heading
+headingBelowLevel :: [Text] -> LevelDepth -> TP.Parser Text Headline
 headingBelowLevel stateKeywords depth = do
     lvl  <- headingLevel depth <* skipSpace'
     td   <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipSpace')
@@ -72,7 +72,7 @@ headingBelowLevel stateKeywords depth = do
 
     skipSpace
 
-    return $ Heading lvl td pr tl stats' tags' sect subs
+    return $ Headline lvl td pr tl stats' tags' sect subs
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
@@ -82,7 +82,7 @@ headingLevel :: LevelDepth -> TP.Parser Text Level
 headingLevel (LevelDepth d) = takeLevel >>= test
   where
     takeLevel = Text.length <$> takeWhile1 (== '*')
-    test l | l <= d    = fail $ printf "Heading level of %d cannot be higher than depth %d" l d
+    test l | l <= d    = fail $ printf "Headline level of %d cannot be higher than depth %d" l d
            | otherwise = return $ Level l
 
 -- | Parse the state indicator.

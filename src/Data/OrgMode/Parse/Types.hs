@@ -13,35 +13,35 @@ Types and utility functions.
 {-# LANGUAGE OverloadedStrings          #-}
 
 module Data.OrgMode.Parse.Types
-( Document (..)
-, Section (..)
-, Level (..)
-, Heading  (..)
-, Priority (..)
-, Plannings (..)
-, StateKeyword  (..)
+( Document        (..)
+, DateTime        (..)
+, Delay           (..)
+, DelayType       (..)
 , Duration
+, Headline        (..)
+, Level           (..)
+, LevelDepth      (..)
 , PlanningKeyword (..)
+, Plannings       (..)
+, Priority        (..)
 , Properties
-, Timestamp    (..)
-, DateTime (..)
-, Stats (..)
+, Repeater        (..)
+, RepeaterType    (..)
+, Section         (..)
+, StateKeyword    (..)
+, Stats           (..)
 , Tag
-, TimeUnit (..)
-, RepeaterType (..)
-, Repeater (..)
-, DelayType (..)
-, Delay (..)
-, LevelDepth (..)
-, TitleMeta (..)
-, YearMonthDay(..)
-, YearMonthDay'(..)
+, TimeUnit        (..)
+, Timestamp       (..)
+, TitleMeta       (..)
+, YearMonthDay    (..)
+, YearMonthDay'   (..)
 ) where
 
 import           Control.Applicative
 import           Control.Monad        (mzero)
 import           Data.Aeson           ((.:), (.=))
-import qualified Data.Aeson           as A
+import qualified Data.Aeson           as Aeson
 import           Data.Hashable        (Hashable (..))
 import           Data.HashMap.Strict  (HashMap, fromList, keys, toList)
 import           Data.Text            (Text, pack)
@@ -51,12 +51,12 @@ import           Data.Traversable
 import           GHC.Generics
 
 data Document = Document {
-    documentText     :: Text      -- ^ Text occurring before any Org headlines
-  , documentHeadings :: [Heading] -- ^ Toplevel Org headlines
+    documentText      :: Text      -- ^ Text occurring before any Org headlines
+  , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
   } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Document where
-instance A.FromJSON Document where
+instance Aeson.ToJSON Document where
+instance Aeson.FromJSON Document where
 
 newtype LevelDepth = LevelDepth Int
   deriving (Eq, Show, Num)
@@ -64,15 +64,15 @@ newtype LevelDepth = LevelDepth Int
 data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
   deriving (Eq, Show)
 
-data Heading = Heading
-    { level       :: Level              -- ^ Org headline nesting level (1 is at the top)
-    , keyword     :: Maybe StateKeyword -- ^ State of the headline (e.g. TODO, DONE)
-    , priority    :: Maybe Priority     --
-    , title       :: Text               -- properties
-    , stats       :: Maybe Stats        --
-    , tags        :: [Tag]             --
-    , section     :: Section            -- Next-line
-    , subHeadings :: [Heading]          -- elements
+data Headline = Headline
+    { level        :: Level              -- ^ Org headline nesting level (1 is at the top), e.g: * or ** or ***
+    , stateKeyword :: Maybe StateKeyword -- ^ State of the headline, e.g: TODO, DONE
+    , priority     :: Maybe Priority     -- ^ Headline priority, e.g: [#A]
+    , title        :: Text               -- ^ Primary text of the headline
+    , stats        :: Maybe Stats        -- ^ Fraction of subtasks completed, e.g: [33%] or [1/2]
+    , tags         :: [Tag]              -- ^ Tags on the headline
+    , section      :: Section            -- ^ The body underneath a headline
+    , subHeadlines :: [Headline]          -- ^ A list of sub-headlines
     } deriving (Show, Eq, Generic)
 
 newtype Level = Level Int deriving (Eq, Show, Num, Generic)
@@ -94,21 +94,21 @@ data Timestamp = Timestamp {
   , tsEndTime :: Maybe DateTime
   } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Timestamp where
-instance A.FromJSON Timestamp where
+instance Aeson.ToJSON Timestamp where
+instance Aeson.FromJSON Timestamp where
 
 
 newtype YearMonthDay' = YMD' YearMonthDay
                         deriving (Show, Eq, Generic)
 
-instance A.ToJSON YearMonthDay' where
+instance Aeson.ToJSON YearMonthDay' where
   toJSON (YMD' (YearMonthDay y m d)) =
-    A.object ["ymdYear"  .= y
+    Aeson.object ["ymdYear"  .= y
              ,"ymdMonth" .= m
              ,"ymdDay"   .= d]
 
-instance A.FromJSON YearMonthDay' where
-  parseJSON (A.Object v) = do
+instance Aeson.FromJSON YearMonthDay' where
+  parseJSON (Aeson.Object v) = do
     y <- v .: "ymdYear"
     m <- v .: "ymdMonth"
     d <- v .: "ymdDay"
@@ -123,14 +123,14 @@ data DateTime = DateTime {
   , delay        :: Maybe Delay
   } deriving (Show, Eq, Generic)
 
-instance A.ToJSON DateTime where
-instance A.FromJSON DateTime where
+instance Aeson.ToJSON DateTime where
+instance Aeson.FromJSON DateTime where
 
 data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
                   deriving (Show, Eq, Generic)
 
-instance A.ToJSON RepeaterType
-instance A.FromJSON RepeaterType
+instance Aeson.ToJSON RepeaterType
+instance Aeson.FromJSON RepeaterType
 
 data Repeater = Repeater {
     repeaterType  :: RepeaterType
@@ -138,14 +138,14 @@ data Repeater = Repeater {
   , repeaterUnit  :: TimeUnit
   } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Repeater where
-instance A.FromJSON Repeater where
+instance Aeson.ToJSON Repeater where
+instance Aeson.FromJSON Repeater where
 
 data DelayType = DelayAll | DelayFirst
                deriving (Show, Eq, Generic)
 
-instance A.ToJSON   DelayType where
-instance A.FromJSON DelayType where
+instance Aeson.ToJSON   DelayType where
+instance Aeson.FromJSON DelayType where
 
 data Delay = Delay {
     delayType  :: DelayType
@@ -153,8 +153,8 @@ data Delay = Delay {
   , delayUnit  :: TimeUnit
   } deriving (Show, Eq, Generic)
 
-instance A.ToJSON Delay where
-instance A.FromJSON Delay where
+instance Aeson.ToJSON Delay where
+instance Aeson.FromJSON Delay where
 
 data TimeUnit = UnitYear
               | UnitWeek
@@ -163,63 +163,63 @@ data TimeUnit = UnitYear
               | UnitHour
               deriving (Show, Eq, Generic)
 
-instance A.ToJSON TimeUnit where
-instance A.FromJSON TimeUnit where
+instance Aeson.ToJSON TimeUnit where
+instance Aeson.FromJSON TimeUnit where
 
 ---------------------------------------------------------------------------
---instance A.ToJSON Document where
---instance A.FromJSON Document where
+--instance Aeson.ToJSON Document where
+--instance Aeson.FromJSON Document where
 
-instance A.ToJSON Level where
-instance A.FromJSON Level where
+instance Aeson.ToJSON Level where
+instance Aeson.FromJSON Level where
 
 newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
 
-instance A.ToJSON StateKeyword where
-instance A.FromJSON StateKeyword where
+instance Aeson.ToJSON StateKeyword where
+instance Aeson.FromJSON StateKeyword where
 
 
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
 
-instance A.ToJSON PlanningKeyword where
-instance A.FromJSON PlanningKeyword where
+instance Aeson.ToJSON PlanningKeyword where
+instance Aeson.FromJSON PlanningKeyword where
 
---instance (A.ToJSON k, A.ToJSON v) => A.ToJSON (HashMap k v) where
---  toJSON hm = A.object hm
+--instance (Aeson.ToJSON k, Aeson.ToJSON v) => Aeson.ToJSON (HashMap k v) where
+--  toJSON hm = Aeson.object hm
 
 newtype Plannings = Plns (HashMap PlanningKeyword Timestamp)
                   deriving (Show, Eq, Generic)
 
-instance A.ToJSON Plannings where
-  toJSON (Plns hm) = A.object $ map jPair (toList hm)
-    where jPair (k, v) = pack (show k) .= A.toJSON v
+instance Aeson.ToJSON Plannings where
+  toJSON (Plns hm) = Aeson.object $ map jPair (toList hm)
+    where jPair (k, v) = pack (show k) .= Aeson.toJSON v
 
-instance A.FromJSON Plannings where
-  parseJSON (A.Object v) = Plns . fromList <$> (traverse jPair (keys v))
+instance Aeson.FromJSON Plannings where
+  parseJSON (Aeson.Object v) = Plns . fromList <$> (traverse jPair (keys v))
     where jPair k = v .: k
   parseJSON _ = mzero
 
-instance A.ToJSON Section where
-instance A.FromJSON Section where
+instance Aeson.ToJSON Section where
+instance Aeson.FromJSON Section where
 
-instance A.ToJSON Heading where
-instance A.FromJSON Heading where
+instance Aeson.ToJSON Headline where
+instance Aeson.FromJSON Headline where
 
 data Priority = A | B | C
   deriving (Show, Read, Eq, Ord, Generic)
 
-instance A.ToJSON Priority where
-instance A.FromJSON Priority where
+instance Aeson.ToJSON Priority where
+instance Aeson.FromJSON Priority where
 type Tag = Text
 
 data Stats = StatsPct Int
            | StatsOf  Int Int
            deriving (Show, Eq, Generic)
 
-instance A.ToJSON Stats where
-instance A.FromJSON Stats where
+instance Aeson.ToJSON Stats where
+instance Aeson.FromJSON Stats where
 
 type Duration = (Hour,Minute)
 

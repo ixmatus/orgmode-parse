@@ -18,11 +18,11 @@ import           Util
 parserSmallDocumentTests :: TestTree
 parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   [ testCase "Parse Empty Document"   $ testDocS "" (Document "" [])
-  , testCase "Parse No Headlines"     $ testDocS pText (Document pText [])
-  , testCase "Parse Heading Sample A" $ testDocS sampleAText sampleAParse
-  , testCase "Parse Heading with Planning" $ testDocS samplePText samplePParse
-  , testCase "Parse Heading no \n"    $
-      testDocS "* T" (Document "" [emptyHeading {title="T"}])
+  , testCase "Parse No Headline"     $ testDocS pText (Document pText [])
+  , testCase "Parse Headline Sample A" $ testDocS sampleAText sampleAParse
+  , testCase "Parse Headline with Planning" $ testDocS samplePText samplePParse
+  , testCase "Parse Headline no \n"    $
+      testDocS "* T" (Document "" [emptyHeadline {title="T"}])
   , testCase "Parse Document from File" $ testDocFile
   ]
   where testDocS s r = expectParse (parseDocument kw) s (Right r)
@@ -45,9 +45,9 @@ sampleAText = Text.concat [sampleParagraph,"* Test1", spaces 20,":Hi there:\n"
 sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
-               [emptyHeading {title="Test1", tags=["Hi there"]}
-               ,emptyHeading {section=emptySection{sectionParagraph=" *\n"}}
-               ,emptyHeading {title="Test2", tags=["Two","Tags"]}
+               [emptyHeadline {title="Test1", tags=["Hi there"]}
+               ,emptyHeadline {section=emptySection{sectionParagraph=" *\n"}}
+               ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
 samplePText :: Text
@@ -58,7 +58,7 @@ samplePText = Text.concat ["* Test3\n"
 samplePParse :: Document
 samplePParse = Document
                ""
-               [emptyHeading {title="Test3",section=emptySection{sectionPlannings=plns}}
+               [emptyHeadline {title="Test3",section=emptySection{sectionPlannings=plns}}
                ]
   where
     plns :: Plannings
@@ -66,15 +66,15 @@ samplePParse = Document
 
     Right con = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
 
-emptyHeading :: Heading
-emptyHeading = Heading {level = 1
-                       ,keyword     = Nothing
+emptyHeadline :: Headline
+emptyHeadline = Headline {level = 1
+                       ,stateKeyword     = Nothing
                        ,priority    = Nothing
                        ,title       = ""
                        ,stats       = Nothing
                        ,tags        = []
                        ,section     = emptySection
-                       ,subHeadings = []
+                       ,subHeadlines = []
                        }
 
 sampleParagraph :: Text

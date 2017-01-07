@@ -14,7 +14,7 @@
    structures and meta-data. Here is a list of all the syntax features
    that have a complete parsing implementation and not:
 
-   - [X] Headings
+   - [X] Headlines
      - [X] State keywords
      - [X] Priority indicator
      - [X] Title
