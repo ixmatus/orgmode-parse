@@ -17,3 +17,4 @@ cabal.sandbox.config
 log/
 node_modules
 TAGS
+.stack-work
