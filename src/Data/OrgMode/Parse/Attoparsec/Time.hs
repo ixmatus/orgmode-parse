@@ -120,7 +120,8 @@ parseTimestamp = do
     (Nothing, Just (ts2, Nothing, _)) ->
       pure (Timestamp ts1 act (Just ts2))
     (Nothing, Just _) ->
-      -- TODO: improve error message with an example of what would cause this case
+      -- TODO: improve error message with an example of what would
+      -- cause this case
       fail "Illegal time range in second timerange timestamp"
     (Just (h',m'), Nothing) ->
       pure (Timestamp ts1 act
@@ -128,7 +129,8 @@ parseTimestamp = do
                            ,repeater   = Nothing
                            ,delay      = Nothing}))
     (Just _, Just _) ->
-      -- TODO: improve error message with an example of what would cause thise case
+      -- TODO: improve error message with an example of what would
+      -- cause thise case
       fail "Illegal mix of time range and timestamp range"
 
   where
@@ -163,11 +165,11 @@ parseBracketedDateTime = do
     optionalParse p  = option Nothing (Just <$> p) <* skipSpace
     maybeListParse p = listToMaybe <$> many' p  <* skipSpace
     activeBracket ((=='<') -> active) =
-      if active
-      then Active
-      else Inactive
+      if active then Active else Inactive
 
     finally bkd ob cb | complementaryBracket ob /= cb =
+                          -- TODO: improve this error message with an
+                          -- example of what would cause this case
                           fail "mismatched timestamp brackets"
                       | otherwise = return bkd
 
@@ -266,7 +268,7 @@ parseDelay =
   Delay
   <$> choice
         [ string "--" *> pure DelayFirst
-        , char '-'    *> pure DelayAll
+        , char   '-'  *> pure DelayAll
         ]
   <*> decimal
   <*> parseTimeUnit
