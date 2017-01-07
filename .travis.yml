@@ -7,15 +7,15 @@ env:
 before_install:
    - sudo add-apt-repository -y ppa:hvr/ghc
    - sudo apt-get update
-   - sudo apt-get install cabal-install-1.24 ghc-$GHCVER alex happy
-   - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.24/bin:$PATH
+   - sudo apt-get install ghc-$GHCVER alex happy
+   - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
-  - cabal-1.24 update
-  - cabal-1.24 sandbox init
-  - cabal-1.24 install --only-dependencies --enable-tests
+  - cabal update
+  - cabal sandbox init
+  - cabal install --only-dependencies --enable-tests
 
 script:
-  - cabal-1.24 configure --enable-tests -v2
-  - cabal-1.24 build
-  - cabal-1.24 test
+  - cabal configure --enable-tests -v2
+  - cabal build
+  - cabal test
