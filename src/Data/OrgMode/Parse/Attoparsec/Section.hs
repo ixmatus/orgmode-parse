@@ -28,7 +28,7 @@ import           Data.OrgMode.Parse.Types
 
 -- | Parse a heading section
 --
--- Heading sections contain optionally a property drawer,
+-- Headline sections contain optionally a property drawer,
 -- a list of clock entries, code blocks (not yet implemented),
 -- plain lists (not yet implemented), and unstructured text.
 parseSection :: TP.Parser Text Section

@@ -5,7 +5,7 @@ module Data.OrgMode.Parse.Attoparsec.Document (
 import           Control.Applicative                    ((<$>), (<*>))
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types                  as TP
-import           Data.OrgMode.Parse.Attoparsec.Headings
+import           Data.OrgMode.Parse.Attoparsec.Headline
 import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeaderLine)
 import           Data.OrgMode.Parse.Types
 import           Data.Text                              (Text, unlines)
