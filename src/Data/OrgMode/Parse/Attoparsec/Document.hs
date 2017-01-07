@@ -16,4 +16,4 @@ parseDocument :: [Text] -> TP.Parser Text Document
 parseDocument otherKeywords =
   Document
     <$> (unlines <$> many' nonHeaderLine)
-    <*> many' (headingBelowLevel otherKeywords 0)
+    <*> many' (headingBelowDepth otherKeywords 0)

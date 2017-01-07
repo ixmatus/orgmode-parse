@@ -34,13 +34,14 @@ Library
                  -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
   Exposed-Modules:
-                  Data.OrgMode.Parse
+                  Data.OrgMode.Parse,
+                  Data.OrgMode.Parse.Attoparsec.Document,
+                  Data.OrgMode.Parse.Attoparsec.Headline,
+                  Data.OrgMode.Parse.Attoparsec.PropertyDrawer,
+                  Data.OrgMode.Parse.Attoparsec.Section,
+                  Data.OrgMode.Parse.Attoparsec.Time,
+                  Data.OrgMode.Parse.Attoparsec.Util,
                   Data.OrgMode.Parse.Types
-                  Data.OrgMode.Parse.Attoparsec.Document
-                  Data.OrgMode.Parse.Attoparsec.Headline
-                  Data.OrgMode.Parse.Attoparsec.PropertyDrawer
-                  Data.OrgMode.Parse.Attoparsec.Section
-                  Data.OrgMode.Parse.Attoparsec.Time
 
   Build-Depends:
                 base                      >= 4.8      && < 5
@@ -62,18 +63,19 @@ Test-Suite tests
   Ghc-Options:          -Wall
   Main-Is:              Test.hs
   Other-Modules:
+                Data.OrgMode.Parse,
+                Data.OrgMode.Parse.Attoparsec.Document,
+                Data.OrgMode.Parse.Attoparsec.Headline,
+                Data.OrgMode.Parse.Attoparsec.PropertyDrawer,
+                Data.OrgMode.Parse.Attoparsec.Section,
+                Data.OrgMode.Parse.Attoparsec.Time,
+                Data.OrgMode.Parse.Attoparsec.Util,
+                Data.OrgMode.Parse.Types,
                 Document,
                 PropertyDrawer,
                 Timestamps,
                 Util,
-                Weekdays,
-                Data.OrgMode.Parse
-                Data.OrgMode.Parse.Types
-                Data.OrgMode.Parse.Attoparsec.Document
-                Data.OrgMode.Parse.Attoparsec.Headline
-                Data.OrgMode.Parse.Attoparsec.PropertyDrawer
-                Data.OrgMode.Parse.Attoparsec.Section
-                Data.OrgMode.Parse.Attoparsec.Time
+                Weekdays
 
   Build-Depends:
                 base                      >= 4.8      && < 5

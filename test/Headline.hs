@@ -13,7 +13,7 @@ parserHeadlineTests :: TestTree
 parserHeadlineTests = testGroup "Attoparsec Headline"
     [ (testCase "Parse Headline Bare"                $ testHeadline "* This is a title\n")
     , (testCase "Parse Headline Bare with end colon" $ testHeadline "* This heading ends in a colon:")
-    , (testCase "Parse Headline Bare w/ Levels"      $ testHeadline "*** This is a title\n")
+    , (testCase "Parse Headline Bare w/ Depths"      $ testHeadline "*** This is a title\n")
     , (testCase "Parse Headline w/ Priority"         $ testHeadline "* [#A] An important heading\n")
     , (testCase "Parse Headline w/ Priority & State" $ testHeadline "* TODO [#A] An important heading with a state indicator\n")
     , (testCase "Parse Headline w/ State"            $ testHeadline "* CANCELED An important heading with just state\n")
@@ -22,4 +22,4 @@ parserHeadlineTests = testGroup "Attoparsec Headline"
     , (testCase "Parse Headline All But Title"       $ testHeadline "* DONE [#A] :WITH:KEYWORDS:\n")
     ]
   where
-    testHeadline = testParser (headingBelowLevel ["TODO","CANCELED","DONE"] 0)
+    testHeadline = testParser (headingBelowDepth ["TODO","CANCELED","DONE"] 0)

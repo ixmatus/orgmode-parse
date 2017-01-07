@@ -14,8 +14,8 @@
 {-# LANGUAGE ViewPatterns               #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headline
-( headingBelowLevel
-, headingLevel
+( headingBelowDepth
+, headingDepth
 , headingPriority
 , parseStats
 , parseTags
@@ -25,8 +25,8 @@ where
 import           Control.Applicative                   (pure, (*>), (<$>), (<*),
                                                         (<*>), (<|>))
 import           Control.Monad                         (liftM5, void)
-import           Data.Attoparsec.Text                  as T
-import           Data.Attoparsec.Types                 as TP (Parser)
+import           Data.Attoparsec.Text
+import           Data.Attoparsec.Types                 as Attoparsec (Parser)
 import           Data.Maybe                            (fromMaybe)
 import           Data.Monoid                           (mempty)
 import           Data.Text                             as Text (Text, append,
@@ -39,13 +39,17 @@ import           Prelude                               hiding (concat, null,
 import           Text.Printf
 
 import           Data.OrgMode.Parse.Attoparsec.Section
+import           Data.OrgMode.Parse.Attoparsec.Util
 import           Data.OrgMode.Parse.Types
 
 
--- | Parse an org-mode heading and its contained entities (see <http://orgmode.org/worg/dev/org-syntax.html OrgSyntax>).
+-- | Parse an org-mode headline, its metadata, its section-body, and
+-- any sub-headlines; please see
+-- <http://orgmode.org/worg/dev/org-syntax.html org-syntax>.
 --
--- Headers include a hierarchy level indicated by asterisks, optional
--- todo states, priority level, %-done stats, and tags.
+-- Headline metadata includes a hierarchy level indicated by
+-- asterisks, optional todo state keywords, an optional priority
+-- level, %-done statistics, and tags; e.g:
 --
 -- > ** TODO [#B] Polish Poetry Essay [25%] :HOMEWORK:POLISH:WRITING:
 --
@@ -54,36 +58,39 @@ import           Data.OrgMode.Parse.Types
 -- - A section with Planning and Clock entries
 -- - A number of other not-yet-implemented entities (code blocks, lists)
 -- - Unstructured text
--- - Other heading deeper in the hierarchy
+-- - Sub-headlines
 --
--- 'headingBelowLevel' takes a list of terms to consider, state
--- keywords, and a minumum hierarchy depth. Use 0 to parse any
--- heading.
-headingBelowLevel :: [Text] -> LevelDepth -> TP.Parser Text Headline
-headingBelowLevel stateKeywords depth = do
-    lvl  <- headingLevel depth <* skipSpace'
-    td   <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipSpace')
-    pr   <- option Nothing (Just <$> headingPriority   <* skipSpace')
+-- @headingBelowDepth@ takes a list of terms to consider, state
+-- keywords, and a minumum hierarchy depth.
+--
+-- Use a @Depth@ of 0 to parse any headline.
+headingBelowDepth :: [Text]
+                  -> Depth
+                  -> Attoparsec.Parser Text Headline
+headingBelowDepth stateKeywords d = do
+  dpth <- headingDepth d <* skipOnlySpace
+  td   <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipOnlySpace)
+  pr   <- option Nothing (Just <$> headingPriority   <* skipOnlySpace)
 
-    TitleMeta tl stats' (fromMaybe [] -> tags') <- takeTitleExtras
+  TitleMeta tl stats' (fromMaybe [] -> tags') <- takeTitleExtras
 
-    sect <- parseSection
-    subs <- option [] $ many' (headingBelowLevel stateKeywords (depth + 1))
+  sect <- parseSection
+  subs <- option [] $ many' (headingBelowDepth stateKeywords (d + 1))
 
-    skipSpace
+  skipSpace
 
-    return $ Headline lvl td pr tl stats' tags' sect subs
+  return $ Headline dpth td pr tl stats' tags' sect subs
 
 -- | Parse the asterisk indicated heading level until a space is
 -- reached.
 --
--- Constrain it to LevelDepth or its children.
-headingLevel :: LevelDepth -> TP.Parser Text Level
-headingLevel (LevelDepth d) = takeLevel >>= test
+-- Constrain it to Depth or its children.
+headingDepth :: Depth -> Attoparsec.Parser Text Depth
+headingDepth (Depth d) = takeDepth >>= test
   where
-    takeLevel = Text.length <$> takeWhile1 (== '*')
+    takeDepth = Text.length <$> takeWhile1 (== '*')
     test l | l <= d    = fail $ printf "Headline level of %d cannot be higher than depth %d" l d
-           | otherwise = return $ Level l
+           | otherwise = return $ Depth l
 
 -- | Parse the state indicator.
 --
@@ -91,7 +98,7 @@ headingLevel (LevelDepth d) = takeLevel >>= test
 --
 -- These can be custom so we're parsing additional state identifiers
 -- as Text.
-parseStateKeyword :: [Text] -> TP.Parser Text StateKeyword
+parseStateKeyword :: [Text] -> Attoparsec.Parser Text StateKeyword
 parseStateKeyword (map string -> sk) = StateKeyword <$> choice sk
 
 -- | Parse the priority indicator.
@@ -102,7 +109,7 @@ parseStateKeyword (map string -> sk) = StateKeyword <$> choice sk
 -- - @[#A]@
 -- - @[#B]@
 -- - @[#C]@
-headingPriority :: TP.Parser Text Priority
+headingPriority :: Attoparsec.Parser Text Priority
 headingPriority = start *> zipChoice <* end
   where
     zipChoice     = choice (zipWith mkPParser "ABC" [A,B,C])
@@ -114,7 +121,7 @@ headingPriority = start *> zipChoice <* end
 --
 -- Stats may be either [m/n] or [n%] and tags are colon-separated, e.g:
 -- > :HOMEWORK:POETRY:WRITING:
-takeTitleExtras :: TP.Parser Text TitleMeta
+takeTitleExtras :: Attoparsec.Parser Text TitleMeta
 takeTitleExtras =
   liftM5 mkTitleMeta
     titleStart
@@ -125,7 +132,7 @@ takeTitleExtras =
   where
     titleStart = takeTill (\c -> inClass "[:" c || isEndOfLine c)
     leftovers  = option mempty $ takeTill (== '\n')
-    optionalMetadata p = option Nothing (Just <$> p <* skipSpace')
+    optionalMetadata p = option Nothing (Just <$> p <* skipOnlySpace)
 
 
 mkTitleMeta :: Text -> Maybe Stats -> Maybe [Tag] -> Text -> () -> TitleMeta
@@ -139,7 +146,7 @@ mkTitleMeta start stats' tags' leftovers _ =
 --
 -- Accepts either form: "[m/n]" or "[n%]" and there is no restriction
 -- on m or n other than that they are integers.
-parseStats :: TP.Parser Text Stats
+parseStats :: Attoparsec.Parser Text Stats
 parseStats = sPct <|> sOf
   where sPct = StatsPct
                <$> (char '[' *> decimal <* string "%]")
@@ -150,7 +157,7 @@ parseStats = sPct <|> sOf
 -- | Parse a colon-separated list of Tags
 --
 -- > :HOMEWORK:POETRY:WRITING:
-parseTags :: TP.Parser Text [Tag]
+parseTags :: Attoparsec.Parser Text [Tag]
 parseTags = tags' >>= test
   where
     tags' = (char ':' *> takeWhile (/= '\n'))
@@ -158,8 +165,3 @@ parseTags = tags' >>= test
        | Text.null t = fail "no data after ':'"
        | (Text.last t /= ':' || Text.length t < 2) = fail "Not a valid tag set"
        | otherwise = return (splitOn ":" (Text.init t))
-
-skipSpace' :: TP.Parser Text ()
-skipSpace' = void $ takeWhile spacePred
-  where
-    spacePred s = s == ' ' || s == '\t'

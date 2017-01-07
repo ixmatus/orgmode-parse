@@ -67,7 +67,7 @@ samplePParse = Document
     Right con = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
 
 emptyHeadline :: Headline
-emptyHeadline = Headline {level = 1
+emptyHeadline = Headline {depth = 1
                        ,stateKeyword     = Nothing
                        ,priority    = Nothing
                        ,title       = ""

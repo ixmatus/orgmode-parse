@@ -19,8 +19,8 @@ module Data.OrgMode.Parse.Types
 , DelayType       (..)
 , Duration
 , Headline        (..)
-, Level           (..)
-, LevelDepth      (..)
+, Depth           (..)
+, Depth      (..)
 , PlanningKeyword (..)
 , Plannings       (..)
 , Priority        (..)
@@ -38,7 +38,6 @@ module Data.OrgMode.Parse.Types
 , YearMonthDay'   (..)
 ) where
 
-import           Control.Applicative
 import           Control.Monad        (mzero)
 import           Data.Aeson           ((.:), (.=))
 import qualified Data.Aeson           as Aeson
@@ -47,7 +46,6 @@ import           Data.HashMap.Strict  (HashMap, fromList, keys, toList)
 import           Data.Text            (Text, pack)
 import           Data.Thyme.Calendar  (YearMonthDay (..))
 import           Data.Thyme.LocalTime (Hour, Minute)
-import           Data.Traversable
 import           GHC.Generics
 
 data Document = Document {
@@ -58,14 +56,14 @@ data Document = Document {
 instance Aeson.ToJSON Document where
 instance Aeson.FromJSON Document where
 
-newtype LevelDepth = LevelDepth Int
-  deriving (Eq, Show, Num)
+newtype Depth = Depth Int
+  deriving (Eq, Show, Num, Generic)
 
 data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
   deriving (Eq, Show)
 
 data Headline = Headline
-    { level        :: Level              -- ^ Org headline nesting level (1 is at the top), e.g: * or ** or ***
+    { depth        :: Depth              -- ^ Org headline nesting depth (1 is at the top), e.g: * or ** or ***
     , stateKeyword :: Maybe StateKeyword -- ^ State of the headline, e.g: TODO, DONE
     , priority     :: Maybe Priority     -- ^ Headline priority, e.g: [#A]
     , title        :: Text               -- ^ Primary text of the headline
@@ -74,8 +72,6 @@ data Headline = Headline
     , section      :: Section            -- ^ The body underneath a headline
     , subHeadlines :: [Headline]          -- ^ A list of sub-headlines
     } deriving (Show, Eq, Generic)
-
-newtype Level = Level Int deriving (Eq, Show, Num, Generic)
 
 type Properties = HashMap Text Text
 type Clock      = (Maybe Timestamp, Maybe Duration)
@@ -170,8 +166,8 @@ instance Aeson.FromJSON TimeUnit where
 --instance Aeson.ToJSON Document where
 --instance Aeson.FromJSON Document where
 
-instance Aeson.ToJSON Level where
-instance Aeson.FromJSON Level where
+instance Aeson.ToJSON Depth where
+instance Aeson.FromJSON Depth where
 
 newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
