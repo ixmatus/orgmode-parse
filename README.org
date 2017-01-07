@@ -2,7 +2,8 @@
   [[https://hackage.haskell.org/package/orgmode-parse][https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat]]
   [[https://travis-ci.org/digitalmentat/orgmode-parse][https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master]]
 
-  ~orgmode-parse~ provides a parser for org-mode documents.
+  ~orgmode-parse~ provides a top-level parser and collection of
+  attoparsec parser combinators for org-mode structured text.
 
 ** What's Finished
    We have built attoparsec parsers for parsing org-mode document
