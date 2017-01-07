@@ -5,6 +5,10 @@
   ~orgmode-parse~ provides a top-level parser and collection of
   attoparsec parser combinators for org-mode structured text.
 
+  - [[What's Finished]]
+  - [[What's Planned]]
+  - [[Building]]
+  
 ** What's Finished
    We have built attoparsec parsers for parsing org-mode document
    structures and meta-data. Here is a list of all the syntax features
@@ -46,6 +50,18 @@
    2. Writing a sister library, ~orgmode-pretty~, providing a pretty
       printer implementation for an org-mode AST
    3. Pandoc integration
-   
+
+** Building
+   There are a few ways to build this library if you're developing a
+   patch:
+
+   - ~stack build && stack test~, and
+   - ~nix-build -A orgmode-parse release.nix~
+
+   Generally, you should be using the ~stack build~ workflow but if
+   you're on a NixOS system or have Nix installed and wish to test a
+   Nix build (at the time of this writing, NixOS 16.09 has been used
+   to build with) you can do so with the above ~nix-build~ invocation.
+
 * License
   [[https://github.com/digitalmentat/orgmode-parse/blob/master/LICENSE][BSD3 Open Source Software License]]
