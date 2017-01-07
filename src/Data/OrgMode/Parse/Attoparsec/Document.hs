@@ -1,19 +1,32 @@
-module Data.OrgMode.Parse.Attoparsec.Document (
- parseDocument
-) where
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Document
+-- Copyright   :  © 2014 Parnell Springmeyer
+-- License     :  All Rights Reserved
+-- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
+-- Stability   :  stable
+--
+-- Top-level attoparsec parser for org-mode documents.
+----------------------------------------------------------------------------
+
+module Data.OrgMode.Parse.Attoparsec.Document
+( parseDocument
+)
+where
 
 import           Control.Applicative                    ((<$>), (<*>))
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types                  as TP
+import           Data.Attoparsec.Types                  as Attoparsec
+import           Data.Text                              (Text)
+import qualified Data.Text                              as Text
+
 import           Data.OrgMode.Parse.Attoparsec.Headline
-import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeaderLine)
+import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeadline)
 import           Data.OrgMode.Parse.Types
-import           Data.Text                              (Text, unlines)
-import           Prelude                                hiding (unlines)
 
 ------------------------------------------------------------------------------
-parseDocument :: [Text] -> TP.Parser Text Document
+parseDocument :: [Text] -> Attoparsec.Parser Text Document
 parseDocument otherKeywords =
   Document
-    <$> (unlines <$> many' nonHeaderLine)
-    <*> many' (headingBelowDepth otherKeywords 0)
+    <$> (Text.unlines <$> many' nonHeadline)
+    <*> many' (headlineBelowDepth otherKeywords 0)

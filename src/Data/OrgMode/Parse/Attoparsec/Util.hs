@@ -13,7 +13,6 @@ module Data.OrgMode.Parse.Attoparsec.Util
 )
 where
 
-import           Control.Monad         (void)
 import           Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Types as Attoparsec (Parser)
 import           Data.Text             as Text (Text)
@@ -25,6 +24,6 @@ import           Data.Text             as Text (Text)
 -- and newline which we need to *not* consume in some cases during
 -- parsing.
 skipOnlySpace :: Attoparsec.Parser Text ()
-skipOnlySpace = void $ Attoparsec.Text.takeWhile spacePred
+skipOnlySpace = Attoparsec.Text.skipWhile spacePred
   where
     spacePred s = s == ' ' || s == '\t'

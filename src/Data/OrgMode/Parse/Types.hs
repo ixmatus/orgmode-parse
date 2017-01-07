@@ -13,14 +13,14 @@ Types and utility functions.
 {-# LANGUAGE OverloadedStrings          #-}
 
 module Data.OrgMode.Parse.Types
-( Document        (..)
+( ActiveState     (..)
+, Document        (..)
 , DateTime        (..)
 , Delay           (..)
 , DelayType       (..)
 , Duration
 , Headline        (..)
 , Depth           (..)
-, Depth      (..)
 , PlanningKeyword (..)
 , Plannings       (..)
 , Priority        (..)
@@ -33,7 +33,6 @@ module Data.OrgMode.Parse.Types
 , Tag
 , TimeUnit        (..)
 , Timestamp       (..)
-, TitleMeta       (..)
 , YearMonthDay    (..)
 , YearMonthDay'   (..)
 ) where
@@ -56,11 +55,15 @@ data Document = Document {
 instance Aeson.ToJSON Document where
 instance Aeson.FromJSON Document where
 
+-- | Sum type indicating the active state of a timestamp.
+data ActiveState = Active | Inactive
+  deriving (Show, Eq, Read, Generic)
+
+instance Aeson.ToJSON ActiveState where
+instance Aeson.FromJSON ActiveState where
+
 newtype Depth = Depth Int
   deriving (Eq, Show, Num, Generic)
-
-data TitleMeta = TitleMeta Text (Maybe Stats) (Maybe [Tag])
-  deriving (Eq, Show)
 
 data Headline = Headline
     { depth        :: Depth              -- ^ Org headline nesting depth (1 is at the top), e.g: * or ** or ***
@@ -86,7 +89,7 @@ data Section = Section {
 
 data Timestamp = Timestamp {
     tsTime    :: DateTime
-  , tsActive  :: Bool
+  , tsActive  :: ActiveState
   , tsEndTime :: Maybe DateTime
   } deriving (Show, Eq, Generic)
 
@@ -108,7 +111,7 @@ instance Aeson.FromJSON YearMonthDay' where
     y <- v .: "ymdYear"
     m <- v .: "ymdMonth"
     d <- v .: "ymdDay"
-    return (YMD' (YearMonthDay y m d))
+    pure (YMD' (YearMonthDay y m d))
   parseJSON _ = mzero
 
 data DateTime = DateTime {

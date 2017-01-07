@@ -72,6 +72,7 @@ Test-Suite tests
                 Data.OrgMode.Parse.Attoparsec.Util,
                 Data.OrgMode.Parse.Types,
                 Document,
+                Headline,
                 PropertyDrawer,
                 Timestamps,
                 Util,

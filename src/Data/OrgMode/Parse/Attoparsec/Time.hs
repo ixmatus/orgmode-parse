@@ -6,26 +6,35 @@
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
 --
--- Parsing combinators for org-mode active and inactive timestamps.
+-- Parsing combinators for org-mode timestamps; both active and
+-- inactive.
 ----------------------------------------------------------------------------
 
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
-module Data.OrgMode.Parse.Attoparsec.Time where
+module Data.OrgMode.Parse.Attoparsec.Time
+( parsePlannings
+, parseClock
+, parseTimestamp
+)
+where
 
-import           Control.Applicative        (pure, some,
-                                             (*>), (<$>), (<*), (<*>), (<|>))
+import           Control.Applicative
 import           Control.Monad              (liftM)
-import qualified Data.Attoparsec.ByteString as AB
-import           Data.Attoparsec.Text       as T
-import           Data.Attoparsec.Types      as TP (Parser)
-import           Data.Attoparsec.Combinator as TP
+import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
+import           Data.Attoparsec.Combinator as Attoparsec
+import           Data.Attoparsec.Text
+import           Data.Attoparsec.Types      as Attoparsec (Parser)
 import qualified Data.ByteString.Char8      as BS
 import           Data.HashMap.Strict        (HashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
-import           Data.Text                  as Text (Text, pack, unpack,
-                                                     unwords)
+import           Data.Monoid
+import           Data.Text                  (Text)
+import qualified Data.Text                  as Text
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
 import           Prelude                    hiding (concat, null, takeWhile,
@@ -34,6 +43,28 @@ import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Parse.Types
 
+type Weekday = Text
+type AbsTime = (Hours, Minutes)
+
+-- | A data type for parsed org-mode bracketed datetime stamps, e.g:
+--
+-- > [2015-03-27 Fri 10:20 +4h]
+data BracketedDateTime = BracketedDateTime
+  { datePart    :: YearMonthDay
+  , dayNamePart :: Maybe Weekday
+  , timePart    :: Maybe TimePart
+  , repeat      :: Maybe Repeater
+  , delayPart   :: Maybe Delay
+  , activeState :: ActiveState
+  } deriving (Show, Eq)
+
+-- | A sum type representing an absolute time part of a bracketed
+-- org-mode datetime stamp or a time range between two absolute
+-- timestamps.
+data TimePart = AbsoluteTime   AbsTime
+              | TimeStampRange (AbsTime, AbsTime)
+  deriving (Eq, Ord, Show)
+
 -- | Parse a planning line.
 --
 -- Plannings inhabit a heading section and are formatted as a keyword
@@ -41,14 +72,14 @@ import           Data.OrgMode.Parse.Types
 -- the same line e.g:
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
-parsePlannings :: TP.Parser Text (HashMap PlanningKeyword Timestamp)
+parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
 parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
-  where planning :: TP.Parser Text (PlanningKeyword, Timestamp)
-        planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-        pType    = choice [string "SCHEDULED" *> pure SCHEDULED
-                          ,string "DEADLINE"  *> pure DEADLINE
-                          ,string "CLOSED"    *> pure CLOSED
-                          ]
+  where
+    planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
+    pType    = choice [string "SCHEDULED" *> pure SCHEDULED
+                      ,string "DEADLINE"  *> pure DEADLINE
+                      ,string "CLOSED"    *> pure CLOSED
+                      ]
 
 -- | Parse a clock line.
 --
@@ -56,7 +87,7 @@ parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
 -- have a timestamp, a duration, both, or neither e.g.:
 --
 -- > CLOCK: [2014-12-10 Fri 2:30]--[2014-12-10 Fri 10:30] => 08:00
-parseClock :: TP.Parser Text (Maybe Timestamp, Maybe Duration)
+parseClock :: Attoparsec.Parser Text (Maybe Timestamp, Maybe Duration)
 parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
   where
     ts  = option Nothing (Just <$> parseTimestamp)
@@ -75,46 +106,35 @@ parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
 --
 -- Each timepoint includes an optional repeater flag and an optional
 -- delay flag.
-parseTimestamp :: TP.Parser Text Timestamp
+parseTimestamp :: Attoparsec.Parser Text Timestamp
 parseTimestamp = do
   (ts1, tsb1, act) <- transformBracketedDateTime <$> parseBracketedDateTime
 
-  -- Such ew, so gross, much clean, very needed
   blk2 <- liftM (maybe Nothing (Just . transformBracketedDateTime))
                 optionalBracketedDateTime
 
-  -- TODO: this is grody, I'd like to refactor this truth table logic
-  -- and make the transformations chainable and composable as opposed
-  -- to depending on case matching blocks. - Parnell
+  -- TODO: refactor this case logic
   case (tsb1, blk2) of
     (Nothing, Nothing) ->
-      return (Timestamp ts1 act Nothing)
+      pure (Timestamp ts1 act Nothing)
     (Nothing, Just (ts2, Nothing, _)) ->
-      return (Timestamp ts1 act (Just ts2))
+      pure (Timestamp ts1 act (Just ts2))
     (Nothing, Just _) ->
+      -- TODO: improve error message with an example of what would cause this case
       fail "Illegal time range in second timerange timestamp"
     (Just (h',m'), Nothing) ->
-      return (Timestamp ts1 act
+      pure (Timestamp ts1 act
                (Just $ ts1 {hourMinute = Just (h',m')
                            ,repeater   = Nothing
                            ,delay      = Nothing}))
-    (Just _, Just _) -> fail "Illegal mix of time range and timestamp range"
+    (Just _, Just _) ->
+      -- TODO: improve error message with an example of what would cause thise case
+      fail "Illegal mix of time range and timestamp range"
 
   where
     optionalBracketedDateTime =
       option Nothing (Just <$> (string "--" *> parseBracketedDateTime))
 
-type Weekday = Text
-
-data BracketedDateTime =
-     BracketedDateTime
-     { datePart    :: YearMonthDay
-     , dayNamePart :: Maybe Weekday
-     , timePart    :: Maybe TimePart
-     , repeat      :: Maybe Repeater
-     , delayPart   :: Maybe Delay
-     , isActive    :: Bool
-     } deriving (Show, Eq)
 
 -- | Parse a single time part.
 --
@@ -126,7 +146,7 @@ data BracketedDateTime =
 -- - Whether there was a time interval in place of a single time
 -- (this will be handled upstream by parseTimestamp)
 -- - Whether the time is active or inactive
-parseBracketedDateTime :: TP.Parser Text BracketedDateTime
+parseBracketedDateTime :: Attoparsec.Parser Text BracketedDateTime
 parseBracketedDateTime = do
   openingBracket <- char '<' <|> char '['
   brkDateTime    <- BracketedDateTime <$>
@@ -142,104 +162,111 @@ parseBracketedDateTime = do
   where
     optionalParse p  = option Nothing (Just <$> p) <* skipSpace
     maybeListParse p = listToMaybe <$> many' p  <* skipSpace
-    activeBracket = (=='<')
+    activeBracket ((=='<') -> active) =
+      if active
+      then Active
+      else Inactive
 
     finally bkd ob cb | complementaryBracket ob /= cb =
-                          fail "Mismatched timestamp brackets"
+                          fail "mismatched timestamp brackets"
                       | otherwise = return bkd
 
     complementaryBracket '<' = '>'
     complementaryBracket '[' = ']'
     complementaryBracket x   = x
 
--- TODO: this function is also grody but it's better than having this
--- logic in the primary parseBracketedDateTime function. - Parnell
-transformBracketedDateTime :: BracketedDateTime -> (DateTime, Maybe (Hours, Minutes), Bool)
-transformBracketedDateTime
-  (BracketedDateTime dp dn tp rp dly act) =
-    case tp of
-        Just (TimePart (Left (h,m))) ->
-            ( DateTime (YMD' dp) dn (Just (h,m)) rp dly
-            , Nothing
-            , act)
-        Just (TimePart (Right (t1, t2))) ->
-            ( DateTime (YMD' dp) dn (Just t1) rp dly
-            , Just t2
-            , act)
-        Nothing ->
-            ( DateTime (YMD' dp) dn Nothing rp dly
-            , Nothing
-            , act)
+-- | Given a @BracketedDateTime@ data type, transform it into a triple
+-- composed of a @DateTime@, possibly a @(Hours, Minutes)@ tuple
+-- signifying the end of a timestamp range, and a boolean indic
+transformBracketedDateTime :: BracketedDateTime
+                           -> (DateTime, Maybe (Hours, Minutes), ActiveState)
+transformBracketedDateTime BracketedDateTime{..} =
+  maybe dateStamp timeStamp timePart
+  where
+    defdt = DateTime (YMD' datePart) dayNamePart Nothing repeat delayPart
+    timeStamp (AbsoluteTime   (hs,ms)) =
+      ( defdt { hourMinute = Just (hs,ms) }
+      , Nothing
+      , activeState
+      )
+    timeStamp (TimeStampRange (t0,t1)) =
+      ( defdt { hourMinute = Just t0 }
+      , Just t1
+      , activeState
+      )
+    dateStamp = (defdt, Nothing, activeState)
+
 
 -- | Parse a day name in the same way as org-mode does.
-parseDay :: TP.Parser Text Text
-parseDay = pack <$> some (TP.satisfyElem isDayChar)
+--
+-- The character set (@]+0123456789>\r\n -@) is based on a part of a
+-- regexp named @org-ts-regexp0@ found in org.el.
+parseDay :: Attoparsec.Parser Text Text
+parseDay = Text.pack <$> some (Attoparsec.satisfyElem isDayChar)
   where
     isDayChar :: Char -> Bool
     isDayChar = (`notElem` nonDayChars)
-    nonDayChars :: String
-    nonDayChars = "]+0123456789>\r\n -"
-    -- The above syntax is based on [^]+0-9>\r\n -]+
-    -- a part of regexp named org-ts-regexp0
-    -- in org.el .
 
-
-
-type AbsoluteTime   = (Hours, Minutes)
-type TimestampRange = (AbsoluteTime, AbsoluteTime)
-
-newtype TimePart = TimePart (Either AbsoluteTime TimestampRange)
-  deriving (Eq, Ord, Show)
+    -- | This is based on: @[^]+0-9>\r\n -]+@, a part of a regexp
+    -- named org-ts-regexp0 in org.el.
+    nonDayChars = "]+0123456789>\r\n -" :: String
 
 -- | Parse the time-of-day part of a time part, as a single point or a
 -- time range.
-parseTime' :: TP.Parser Text TimePart
-parseTime' =
-    TimePart <$> choice [ Right <$> ((,) <$> parseHM <* char '-' <*> parseHM)
-                        , Left  <$> parseHM
-                        ]
+parseTime' :: Attoparsec.Parser Text TimePart
+parseTime' = stampRng <|> stampAbs
+  where
+    -- Applicative-do cleans this up real nice
+    stampRng = do
+      beg <- parseHM <* char '-'
+      end <- parseHM
+      pure $ TimeStampRange (beg,end)
+
+    stampAbs = AbsoluteTime   <$> parseHM
 
 -- | Parse the YYYY-MM-DD part of a time part.
-parseDate :: TP.Parser Text YearMonthDay
-parseDate = consumeDate >>= either failure success . dateParse
+parseDate :: Attoparsec.Parser Text YearMonthDay
+parseDate = consumeDate >>= either bad good . dateParse
   where
-    failure e = fail . unpack $ unwords ["Failure parsing date: ", pack e]
-    success t = return $ buildTime t
-    consumeDate  = manyTill anyChar (char ' ')
-    dateParse    = AB.parseOnly dpCombinator . BS.pack
+    bad e        = fail $ "failure parsing date: " <> e
+    good t       = pure $ buildTime t
+    consumeDate  = manyTill anyChar $ char ' '
+    dateParse    = Attoparsec.ByteString.parseOnly dpCombinator . BS.pack
     dpCombinator = timeParser defaultTimeLocale "%Y-%m-%d"
 
 -- | Parse a single @HH:MM@ point.
-parseHM :: TP.Parser Text (Hours, Minutes)
+parseHM :: Attoparsec.Parser Text (Hours, Minutes)
 parseHM = (,) <$> decimal <* char ':' <*> decimal
 
 -- | Parse the Timeunit part of a delay or repeater flag.
-parseTimeUnit :: TP.Parser Text TimeUnit
+parseTimeUnit :: Attoparsec.Parser Text TimeUnit
 parseTimeUnit =
-    choice [ char 'h' *> pure UnitHour
-           , char 'd' *> pure UnitDay
-           , char 'w' *> pure UnitWeek
-           , char 'm' *> pure UnitMonth
-           , char 'y' *> pure UnitYear
-           ]
+  choice [ char 'h' *> pure UnitHour
+         , char 'd' *> pure UnitDay
+         , char 'w' *> pure UnitWeek
+         , char 'm' *> pure UnitMonth
+         , char 'y' *> pure UnitYear
+         ]
 
 -- | Parse a repeater flag, e.g. @.+4w@, or @++1y@.
-parseRepeater :: TP.Parser Text Repeater
+parseRepeater :: Attoparsec.Parser Text Repeater
 parseRepeater =
-    Repeater
-    <$> choice[ string "++" *> pure RepeatCumulate
-              , char   '+'  *> pure RepeatCatchUp
-              , string ".+" *> pure RepeatRestart
-              ]
-    <*> decimal
-    <*> parseTimeUnit
+  Repeater
+  <$> choice
+        [ string "++" *> pure RepeatCumulate
+        , char   '+'  *> pure RepeatCatchUp
+        , string ".+" *> pure RepeatRestart
+        ]
+  <*> decimal
+  <*> parseTimeUnit
 
 -- | Parse a delay flag, e.g. @--1d@ or @-2w@.
-parseDelay :: TP.Parser Text Delay
+parseDelay :: Attoparsec.Parser Text Delay
 parseDelay =
-    Delay
-    <$> choice [ string "--" *> pure DelayFirst
-               , char '-'    *> pure DelayAll
-               ]
-    <*> decimal
-    <*> parseTimeUnit
+  Delay
+  <$> choice
+        [ string "--" *> pure DelayFirst
+        , char '-'    *> pure DelayAll
+        ]
+  <*> decimal
+  <*> parseTimeUnit
