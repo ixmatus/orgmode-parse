@@ -2,8 +2,8 @@
   [[https://hackage.haskell.org/package/orgmode-parse][https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat]]
   [[https://travis-ci.org/digitalmentat/orgmode-parse][https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master]]
 
-  This is a reference implementation of an [[https://github.com/digitalmentat/orgmode-grammar/blob/master/SPECIFICATION.org][orgmode-grammar]] parser in
-  Haskell.
+  ~orgmode-parse~ provides a top-level parser and collection of
+  attoparsec parser combinators for org-mode structured text.
 
 ** What's Finished
    We have built attoparsec parsers for parsing org-mode document
@@ -40,5 +40,12 @@
 
    Org-mode markup is currently being worked on.
 
+** What's Planned (outside of what's not finished)
+   1. Modernizing this library and adding significantly more
+      documentation to it
+   2. Writing a sister library, ~orgmode-pretty~, providing a pretty
+      printer implementation for an org-mode AST
+   3. Pandoc integration
+   
 * License
   [[https://github.com/digitalmentat/orgmode-parse/blob/master/LICENSE][BSD3 Open Source Software License]]
