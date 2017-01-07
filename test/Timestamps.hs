@@ -3,17 +3,18 @@
 
 module Timestamps where
 
-import           Control.Applicative  ((<*))
-import           Control.Monad (guard)
-import           Data.Attoparsec.Text (endOfLine)
+import           Control.Applicative      ((<*))
+import           Control.Monad            (guard)
+import           Data.Attoparsec.Text     (endOfLine)
 import           Data.HashMap.Strict
+import           Data.Monoid              ((<>))
 import           Data.OrgMode.Parse
-import           Data.Monoid ((<>))
-import qualified Data.Text as T
+import qualified Data.Text                as T
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Weekdays(weekdays)
+import           Weekdays                 (weekdays)
 
+import           Data.OrgMode.Parse.Types
 import           Util
 
 parserPlanningTests :: TestTree
@@ -36,7 +37,7 @@ parserPlanningTests = testGroup "Attoparsec Planning"
                                  (Just (10,20))
                                  (Just (Repeater RepeatCumulate 1 UnitWeek))
                                  (Just (Delay DelayAll 2 UnitDay))
-                                )True Nothing)]))
+                                ) Active Nothing)]))
 
 parserTimestampTests :: TestTree
 parserTimestampTests = testGroup "Attoparsec Timestamp"
@@ -60,7 +61,7 @@ parserWeekdayTests = testGroup "Attoparsec Weekday"
                          (Just w)
                          (Just (10,20))
                          Nothing
-                         Nothing) True Nothing
+                         Nothing) Active Nothing
 
     dayChars = "]+0123456789>\r\n -" :: String
     isOrgParsable w = T.find (\c -> c `elem` dayChars) w == Nothing
