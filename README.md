@@ -1,13 +1,13 @@
 # Welcome!
-[https://hackage.haskell.org/package/orgmode-parse](https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat)
-[https://travis-ci.org/digitalmentat/orgmode-parse](https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master)
+[https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat](https://hackage.haskell.org/package/orgmode-parse)
+[https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master](https://travis-ci.org/digitalmentat/orgmode-parse)
 
 `orgmode-parse` provides a top-level parser and collection of attoparsec parser
 combinators for org-mode structured text.
 
-- [#whats-finished](What's Finished)
-- [#whats-planned](What's Planned)
-- [#building](Building)
+- [What's Finished](#whats-finished)
+- [What's Planned](#whats-planned)
+- [Building](#building)
   
 ## What's Finished
 We have built attoparsec parsers for parsing org-mode document structures and
