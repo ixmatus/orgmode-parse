@@ -1,6 +1,6 @@
 # Welcome!
-[https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat](https://hackage.haskell.org/package/orgmode-parse)
-[https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master](https://travis-ci.org/digitalmentat/orgmode-parse)
+![Hackage Version](https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat)
+![Travis CI Status](https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master)
 
 `orgmode-parse` provides a top-level parser and collection of attoparsec parser
 combinators for org-mode structured text.
