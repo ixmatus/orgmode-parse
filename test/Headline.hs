@@ -22,4 +22,4 @@ parserHeadlineTests = testGroup "Attoparsec Headline"
     , (testCase "Parse Headline All But Title"       $ testHeadline "* DONE [#A] :WITH:KEYWORDS:\n")
     ]
   where
-    testHeadline = testParser (headlineBelowDepth ["TODO","CANCELED","DONE"] 0)
+    testHeadline = testParser (headlineBelowDepth ["TODO","CANCELED","DONE"] Nothing 0)

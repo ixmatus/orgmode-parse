@@ -25,11 +25,11 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
       testDocS "* T" (Document "" [emptyHeadline {title="T"}])
   , testCase "Parse Document from File" $ testDocFile
   ]
-  where testDocS s r = expectParse (parseDocument kw) s (Right r)
-        testDocF s   = expectParse (parseDocument kw) s (Left "Some failure")
+  where testDocS s r = expectParse (parseDocument kw Nothing) s (Right r)
+        testDocF s   = expectParse (parseDocument kw Nothing) s (Left "Some failure")
         testDocFile  = do
           doc <- TextIO.readFile "test/test-document.org"
-          assertBool "Expected to parse document" . parseSucceeded $ parseOnly (parseDocument kw) doc
+          assertBool "Expected to parse document" . parseSucceeded $ parseOnly (parseDocument kw Nothing) doc
         kw           = ["TODO", "CANCELED", "DONE"]
         pText        = "Paragraph text\n.No headline here.\n##--------\n"
         parseSucceeded (Right _) = True

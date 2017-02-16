@@ -25,8 +25,8 @@ import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeadline)
 import           Data.OrgMode.Parse.Types
 
 ------------------------------------------------------------------------------
-parseDocument :: [Text] -> Attoparsec.Parser Text Document
-parseDocument otherKeywords =
+parseDocument :: [Text] -> Maybe Text -> Attoparsec.Parser Text Document
+parseDocument otherKeywords mClockDrawer =
   Document
     <$> (Text.unlines <$> many' nonHeadline)
-    <*> many' (headlineBelowDepth otherKeywords 0)
+    <*> many' (headlineBelowDepth otherKeywords mClockDrawer 0)

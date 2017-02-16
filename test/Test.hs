@@ -6,6 +6,7 @@ module Main where
 import           Document
 import           Headline
 import           PropertyDrawer
+import           Section
 import           Test.Tasty
 import           Timestamps
 
@@ -20,4 +21,5 @@ tests = testGroup
           , parserTimestampTests
           , parserSmallDocumentTests
           , parserWeekdayTests
+          , parserSectionTests
           ]

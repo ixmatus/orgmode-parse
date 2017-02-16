@@ -14,6 +14,7 @@
 module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 ( parseDrawer
 , property
+, parseDelim
 , PropertyKey
 , PropertyVal
 )
