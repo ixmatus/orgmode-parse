@@ -30,13 +30,18 @@ import           Data.OrgMode.Parse.Types
 -- Headline sections contain optionally a property drawer,
 -- a list of clock entries, code blocks (not yet implemented),
 -- plain lists (not yet implemented), and unstructured text.
-parseSection :: Attoparsec.Parser Text Section
-parseSection =
+parseSection :: Maybe Text -> Attoparsec.Parser Text Section
+parseSection mClockDrawer =
   Section
    <$> (Plns <$> parsePlannings)
-   <*> many' parseClock
+   <*> maybe parseClockNoDrawer parseClockDrawer mClockDrawer
    <*> option mempty parseDrawer
    <*> (Text.unlines <$> many' nonHeadline)
+  where
+    parseClockNoDrawer = many' parseClock
+    parseClockDrawer drawerName = option mempty
+      $ parseDelim drawerName
+      *> manyTill' parseClock (parseDelim "END")
 
 -- | Parse a non-heading line of a section.
 nonHeadline :: Attoparsec.Parser Text Text

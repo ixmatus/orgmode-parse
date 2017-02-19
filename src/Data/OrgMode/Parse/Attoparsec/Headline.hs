@@ -19,6 +19,7 @@ module Data.OrgMode.Parse.Attoparsec.Headline
 , headingPriority
 , parseStats
 , parseTags
+, parseTitle
 , mkTitleMeta
 , TitleMeta
 )
@@ -65,9 +66,10 @@ newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe [Tag])
 --
 -- Use a @Depth@ of 0 to parse any headline.
 headlineBelowDepth :: [Text]
+                  -> Maybe Text
                   -> Depth
                   -> Attoparsec.Parser Text Headline
-headlineBelowDepth stateKeywords d = do
+headlineBelowDepth stateKeywords mClockDrawer d = do
   depth'    <- headlineDepth d <* skipOnlySpace
   stateKey  <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipOnlySpace)
   priority' <- option Nothing (Just <$> headingPriority <* skipOnlySpace)
@@ -79,8 +81,8 @@ headlineBelowDepth stateKeywords d = do
     , (fromMaybe [] -> tags')
     ) <- parseTitle
 
-  section'      <- parseSection
-  subHeadlines' <- option [] $ many' (headlineBelowDepth stateKeywords (d + 1))
+  section'      <- parseSection mClockDrawer
+  subHeadlines' <- option [] $ many' (headlineBelowDepth stateKeywords mClockDrawer (d + 1))
 
   skipSpace
   pure $ Headline
