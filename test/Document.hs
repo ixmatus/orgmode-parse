@@ -3,7 +3,6 @@
 module Document where
 
 import           Data.Attoparsec.Text
-import           Data.Monoid
 import           Data.Text
 import qualified Data.Text                              as Text
 import qualified Data.Text.IO                           as TextIO
@@ -17,24 +16,34 @@ import           Util
 
 parserSmallDocumentTests :: TestTree
 parserSmallDocumentTests = testGroup "Attoparsec Small Document"
-  [ testCase "Parse Empty Document"   $ testDocS "" (Document "" [])
-  , testCase "Parse No Headline"     $ testDocS pText (Document pText [])
-  , testCase "Parse Headline Sample A" $ testDocS sampleAText sampleAParse
-  , testCase "Parse Headline with Planning" $ testDocS samplePText samplePParse
-  , testCase "Parse Headline no \n"    $
-      testDocS "* T" (Document "" [emptyHeadline {title="T"}])
-  , testCase "Parse Document from File" $ testDocFile
-  ]
-  where testDocS s r = expectParse (parseDocument kw) s (Right r)
-        testDocF s   = expectParse (parseDocument kw) s (Left "Some failure")
-        testDocFile  = do
-          doc <- TextIO.readFile "test/test-document.org"
-          assertBool "Expected to parse document" . parseSucceeded $ parseOnly (parseDocument kw) doc
-        kw           = ["TODO", "CANCELED", "DONE"]
-        pText        = "Paragraph text\n.No headline here.\n##--------\n"
-        parseSucceeded (Right _) = True
-        parseSucceeded (Left _ ) = False
+  [ testCase "Parse Empty Document" $
+      testDocS "" (Document "" [])
 
+  , testCase "Parse No Headline" $
+      testDocS pText (Document pText [])
+
+  , testCase "Parse Headline Sample A" $
+      testDocS sampleAText sampleAParse
+
+  , testCase "Parse Headline with Planning" $
+      testDocS samplePText samplePParse
+
+  , testCase "Parse Headline no \n" $
+      testDocS "* T" (Document "" [emptyHeadline {title="T"}])
+
+  , testCase "Parse Document from File" $
+      testDocFile
+  ]
+
+  where
+    testDocS s r = expectParse (parseDocument kw) s (Right r)
+    testDocFile  = do
+      doc <- TextIO.readFile "test/test-document.org"
+      assertBool "Expected to parse document" . parseSucceeded $ parseOnly (parseDocument kw) doc
+    kw           = ["TODO", "CANCELED", "DONE"]
+    pText        = "Paragraph text\n.No headline here.\n##--------\n"
+    parseSucceeded (Right _) = True
+    parseSucceeded (Left _ ) = False
 
 sampleAText :: Text
 sampleAText = Text.concat [sampleParagraph,"* Test1", spaces 20,":Hi there:\n"
