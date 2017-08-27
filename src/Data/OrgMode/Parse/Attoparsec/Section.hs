@@ -23,6 +23,8 @@ import           Prelude                              hiding (unlines)
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
+import qualified Data.OrgMode.Parse.Attoparsec.Util   as Util
+
 import           Data.OrgMode.Types
 
 -- | Parse a heading section
@@ -38,14 +40,4 @@ parseSection =
    <*> option mempty parseProperties
    <*> option mempty parseLogbook
    <*> many' parseDrawer
-   <*> (Text.unlines <$> many' nonHeadline)
-
--- | Parse a non-heading line of a section.
-nonHeadline :: Attoparsec.Parser Text Text
-nonHeadline = nonHeadline0 <|> nonHeadline1
-  where
-    nonHeadline0 = endOfLine *> pure (Text.pack "")
-    nonHeadline1 = Text.pack <$> do
-      h <- notChar '*'
-      t <- manyTill anyChar endOfLine
-      pure (h:t)
+   <*> (Text.unlines <$> many' Util.nonHeadline)

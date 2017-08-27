@@ -19,13 +19,15 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
 )
 where
 
-import           Control.Applicative   ((*>), (<*))
+import           Control.Applicative                ((*>), (<*))
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types as Attoparsec
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
-import           Prelude               hiding (concat, null, takeWhile)
+import           Data.Attoparsec.Types              as Attoparsec
+import           Data.Text                          (Text)
+import qualified Data.Text                          as Text
+import           Prelude                            hiding (concat, null,
+                                                     takeWhile)
 
+import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 import           Data.OrgMode.Types
 
 -- | Parse a user-defined drawer.
@@ -37,7 +39,7 @@ parseDrawer :: Attoparsec.Parser Text Drawer
 parseDrawer =
   Drawer                <$>
     parseDrawerName     <*>
-    (Text.unlines <$> manyTill parseDrawerContents drawerEnd)
+    (Text.unlines <$> manyTill Util.nonHeadline drawerEnd)
 
 -- | Parse a user-defined drawer's name, e.g:
 --
@@ -49,18 +51,6 @@ parseDrawerName =
   skipSpace *> skip (== ':') *>
   takeWhile1 (/= ':')        <*
   skip (== ':') <* skipSpace
-
--- | Parse a user-defined drawer's contents.
---
--- N.B: drawer contents cannot contain drawers or headlines.
-parseDrawerContents :: Attoparsec.Parser Text Text
-parseDrawerContents = do
-  -- Is it a headline?
-  option Nothing (Just <$> (skipSpace *> char '*')) >>= \case
-    Nothing -> return ()
-    Just _  -> fail "a headline is not allowed in a drawer"
-
-  takeWhile1 (not . isEndOfLine)
 
 -- | Parse drawer delimiters, e.g the beginning and end of a property
 -- drawer:

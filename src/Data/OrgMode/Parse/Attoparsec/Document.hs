@@ -21,12 +21,12 @@ import           Data.Text                              (Text)
 import qualified Data.Text                              as Text
 
 import           Data.OrgMode.Parse.Attoparsec.Headline
-import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeadline)
+import qualified Data.OrgMode.Parse.Attoparsec.Util     as Util
 import           Data.OrgMode.Types
 
 ------------------------------------------------------------------------------
 parseDocument :: [Text] -> Attoparsec.Parser Text Document
 parseDocument otherKeywords =
   Document
-    <$> (Text.unlines <$> many' nonHeadline)
+    <$> (Text.unlines <$> many' Util.nonHeadline)
     <*> many' (headlineBelowDepth otherKeywords 0)

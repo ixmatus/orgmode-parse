@@ -8,3 +8,20 @@
   Another WTF
 
 ** A sub-heading
+   :LOGBOOK:
+   CLOCK: [2015-10-05 Mon 17:13]--[2015-10-05 Mon 17:14] =>  0:01
+   :END:
+
+   :CUSTOMDRAWER:
+ with arbitrayr text
+   :END:
+
+   :ANOTHERDRAWER:
+   with more 12121 text
+
+boolkjsdf
+
+asdklfjskldjf
+   :END:
+
+   extra section *text*
