@@ -31,7 +31,7 @@ parserPlanningTests = testGroup "Attoparsec Planning"
       ("SCHEDULED: <2004-02-29 Sun 10:20 +1w -2d>"
        ,(fromList [(SCHEDULED, Timestamp
                                     (DateTime
-                                     (YMD' (YearMonthDay 2004 2 29))
+                                     (YearMonthDay 2004 2 29)
                                      (Just "Sun")
                                      (Just (10,20))
                                      (Just (Repeater RepeatCumulate 1 UnitWeek))
@@ -58,7 +58,7 @@ parserWeekdayTests = testGroup "Attoparsec Weekday"
       where
         str = "<2004-02-29 " <> w <> " 10:20>"
         res = Timestamp (DateTime
-                         (YMD' (YearMonthDay 2004 2 29))
+                         (YearMonthDay 2004 2 29)
                          (Just w)
                          (Just (10,20))
                          Nothing

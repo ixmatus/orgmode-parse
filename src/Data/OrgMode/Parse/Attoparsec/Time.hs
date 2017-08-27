@@ -37,33 +37,11 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
-import           Prelude                    hiding (concat, null, takeWhile,
-                                             unwords, words)
+import           Prelude                    hiding (concat, null, repeat,
+                                             takeWhile, unwords, words)
 import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Types
-
-type Weekday = Text
-type AbsTime = (Hours, Minutes)
-
--- | A data type for parsed org-mode bracketed datetime stamps, e.g:
---
--- > [2015-03-27 Fri 10:20 +4h]
-data BracketedDateTime = BracketedDateTime
-  { datePart    :: YearMonthDay
-  , dayNamePart :: Maybe Weekday
-  , timePart    :: Maybe TimePart
-  , repeat      :: Maybe Repeater
-  , delayPart   :: Maybe Delay
-  , activeState :: ActiveState
-  } deriving (Show, Eq)
-
--- | A sum type representing an absolute time part of a bracketed
--- org-mode datetime stamp or a time range between two absolute
--- timestamps.
-data TimePart = AbsoluteTime   AbsTime
-              | TimeStampRange (AbsTime, AbsTime)
-  deriving (Eq, Ord, Show)
 
 -- | Parse a planning line.
 --
@@ -185,7 +163,7 @@ transformBracketedDateTime :: BracketedDateTime
 transformBracketedDateTime BracketedDateTime{..} =
   maybe dateStamp timeStamp timePart
   where
-    defdt = DateTime (YMD' datePart) dayNamePart Nothing repeat delayPart
+    defdt = DateTime datePart dayNamePart Nothing repeat delayPart
     timeStamp (AbsoluteTime   (hs,ms)) =
       ( defdt { hourMinute = Just (hs,ms) }
       , Nothing
