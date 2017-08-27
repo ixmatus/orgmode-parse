@@ -76,15 +76,18 @@ samplePParse = Document
     Right con = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
 
 emptyHeadline :: Headline
-emptyHeadline = Headline {depth = 1
-                       ,stateKeyword     = Nothing
-                       ,priority    = Nothing
-                       ,title       = ""
-                       ,stats       = Nothing
-                       ,tags        = []
-                       ,section     = emptySection
-                       ,subHeadlines = []
-                       }
+emptyHeadline =
+  Headline
+   { depth        = 1
+   , stateKeyword = Nothing
+   , priority     = Nothing
+   , title        = ""
+   , stats        = Nothing
+   , timestamp    = Nothing
+   , tags         = []
+   , section      = emptySection
+   , subHeadlines = []
+   }
 
 sampleParagraph :: Text
 sampleParagraph = "This is some sample text in a paragraph which may contain * , : , and other special characters.\n\n"
@@ -93,4 +96,4 @@ spaces :: Int -> Text
 spaces = flip Text.replicate " "
 
 emptySection :: Section
-emptySection = Section (Plns mempty) mempty mempty mempty mempty mempty
+emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty mempty

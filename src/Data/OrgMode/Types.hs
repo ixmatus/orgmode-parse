@@ -68,6 +68,7 @@ data Headline = Headline
   , stateKeyword :: Maybe StateKeyword -- ^ State of the headline, e.g: TODO, DONE
   , priority     :: Maybe Priority     -- ^ Headline priority, e.g: [#A]
   , title        :: Text               -- ^ Primary text of the headline
+  , timestamp    :: Maybe Timestamp    -- ^ A timestamp that may be embedded in the headline
   , stats        :: Maybe Stats        -- ^ Fraction of subtasks completed, e.g: [33%] or [1/2]
   , tags         :: [Tag]              -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
@@ -83,12 +84,13 @@ instance Aeson.FromJSON Depth
 
 -- | Section of text directly following a headline.
 data Section = Section
-  { sectionPlannings  :: Plannings  -- ^ A map of planning timestamps
-  , sectionClocks     :: [Clock]    -- ^ A list of clocks
-  , sectionProperties :: Properties -- ^ A map of properties from the :PROPERTY: drawer
-  , sectionLogbook    :: Logbook    -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionDrawers    :: [Drawer]   -- ^ A list of parsed user-defined drawers
-  , sectionParagraph  :: Text       -- ^ Arbitrary text
+  { sectionTimestamp  :: Maybe Timestamp -- ^ A headline's section timestamp
+  , sectionPlannings  :: Plannings       -- ^ A map of planning timestamps
+  , sectionClocks     :: [Clock]         -- ^ A list of clocks
+  , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
+  , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
+  , sectionDrawers    :: [Drawer]        -- ^ A list of parsed user-defined drawers
+  , sectionParagraph  :: Text            -- ^ Arbitrary text
   } deriving (Show, Eq, Generic)
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
