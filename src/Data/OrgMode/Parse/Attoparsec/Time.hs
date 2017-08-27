@@ -51,12 +51,12 @@ import           Data.OrgMode.Types
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
+parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
   where
     planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-    pType    = choice [string "SCHEDULED" *> pure SCHEDULED
-                      ,string "DEADLINE"  *> pure DEADLINE
-                      ,string "CLOSED"    *> pure CLOSED
+    pType    = choice [ string "SCHEDULED" *> pure SCHEDULED
+                      , string "DEADLINE"  *> pure DEADLINE
+                      , string "CLOSED"    *> pure CLOSED
                       ]
 
 -- | Parse a clock line.
@@ -69,8 +69,7 @@ parseClock :: Attoparsec.Parser Text (Maybe Timestamp, Maybe Duration)
 parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
   where
     ts  = option Nothing (Just <$> parseTimestamp)
-    dur = option Nothing (Just <$> (string " => "
-                                    *> skipSpace *> parseHM))
+    dur = option Nothing (Just <$> (string " => " *> skipSpace *> parseHM))
 
 -- | Parse a timestamp.
 --
@@ -176,7 +175,6 @@ transformBracketedDateTime BracketedDateTime{..} =
       )
     dateStamp = (defdt, Nothing, activeState)
 
-
 -- | Parse a day name in the same way as org-mode does.
 --
 -- The character set (@]+0123456789>\r\n -@) is based on a part of a
@@ -196,13 +194,13 @@ parseDay = Text.pack <$> some (Attoparsec.satisfyElem isDayChar)
 parseTime' :: Attoparsec.Parser Text TimePart
 parseTime' = stampRng <|> stampAbs
   where
-    -- Applicative-do cleans this up real nice
+    stampRng :: Maybe TimeStampRange
     stampRng = do
       beg <- parseHM <* char '-'
       end <- parseHM
       pure $ TimeStampRange (beg,end)
 
-    stampAbs = AbsoluteTime   <$> parseHM
+    stampAbs = AbsoluteTime <$> parseHM
 
 -- | Parse the YYYY-MM-DD part of a time part.
 parseDate :: Attoparsec.Parser Text YearMonthDay
