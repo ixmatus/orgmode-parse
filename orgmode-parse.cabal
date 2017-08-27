@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.1.1.3
+Version:                0.2.0
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -9,7 +9,7 @@ Synopsis:               A collection of Attoparsec combinators for parsing org-m
                         flavored documents.
 Description:
 
-  <<https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master>>
+  <<https://travis-ci.org/ixmatus/orgmode-parse.svg?branch=master>>
   .
   `orgmode-parse` is a parsing library for the org-mode flavor of
   document markup.
@@ -23,9 +23,8 @@ Build-Type:             Simple
 
 Extra-Source-Files:
     LICENSE
-    README.org
-    TODO.org
-    CHANGELOG
+    CHANGELOG.md
+    README.md
 
 Library
   Default-Language:     Haskell2010
