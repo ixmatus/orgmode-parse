@@ -35,7 +35,8 @@ import           Data.OrgMode.Types
 parseSection :: Attoparsec.Parser Text Section
 parseSection =
   Section
-   <$> (Plns <$> parsePlannings)
+   <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
+   <*> (Plns <$> parsePlannings)
    <*> many' parseClock
    <*> option mempty parseProperties
    <*> option mempty parseLogbook

@@ -5,9 +5,10 @@
 
   This should be parsed by the document parser combinator.
 
-  Another WTF
+  Another line
 
 ** A sub-heading
+   <2017-08-22 13:22-20:00>
    :LOGBOOK:
    CLOCK: [2015-10-05 Mon 17:13]--[2015-10-05 Mon 17:14] =>  0:01
    :END:
@@ -23,5 +24,6 @@ boolkjsdf
 
 asdklfjskldjf
    :END:
+
 
    extra section *text*

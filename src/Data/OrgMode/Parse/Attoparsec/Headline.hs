@@ -35,12 +35,13 @@ import           Prelude                               hiding (takeWhile)
 import           Text.Printf
 
 import           Data.OrgMode.Parse.Attoparsec.Section
+import qualified Data.OrgMode.Parse.Attoparsec.Time    as OrgMode.Time
 import           Data.OrgMode.Parse.Attoparsec.Util
 import           Data.OrgMode.Types
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.
-newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe [Tag])
+newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe Timestamp, Maybe [Tag])
   deriving (Eq, Show)
 
 -- | Parse an org-mode headline, its metadata, its section-body, and
@@ -76,6 +77,7 @@ headlineBelowDepth stateKeywords d = do
   TitleMeta
     ( titleText
     , stats'
+    , tstamp
     , (fromMaybe [] -> tags')
     ) <- parseTitle
 
@@ -88,6 +90,7 @@ headlineBelowDepth stateKeywords d = do
     , stateKeyword = stateKey
     , priority     = priority'
     , title        = titleText
+    , timestamp    = tstamp
     , stats        = stats'
     , tags         = tags'
     , section      = section'
@@ -136,10 +139,11 @@ headingPriority = start *> zipChoice <* end
 -- > :HOMEWORK:POETRY:WRITING:
 parseTitle :: Attoparsec.Parser Text TitleMeta
 parseTitle =
-  mkTitleMeta            <$>
-    titleStart           <*>
-    (optMeta parseStats) <*>
-    (optMeta parseTags)  <*>
+  mkTitleMeta                             <$>
+    titleStart                            <*>
+    (optMeta parseStats)                  <*>
+    (optMeta OrgMode.Time.parseTimestamp) <*>
+    (optMeta parseTags)                   <*>
     -- Parse what's leftover AND till end of line or input; discarding
     -- everything but the leftovers
     leftovers <* (endOfLine <|> endOfInput)
@@ -151,13 +155,14 @@ parseTitle =
 -- | Produce a triple consisting of a stripped start-of-title if there
 -- are no leftovers after parsing (otherwise, recombine the two) and
 -- the optional stats and tags.
-mkTitleMeta :: Text        -- ^ Start of title till the end of line
-            -> Maybe Stats -- ^ Stats, e.g: [33%]
-            -> Maybe [Tag] -- ^ Tags, e.g: :HOMEWORK:CODE:SLEEP:
-            -> Text        -- ^ Leftovers (may be empty) of the title
+mkTitleMeta :: Text            -- ^ Start of title till the end of line
+            -> Maybe Stats     -- ^ Stats, e.g: [33%]
+            -> Maybe Timestamp -- ^ Timestamp
+            -> Maybe [Tag]     -- ^ Tags, e.g: :HOMEWORK:CODE:SLEEP:
+            -> Text            -- ^ Leftovers (may be empty) of the title
             -> TitleMeta
-mkTitleMeta start stats' tags' leftovers =
-    TitleMeta ((cleanTitle start leftovers), stats', tags')
+mkTitleMeta start stats' tstamp tags' leftovers =
+    TitleMeta ((cleanTitle start leftovers), stats', tstamp, tags')
   where
     cleanTitle t l
       | Text.null leftovers = Text.strip t
