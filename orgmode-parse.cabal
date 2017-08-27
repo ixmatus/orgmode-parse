@@ -4,6 +4,7 @@ Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
 License-File:           LICENSE
+bug-reports:            https://github.com/ixmatus/orgmode-parse/issues
 Category:               Data
 Synopsis:               A collection of Attoparsec combinators for parsing org-mode
                         flavored documents.

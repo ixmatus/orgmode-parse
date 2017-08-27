@@ -20,7 +20,7 @@ parserHeadlineTests = testGroup "Attoparsec Headline"
     , (testCase "Parse Headline w/ Keywords"         $ testHeadline "* An important heading :WITH:KEYWORDS:\n")
     , (testCase "Parse Headline Full"                $ testHeadline "* DONE [#B] A heading : with [[http://somelink.com][a link]] :WITH:KEYWORDS:\n")
     , (testCase "Parse Headline All But Title"       $ testHeadline "* DONE [#A] :WITH:KEYWORDS:\n")
-    , (testCase "Parse Headline w/ Timestamp"        $ testHeadline "* TODO [#A] Pickup groceris on <2017-08-24 22:00>\n")
+    , (testCase "Parse Headline w/ Timestamp"        $ testHeadline "* TODO [#A] <2017-08-24 22:00> Pickup groceris on\n")
     ]
   where
     testHeadline = testParser (headlineBelowDepth ["TODO","CANCELED","DONE"] 0)
