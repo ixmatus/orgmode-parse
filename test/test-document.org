@@ -1,4 +1,4 @@
-* TODO Test the parsing of an entire document from file                                :TESTING:DOC:
+* TODO  [#A] <2017-08-22 13:22-20:00> Test the parsing of an entire document from file :TESTING:DOC:
   :PROPERTIES:
   :DATE: [2015-08-02 Sun]
   :END:

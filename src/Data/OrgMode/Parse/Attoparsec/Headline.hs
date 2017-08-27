@@ -41,7 +41,7 @@ import           Data.OrgMode.Types
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.
-newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe Timestamp, Maybe [Tag])
+newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe [Tag])
   deriving (Eq, Show)
 
 -- | Parse an org-mode headline, its metadata, its section-body, and
@@ -72,12 +72,12 @@ headlineBelowDepth stateKeywords d = do
   depth'    <- headlineDepth d <* skipOnlySpace
   stateKey  <- option Nothing (Just <$> parseStateKeyword stateKeywords <* skipOnlySpace)
   priority' <- option Nothing (Just <$> headingPriority <* skipOnlySpace)
+  tstamp    <- option Nothing (Just <$> OrgMode.Time.parseTimestamp <* skipOnlySpace)
 
   -- Parse the title and any metadata within it
   TitleMeta
     ( titleText
     , stats'
-    , tstamp
     , (fromMaybe [] -> tags')
     ) <- parseTitle
 
@@ -139,11 +139,10 @@ headingPriority = start *> zipChoice <* end
 -- > :HOMEWORK:POETRY:WRITING:
 parseTitle :: Attoparsec.Parser Text TitleMeta
 parseTitle =
-  mkTitleMeta                             <$>
-    titleStart                            <*>
-    (optMeta parseStats)                  <*>
-    (optMeta OrgMode.Time.parseTimestamp) <*>
-    (optMeta parseTags)                   <*>
+  mkTitleMeta            <$>
+    titleStart           <*>
+    (optMeta parseStats) <*>
+    (optMeta parseTags)  <*>
     -- Parse what's leftover AND till end of line or input; discarding
     -- everything but the leftovers
     leftovers <* (endOfLine <|> endOfInput)
@@ -157,12 +156,11 @@ parseTitle =
 -- the optional stats and tags.
 mkTitleMeta :: Text            -- ^ Start of title till the end of line
             -> Maybe Stats     -- ^ Stats, e.g: [33%]
-            -> Maybe Timestamp -- ^ Timestamp
             -> Maybe [Tag]     -- ^ Tags, e.g: :HOMEWORK:CODE:SLEEP:
             -> Text            -- ^ Leftovers (may be empty) of the title
             -> TitleMeta
-mkTitleMeta start stats' tstamp tags' leftovers =
-    TitleMeta ((cleanTitle start leftovers), stats', tstamp, tags')
+mkTitleMeta start stats' tags' leftovers =
+    TitleMeta ((cleanTitle start leftovers), stats', tags')
   where
     cleanTitle t l
       | Text.null leftovers = Text.strip t
