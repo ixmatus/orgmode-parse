@@ -77,18 +77,20 @@ instance Aeson.ToJSON Depth where
 instance Aeson.FromJSON Depth where
 
 -- | Section of text directly following a headline.
-data Section = Section {
-      sectionPlannings  :: Plannings  -- ^ A map of planning timestamps
-    , sectionClocks     :: [Clock]    -- ^ A list of clocks
-    , sectionProperties :: Properties -- ^ A map of properties from a property drawer
-    , sectionParagraph  :: Text       -- ^ Arbitrary text
+data Section = Section
+  { sectionPlannings  :: Plannings  -- ^ A map of planning timestamps
+  , sectionClocks     :: [Clock]    -- ^ A list of clocks
+  , sectionProperties :: Properties -- ^ A map of properties from a property drawer
+  , sectionParagraph  :: Text       -- ^ Arbitrary text
   } deriving (Show, Eq, Generic)
 
 type Properties = HashMap Text Text
 type Clock      = (Maybe Timestamp, Maybe Duration)
 
 -- | Sum type indicating the active state of a timestamp.
-data ActiveState = Active | Inactive
+data ActiveState
+  = Active
+  | Inactive
   deriving (Show, Eq, Read, Generic)
 
 instance Aeson.ToJSON ActiveState where
@@ -143,8 +145,9 @@ data BracketedDateTime = BracketedDateTime
 -- | A sum type representing an absolute time part of a bracketed
 -- org-mode datetime stamp or a time range between two absolute
 -- timestamps.
-data TimePart = AbsoluteTime   AbsTime
-              | TimeStampRange (AbsTime, AbsTime)
+data TimePart
+  = AbsoluteTime   AbsTime
+  | TimeStampRange (AbsTime, AbsTime)
   deriving (Eq, Ord, Show)
 
 -- | A data type for parsed org-mode datetime stamps.
@@ -164,16 +167,19 @@ instance Aeson.FromJSON DateTime where
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
-data RepeaterType = RepeatCumulate | RepeatCatchUp | RepeatRestart
-                  deriving (Show, Eq, Generic)
+data RepeaterType
+  = RepeatCumulate
+  | RepeatCatchUp
+  | RepeatRestart
+  deriving (Show, Eq, Generic)
 
 instance Aeson.ToJSON RepeaterType
 instance Aeson.FromJSON RepeaterType
 
 -- | A data type representing a repeater interval in a org-mode
 -- timestamp.
-data Repeater = Repeater {
-    repeaterType  :: RepeaterType -- ^ Type of repeater
+data Repeater = Repeater
+  { repeaterType  :: RepeaterType -- ^ Type of repeater
   , repeaterValue :: Int          -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
   } deriving (Show, Eq, Generic)
@@ -182,15 +188,17 @@ instance Aeson.ToJSON Repeater where
 instance Aeson.FromJSON Repeater where
 
 -- | A sum type representing the delay type of a delay value.
-data DelayType = DelayAll | DelayFirst
-               deriving (Show, Eq, Generic)
+data DelayType
+  = DelayAll
+  | DelayFirst
+  deriving (Show, Eq, Generic)
 
 instance Aeson.ToJSON   DelayType where
 instance Aeson.FromJSON DelayType where
 
 -- | A data type representing a delay value.
-data Delay = Delay {
-    delayType  :: DelayType -- ^ Type of delay
+data Delay = Delay
+  { delayType  :: DelayType -- ^ Type of delay
   , delayValue :: Int       -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
   } deriving (Show, Eq, Generic)
@@ -199,12 +207,13 @@ instance Aeson.ToJSON Delay where
 instance Aeson.FromJSON Delay where
 
 -- | A sum type representing the time units of a delay.
-data TimeUnit = UnitYear
-              | UnitWeek
-              | UnitMonth
-              | UnitDay
-              | UnitHour
-              deriving (Show, Eq, Generic)
+data TimeUnit
+  = UnitYear
+  | UnitWeek
+  | UnitMonth
+  | UnitDay
+  | UnitHour
+  deriving (Show, Eq, Generic)
 
 instance Aeson.ToJSON TimeUnit where
 instance Aeson.FromJSON TimeUnit where
