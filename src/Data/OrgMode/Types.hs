@@ -12,6 +12,8 @@ Types for the AST of an org-mode document.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
+{-# OPTIONS -fno-warn-orphans           #-}
+
 module Data.OrgMode.Types
 ( ActiveState       (..)
 , BracketedDateTime (..)
