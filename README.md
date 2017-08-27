@@ -8,6 +8,8 @@ combinators for org-mode structured text.
 - [What's Finished](#whats-finished)
 - [What's Planned](#whats-planned)
 - [Building](#building)
+
+You can find the package on [Hackage](https://hackage.haskell.org/package/orgmode-parse).
   
 ## What's Finished
 We have built attoparsec parsers for parsing org-mode document structures and
