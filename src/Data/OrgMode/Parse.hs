@@ -5,7 +5,7 @@ License     :  All Rights Reserved
 Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 Stability   :  stable
 
-Attoparsec combinators for parsing orgmode documents.
+Attoparsec combinators for parsing org-mode documents.
 -}
 
 module Data.OrgMode.Parse (
@@ -19,15 +19,15 @@ module Data.OrgMode.Parse (
 -- * Parse headline metadata sections
 , module Data.OrgMode.Parse.Attoparsec.Section
 
--- * Parse metadata property drawers
-, module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+-- * Parse drawers
+, module Data.OrgMode.Parse.Attoparsec.Drawer
 
 -- * Parse metadata timestamps and modifiers
 , module Data.OrgMode.Parse.Attoparsec.Time
 ) where
 
 import           Data.OrgMode.Parse.Attoparsec.Document
+import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Headline
-import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 import           Data.OrgMode.Parse.Attoparsec.Section
 import           Data.OrgMode.Parse.Attoparsec.Time

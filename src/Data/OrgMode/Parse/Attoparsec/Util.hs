@@ -10,12 +10,16 @@ Attoparsec utilities.
 
 module Data.OrgMode.Parse.Attoparsec.Util
 ( skipOnlySpace
+, nonHeadline
 )
 where
 
-import           Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Types as Attoparsec (Parser)
-import           Data.Text             as Text (Text)
+import           Control.Applicative   ((<|>))
+import qualified Data.Attoparsec.Text  as Attoparsec.Text
+import           Data.Attoparsec.Types (Parser)
+import           Data.Text             (Text)
+import qualified Data.Text             as Text
+
 
 -- | Skip whitespace characters, only!
 --
@@ -23,7 +27,17 @@ import           Data.Text             as Text (Text)
 -- @Data.Char@ which also includes control characters such as a return
 -- and newline which we need to *not* consume in some cases during
 -- parsing.
-skipOnlySpace :: Attoparsec.Parser Text ()
+skipOnlySpace :: Parser Text ()
 skipOnlySpace = Attoparsec.Text.skipWhile spacePred
   where
     spacePred s = s == ' ' || s == '\t'
+
+-- | Parse a non-heading line of a section.
+nonHeadline :: Parser Text Text
+nonHeadline = nonHeadline0 <|> nonHeadline1
+  where
+    nonHeadline0 = Attoparsec.Text.endOfLine *> pure (Text.pack "")
+    nonHeadline1 = Text.pack <$> do
+      h <- Attoparsec.Text.notChar '*'
+      t <- Attoparsec.Text.manyTill Attoparsec.Text.anyChar Attoparsec.Text.endOfLine
+      pure (h:t)

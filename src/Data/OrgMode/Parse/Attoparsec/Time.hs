@@ -65,8 +65,8 @@ parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
 -- have a timestamp, a duration, both, or neither e.g.:
 --
 -- > CLOCK: [2014-12-10 Fri 2:30]--[2014-12-10 Fri 10:30] => 08:00
-parseClock :: Attoparsec.Parser Text (Maybe Timestamp, Maybe Duration)
-parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
+parseClock :: Attoparsec.Parser Text Clock
+parseClock = Clock <$> ((,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur)
   where
     ts  = option Nothing (Just <$> parseTimestamp)
     dur = option Nothing (Just <$> (string " => "

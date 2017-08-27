@@ -17,26 +17,29 @@ Types for the AST of an org-mode document.
 module Data.OrgMode.Types
 ( ActiveState       (..)
 , BracketedDateTime (..)
-, Document          (..)
+, Clock             (..)
 , DateTime          (..)
 , Delay             (..)
 , DelayType         (..)
+, Depth             (..)
+, Document          (..)
+, Drawer            (..)
 , Duration
 , Headline          (..)
-, Depth             (..)
+, Logbook           (..)
 , PlanningKeyword   (..)
 , Plannings         (..)
 , Priority          (..)
-, Properties
+, Properties        (..)
 , Repeater          (..)
 , RepeaterType      (..)
 , Section           (..)
 , StateKeyword      (..)
 , Stats             (..)
 , Tag
+, TimePart          (..)
 , TimeUnit          (..)
 , Timestamp         (..)
-, TimePart          (..)
 , YearMonthDay      (..)
 ) where
 
@@ -56,8 +59,8 @@ data Document = Document
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Document where
-instance Aeson.FromJSON Document where
+instance Aeson.ToJSON Document
+instance Aeson.FromJSON Document
 
 -- | Headline within an org-mode document.
 data Headline = Headline
@@ -75,19 +78,38 @@ data Headline = Headline
 newtype Depth = Depth Int
   deriving (Eq, Show, Num, Generic)
 
-instance Aeson.ToJSON Depth where
-instance Aeson.FromJSON Depth where
+instance Aeson.ToJSON Depth
+instance Aeson.FromJSON Depth
 
 -- | Section of text directly following a headline.
 data Section = Section
   { sectionPlannings  :: Plannings  -- ^ A map of planning timestamps
   , sectionClocks     :: [Clock]    -- ^ A list of clocks
-  , sectionProperties :: Properties -- ^ A map of properties from a property drawer
+  , sectionProperties :: Properties -- ^ A map of properties from the :PROPERTY: drawer
+  , sectionLogbook    :: Logbook    -- ^ A list of clocks from the :LOGBOOK: drawer
+  , sectionDrawers    :: [Drawer]   -- ^ A list of parsed user-defined drawers
   , sectionParagraph  :: Text       -- ^ Arbitrary text
   } deriving (Show, Eq, Generic)
 
-type Properties = HashMap Text Text
-type Clock      = (Maybe Timestamp, Maybe Duration)
+newtype Properties = Properties { unProperties :: HashMap Text Text }
+  deriving (Show, Eq, Generic, Monoid)
+
+instance Aeson.ToJSON Properties
+instance Aeson.FromJSON Properties
+
+newtype Logbook = Logbook { unLogbook :: [Clock] }
+  deriving (Show, Eq, Generic, Monoid)
+
+instance Aeson.ToJSON Logbook
+instance Aeson.FromJSON Logbook
+
+data Drawer = Drawer
+  { name     :: Text
+  , contents :: Text
+  } deriving (Show, Eq, Generic)
+
+instance Aeson.ToJSON Drawer
+instance Aeson.FromJSON Drawer
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
@@ -95,8 +117,14 @@ data ActiveState
   | Inactive
   deriving (Show, Eq, Read, Generic)
 
-instance Aeson.ToJSON ActiveState where
-instance Aeson.FromJSON ActiveState where
+instance Aeson.ToJSON ActiveState
+instance Aeson.FromJSON ActiveState
+
+newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
+  deriving (Show, Eq, Generic)
+
+instance Aeson.ToJSON Clock
+instance Aeson.FromJSON Clock
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -109,8 +137,8 @@ data Timestamp = Timestamp
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Timestamp where
-instance Aeson.FromJSON Timestamp where
+instance Aeson.ToJSON Timestamp
+instance Aeson.FromJSON Timestamp
 
 instance Aeson.ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
@@ -164,8 +192,8 @@ data DateTime = DateTime {
   , delay        :: Maybe Delay
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON DateTime where
-instance Aeson.FromJSON DateTime where
+instance Aeson.ToJSON DateTime
+instance Aeson.FromJSON DateTime
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
@@ -186,8 +214,8 @@ data Repeater = Repeater
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Repeater where
-instance Aeson.FromJSON Repeater where
+instance Aeson.ToJSON Repeater
+instance Aeson.FromJSON Repeater
 
 -- | A sum type representing the delay type of a delay value.
 data DelayType
@@ -195,8 +223,8 @@ data DelayType
   | DelayFirst
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON   DelayType where
-instance Aeson.FromJSON DelayType where
+instance Aeson.ToJSON DelayType
+instance Aeson.FromJSON DelayType
 
 -- | A data type representing a delay value.
 data Delay = Delay
@@ -205,8 +233,8 @@ data Delay = Delay
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Delay where
-instance Aeson.FromJSON Delay where
+instance Aeson.ToJSON Delay
+instance Aeson.FromJSON Delay
 
 -- | A sum type representing the time units of a delay.
 data TimeUnit
@@ -217,23 +245,23 @@ data TimeUnit
   | UnitHour
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON TimeUnit where
-instance Aeson.FromJSON TimeUnit where
+instance Aeson.ToJSON TimeUnit
+instance Aeson.FromJSON TimeUnit
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
 newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON StateKeyword where
-instance Aeson.FromJSON StateKeyword where
+instance Aeson.ToJSON StateKeyword
+instance Aeson.FromJSON StateKeyword
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
 
-instance Aeson.ToJSON PlanningKeyword where
-instance Aeson.FromJSON PlanningKeyword where
+instance Aeson.ToJSON PlanningKeyword
+instance Aeson.FromJSON PlanningKeyword
 
 -- | A type representing a map of planning timestamps.
 newtype Plannings = Plns (HashMap PlanningKeyword Timestamp)
@@ -248,19 +276,19 @@ instance Aeson.FromJSON Plannings where
     where jPair k = v .: k
   parseJSON _ = mzero
 
-instance Aeson.ToJSON Section where
-instance Aeson.FromJSON Section where
+instance Aeson.ToJSON Section
+instance Aeson.FromJSON Section
 
-instance Aeson.ToJSON Headline where
-instance Aeson.FromJSON Headline where
+instance Aeson.ToJSON Headline
+instance Aeson.FromJSON Headline
 
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
   deriving (Show, Read, Eq, Ord, Generic)
 
-instance Aeson.ToJSON Priority where
-instance Aeson.FromJSON Priority where
+instance Aeson.ToJSON Priority
+instance Aeson.FromJSON Priority
 type Tag = Text
 
 -- | A data type representing a stats value in a headline, e.g @[2/3]@
@@ -271,8 +299,8 @@ data Stats = StatsPct Int
            | StatsOf  Int Int
            deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Stats where
-instance Aeson.FromJSON Stats where
+instance Aeson.ToJSON Stats
+instance Aeson.FromJSON Stats
 
 type Duration = (Hour,Minute)
 
