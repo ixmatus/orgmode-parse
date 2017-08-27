@@ -37,33 +37,11 @@ import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
-import           Prelude                    hiding (concat, null, takeWhile,
-                                             unwords, words)
+import           Prelude                    hiding (concat, null, repeat,
+                                             takeWhile, unwords, words)
 import           System.Locale              (defaultTimeLocale)
 
-import           Data.OrgMode.Parse.Types
-
-type Weekday = Text
-type AbsTime = (Hours, Minutes)
-
--- | A data type for parsed org-mode bracketed datetime stamps, e.g:
---
--- > [2015-03-27 Fri 10:20 +4h]
-data BracketedDateTime = BracketedDateTime
-  { datePart    :: YearMonthDay
-  , dayNamePart :: Maybe Weekday
-  , timePart    :: Maybe TimePart
-  , repeat      :: Maybe Repeater
-  , delayPart   :: Maybe Delay
-  , activeState :: ActiveState
-  } deriving (Show, Eq)
-
--- | A sum type representing an absolute time part of a bracketed
--- org-mode datetime stamp or a time range between two absolute
--- timestamps.
-data TimePart = AbsoluteTime   AbsTime
-              | TimeStampRange (AbsTime, AbsTime)
-  deriving (Eq, Ord, Show)
+import           Data.OrgMode.Types
 
 -- | Parse a planning line.
 --
@@ -73,12 +51,12 @@ data TimePart = AbsoluteTime   AbsTime
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
+parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
   where
     planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-    pType    = choice [string "SCHEDULED" *> pure SCHEDULED
-                      ,string "DEADLINE"  *> pure DEADLINE
-                      ,string "CLOSED"    *> pure CLOSED
+    pType    = choice [ string "SCHEDULED" *> pure SCHEDULED
+                      , string "DEADLINE"  *> pure DEADLINE
+                      , string "CLOSED"    *> pure CLOSED
                       ]
 
 -- | Parse a clock line.
@@ -91,8 +69,7 @@ parseClock :: Attoparsec.Parser Text (Maybe Timestamp, Maybe Duration)
 parseClock = (,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur
   where
     ts  = option Nothing (Just <$> parseTimestamp)
-    dur = option Nothing (Just <$> (string " => "
-                                    *> skipSpace *> parseHM))
+    dur = option Nothing (Just <$> (string " => " *> skipSpace *> parseHM))
 
 -- | Parse a timestamp.
 --
@@ -185,7 +162,7 @@ transformBracketedDateTime :: BracketedDateTime
 transformBracketedDateTime BracketedDateTime{..} =
   maybe dateStamp timeStamp timePart
   where
-    defdt = DateTime (YMD' datePart) dayNamePart Nothing repeat delayPart
+    defdt = DateTime datePart dayNamePart Nothing repeat delayPart
     timeStamp (AbsoluteTime   (hs,ms)) =
       ( defdt { hourMinute = Just (hs,ms) }
       , Nothing
@@ -197,7 +174,6 @@ transformBracketedDateTime BracketedDateTime{..} =
       , activeState
       )
     dateStamp = (defdt, Nothing, activeState)
-
 
 -- | Parse a day name in the same way as org-mode does.
 --
@@ -218,13 +194,13 @@ parseDay = Text.pack <$> some (Attoparsec.satisfyElem isDayChar)
 parseTime' :: Attoparsec.Parser Text TimePart
 parseTime' = stampRng <|> stampAbs
   where
-    -- Applicative-do cleans this up real nice
+    stampRng :: Maybe TimeStampRange
     stampRng = do
       beg <- parseHM <* char '-'
       end <- parseHM
       pure $ TimeStampRange (beg,end)
 
-    stampAbs = AbsoluteTime   <$> parseHM
+    stampAbs = AbsoluteTime <$> parseHM
 
 -- | Parse the YYYY-MM-DD part of a time part.
 parseDate :: Attoparsec.Parser Text YearMonthDay

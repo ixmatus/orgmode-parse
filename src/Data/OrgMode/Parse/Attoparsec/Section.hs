@@ -23,7 +23,7 @@ import           Prelude                                      hiding (unlines)
 
 import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 
 -- | Parse a heading section
 --

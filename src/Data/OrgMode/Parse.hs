@@ -13,9 +13,6 @@ module Data.OrgMode.Parse (
 -- * Parse OrgMode documents
   module Data.OrgMode.Parse.Attoparsec.Document
 
--- * OrgMode document types
-, module Data.OrgMode.Parse.Types
-
 -- * Parse headlines
 , module Data.OrgMode.Parse.Attoparsec.Headline
 
@@ -34,4 +31,3 @@ import           Data.OrgMode.Parse.Attoparsec.Headline
 import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 import           Data.OrgMode.Parse.Attoparsec.Section
 import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Types

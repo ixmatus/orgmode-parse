@@ -41,7 +41,7 @@ Library
                   Data.OrgMode.Parse.Attoparsec.Section,
                   Data.OrgMode.Parse.Attoparsec.Time,
                   Data.OrgMode.Parse.Attoparsec.Util,
-                  Data.OrgMode.Parse.Types
+                  Data.OrgMode.Types
 
   Build-Depends:
                 base                      >= 4.8      && < 5
@@ -70,7 +70,7 @@ Test-Suite tests
                 Data.OrgMode.Parse.Attoparsec.Section,
                 Data.OrgMode.Parse.Attoparsec.Time,
                 Data.OrgMode.Parse.Attoparsec.Util,
-                Data.OrgMode.Parse.Types,
+                Data.OrgMode.Types,
                 Document,
                 Headline,
                 PropertyDrawer,

@@ -36,7 +36,7 @@ import           Text.Printf
 
 import           Data.OrgMode.Parse.Attoparsec.Section
 import           Data.OrgMode.Parse.Attoparsec.Util
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.

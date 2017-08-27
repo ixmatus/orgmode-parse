@@ -3,18 +3,17 @@
 
 module Timestamps where
 
-import           Control.Applicative      ((<*))
-import           Control.Monad            (guard)
-import           Data.Attoparsec.Text     (endOfLine)
+import           Control.Applicative  ((<*))
+import           Data.Attoparsec.Text (endOfLine)
 import           Data.HashMap.Strict
-import           Data.Monoid              ((<>))
+import           Data.Monoid          ((<>))
 import           Data.OrgMode.Parse
-import qualified Data.Text                as T
+import qualified Data.Text            as T
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Weekdays                 (weekdays)
+import           Weekdays             (weekdays)
 
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 import           Util
 
 parserPlanningTests :: TestTree
@@ -28,16 +27,16 @@ parserPlanningTests = testGroup "Attoparsec Planning"
     testPlanning  t   = testParser parsePlannings t
     testPlanningS t r = expectParse parsePlannings t (Right r)
 
-(sExampleStrA, sExampleResA) =
-  ("SCHEDULED: <2004-02-29 Sun 10:20 +1w -2d>"
-   ,(fromList [(SCHEDULED, Timestamp
-                                (DateTime
-                                 (YMD' (YearMonthDay 2004 2 29))
-                                 (Just "Sun")
-                                 (Just (10,20))
-                                 (Just (Repeater RepeatCumulate 1 UnitWeek))
-                                 (Just (Delay DelayAll 2 UnitDay))
-                                ) Active Nothing)]))
+    (sExampleStrA, sExampleResA) =
+      ("SCHEDULED: <2004-02-29 Sun 10:20 +1w -2d>"
+       ,(fromList [(SCHEDULED, Timestamp
+                                    (DateTime
+                                     (YearMonthDay 2004 2 29)
+                                     (Just "Sun")
+                                     (Just (10,20))
+                                     (Just (Repeater RepeatCumulate 1 UnitWeek))
+                                     (Just (Delay DelayAll 2 UnitDay))
+                                    ) Active Nothing)]))
 
 parserTimestampTests :: TestTree
 parserTimestampTests = testGroup "Attoparsec Timestamp"
@@ -53,15 +52,14 @@ parserWeekdayTests = testGroup "Attoparsec Weekday"
   [testCase ("Parse Weekday in " ++ loc) $ mkTest w
   | (loc,ws) <- weekdays, w <- ws, isOrgParsable w]
   where
+    dayChars = "]+0123456789>\r\n -" :: String
+    isOrgParsable w = T.find (\c -> c `elem` dayChars) w == Nothing
     mkTest w = expectParse parseTimestamp str (Right res)
       where
         str = "<2004-02-29 " <> w <> " 10:20>"
         res = Timestamp (DateTime
-                         (YMD' (YearMonthDay 2004 2 29))
+                         (YearMonthDay 2004 2 29)
                          (Just w)
                          (Just (10,20))
                          Nothing
                          Nothing) Active Nothing
-
-    dayChars = "]+0123456789>\r\n -" :: String
-    isOrgParsable w = T.find (\c -> c `elem` dayChars) w == Nothing

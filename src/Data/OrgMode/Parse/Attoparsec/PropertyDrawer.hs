@@ -19,15 +19,15 @@ module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
 )
 where
 
-import           Control.Applicative      ((*>), (<*))
-import           Data.Attoparsec.Text     as T
-import           Data.Attoparsec.Types    as Attoparsec
-import           Data.HashMap.Strict      (fromList)
-import           Data.Text                (Text)
-import qualified Data.Text                as Text
-import           Prelude                  hiding (concat, null, takeWhile)
+import           Control.Applicative   ((*>), (<*))
+import           Data.Attoparsec.Text  as T
+import           Data.Attoparsec.Types as Attoparsec
+import           Data.HashMap.Strict   (fromList)
+import           Data.Text             (Text)
+import qualified Data.Text             as Text
+import           Prelude               hiding (concat, null, takeWhile)
 
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 
 type PropertyKey = Text
 type PropertyVal = Text
