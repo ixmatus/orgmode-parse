@@ -15,13 +15,13 @@ module Data.OrgMode.Parse.Attoparsec.Section where
 
 import           Control.Applicative
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types                        as Attoparsec
+import           Data.Attoparsec.Types                as Attoparsec
 import           Data.Monoid
-import           Data.Text                                    (Text)
-import qualified Data.Text                                    as Text
-import           Prelude                                      hiding (unlines)
+import           Data.Text                            (Text)
+import qualified Data.Text                            as Text
+import           Prelude                              hiding (unlines)
 
-import           Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Types
 
@@ -35,7 +35,9 @@ parseSection =
   Section
    <$> (Plns <$> parsePlannings)
    <*> many' parseClock
-   <*> option mempty parseDrawer
+   <*> option mempty parseProperties
+   <*> option mempty parseLogbook
+   <*> many' parseDrawer
    <*> (Text.unlines <$> many' nonHeadline)
 
 -- | Parse a non-heading line of a section.

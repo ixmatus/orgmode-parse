@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.PropertyDrawer
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Drawer.Property
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -11,44 +11,39 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Data.OrgMode.Parse.Attoparsec.PropertyDrawer
-( parseDrawer
+module Data.OrgMode.Parse.Attoparsec.Drawer.Property
+( parseProperties
 , property
 , PropertyKey
 , PropertyVal
 )
 where
 
-import           Control.Applicative   ((*>), (<*))
-import           Data.Attoparsec.Text  as T
-import           Data.Attoparsec.Types as Attoparsec
-import           Data.HashMap.Strict   (fromList)
-import           Data.Text             (Text)
-import qualified Data.Text             as Text
-import           Prelude               hiding (concat, null, takeWhile)
+import           Control.Applicative                          ((*>), (<*))
+import           Data.Attoparsec.Text                         as T
+import           Data.Attoparsec.Types                        as Attoparsec
+import           Data.HashMap.Strict                          (fromList)
+import           Data.Text                                    (Text)
+import qualified Data.Text                                    as Text
+import           Prelude                                      hiding (concat,
+                                                               null, takeWhile)
 
+import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
 import           Data.OrgMode.Types
 
 type PropertyKey = Text
 type PropertyVal = Text
 
--- | Parse a property drawer.
+-- | Parse a @PROPERTY@ drawer.
 --
 -- > :PROPERTIES:
 -- > :DATE: [2014-12-14 11:00]
 -- > :NOTE: Something really crazy happened today!
 -- > :END:
-parseDrawer :: Attoparsec.Parser Text Properties
-parseDrawer = pure . fromList =<< begin *> manyTill property end
+parseProperties :: Attoparsec.Parser Text Properties
+parseProperties = Properties . fromList <$> (drawerBegin *> manyTill property Drawer.Generic.drawerEnd)
   where
-    begin   = parseDelim "PROPERTIES"
-    end     = parseDelim "END"
-
-parseDelim :: Text -> Attoparsec.Parser Text Text
-parseDelim v =
-  skipSpace *> skip (== ':') *>
-  asciiCI v                  <*
-  skip (== ':') <* skipSpace
+    drawerBegin = Drawer.Generic.parseDrawerDelim "PROPERTIES"
 
 -- | Parse a property of a drawer.
 --

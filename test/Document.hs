@@ -93,4 +93,4 @@ spaces :: Int -> Text
 spaces = flip Text.replicate " "
 
 emptySection :: Section
-emptySection = Section (Plns mempty) mempty mempty mempty
+emptySection = Section (Plns mempty) mempty mempty mempty mempty mempty

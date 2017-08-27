@@ -4,8 +4,8 @@
 module Main where
 
 import           Document
+import           Drawer
 import           Headline
-import           PropertyDrawer
 import           Test.Tasty
 import           Timestamps
 
@@ -16,7 +16,7 @@ tests :: TestTree
 tests = testGroup
           "OrgMode Parser Tests"
           [ parserHeadlineTests
-          , parserPropertyDrawerTests
+          , parserDrawerTests
           , parserTimestampTests
           , parserSmallDocumentTests
           , parserWeekdayTests
