@@ -1,6 +1,6 @@
 # Welcome!
 ![Hackage Version](https://img.shields.io/hackage/v/orgmode-parse.svg?style=flat)
-![Travis CI Status](https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master)
+![Travis CI Status](https://travis-ci.org/ixmatus/orgmode-parse.svg?branch=master)
 
 `orgmode-parse` provides a top-level parser and collection of attoparsec parser
 combinators for org-mode structured text.
@@ -53,12 +53,15 @@ Parsing org-mode markup is currently being worked on.
 There are a few ways to build this library if you're developing a patch:
 
 - `stack build && stack test`, and
-- `nix-build -A orgmode-parse release.nix`
+- `nix-build --no-out-link --attr orgmode-parse release.nix`
 
-Generally, you should be using the ~stack build~ workflow but if you're on a
-NixOS system or have Nix installed and wish to test a Nix build (at the time of
-this writing, NixOS 16.09 has been used to build with) you can do so with the
-above ~nix-build~ invocation.
+You can also use the `nix-shell` provided cabal environment for incremental
+development:
+
+```shell
+$ nix-shell --attr orgmode-parse.env release.nix
+$ cabal build
+```
 
 # License
 [BSD3 Open Source Software License](https://github.com/digitalmentat/orgmode-parse/blob/master/LICENSE)

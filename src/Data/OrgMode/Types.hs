@@ -1,5 +1,5 @@
 {-|
-Module      :  Data.OrgMode.Parse.Types
+Module      :  Data.OrgMode.Types
 Copyright   :  © 2014 Parnell Springmeyer
 License     :  All Rights Reserved
 Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -12,7 +12,7 @@ Types and utility functions.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
-module Data.OrgMode.Parse.Types
+module Data.OrgMode.Types
 ( ActiveState     (..)
 , Document        (..)
 , DateTime        (..)

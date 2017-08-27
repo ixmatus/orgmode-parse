@@ -41,7 +41,7 @@ import           Prelude                    hiding (concat, null, takeWhile,
                                              unwords, words)
 import           System.Locale              (defaultTimeLocale)
 
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 
 type Weekday = Text
 type AbsTime = (Hours, Minutes)

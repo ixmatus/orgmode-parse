@@ -12,7 +12,7 @@ import           Test.Tasty.HUnit
 
 import           Data.OrgMode.Parse.Attoparsec.Document
 import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 import           Util
 
 parserSmallDocumentTests :: TestTree

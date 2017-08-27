@@ -22,7 +22,7 @@ import qualified Data.Text                              as Text
 
 import           Data.OrgMode.Parse.Attoparsec.Headline
 import           Data.OrgMode.Parse.Attoparsec.Section  (nonHeadline)
-import           Data.OrgMode.Parse.Types
+import           Data.OrgMode.Types
 
 ------------------------------------------------------------------------------
 parseDocument :: [Text] -> Attoparsec.Parser Text Document
