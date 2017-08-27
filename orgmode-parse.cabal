@@ -23,6 +23,7 @@ Build-Type:             Simple
 
 Extra-Source-Files:
     LICENSE
+    CHANGELOG.md
     README.md
 
 Library
