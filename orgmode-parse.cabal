@@ -9,7 +9,7 @@ Synopsis:               A collection of Attoparsec combinators for parsing org-m
                         flavored documents.
 Description:
 
-  <<https://travis-ci.org/digitalmentat/orgmode-parse.svg?branch=master>>
+  <<https://travis-ci.org/ixmatus/orgmode-parse.svg?branch=master>>
   .
   `orgmode-parse` is a parsing library for the org-mode flavor of
   document markup.
@@ -23,9 +23,7 @@ Build-Type:             Simple
 
 Extra-Source-Files:
     LICENSE
-    README.org
-    TODO.org
-    CHANGELOG
+    README.md
 
 Library
   Default-Language:     Haskell2010
