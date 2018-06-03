@@ -65,5 +65,8 @@ $ nix-shell --attr orgmode-parse.env release.nix
 $ cabal build
 ```
 
+## Projects that use this package:
+https://github.com/volhovm/orgstat
+
 # License
 [BSD3 Open Source Software License](https://github.com/digitalmentat/orgmode-parse/blob/master/LICENSE)
