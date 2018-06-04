@@ -61,7 +61,7 @@ parseDrawerDelim :: Text -> Attoparsec.Parser Text Text
 parseDrawerDelim v =
   skipSpace *> skip (== ':') *>
   asciiCI v                  <*
-  skip (== ':') <* skipSpace
+  skip (== ':') <* Util.skipOnlySpace
 
 -- | Parse the @:END:@ of a drawer.
 drawerEnd :: Attoparsec.Parser Text Text
