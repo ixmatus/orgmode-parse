@@ -1,3 +1,6 @@
+0.2.1
+- Fix property drawer parsing of :END: delimiter, fixes #35
+
 0.2.0
 - Fix timestamp parsing in headline and body, fixes #13
 - Generalize drawer parser for logbook and generic drawers, fixes #14
