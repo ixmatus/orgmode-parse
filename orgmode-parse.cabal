@@ -41,6 +41,7 @@ Library
                   Data.OrgMode.Parse.Attoparsec.Drawer.Logbook,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Property,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
+                  Data.OrgMode.Parse.Attoparsec.Markup,
                   Data.OrgMode.Parse.Attoparsec.Section,
                   Data.OrgMode.Parse.Attoparsec.Time,
                   Data.OrgMode.Parse.Attoparsec.Util,
