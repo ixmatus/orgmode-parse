@@ -1,0 +1,6 @@
+:set prompt "λ "
+:set prompt-cont "| "
+:set -XOverloadedStrings
+:set -DDEVELOPMENT
+:set -fwarn-unused-binds -fwarn-unused-imports
+:set -fwarn-deprecations
