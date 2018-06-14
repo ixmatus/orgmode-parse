@@ -20,6 +20,7 @@ parseMarkup = choice
   , parseCode
   , parseStrike
   , parseSubscript
+  , parseSuperscript
   ]
 
 parseWrap :: (Text -> Markup) -> Char -> Attoparsec.Parser Text Markup
@@ -50,6 +51,14 @@ parseStrike = parseWrap Strike '+'
 parseSubscript :: Attoparsec.Parser Text Markup
 parseSubscript = do
   _ <- char '_'
+  braces <- option Nothing (Just <$> char '{')
+  case braces of
+    Nothing -> Subscript <$> takeTill isHorizontalSpace
+    Just _ -> Subscript <$> takeTill (== '}')
+
+parseSuperscript :: Attoparsec.Parser Text Markup
+parseSuperscript = do
+  _ <- char '^'
   braces <- option Nothing (Just <$> char '{')
   case braces of
     Nothing -> Subscript <$> takeTill isHorizontalSpace

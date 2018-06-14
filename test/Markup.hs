@@ -23,14 +23,15 @@ parserMarkupTests = testGroup "Attoparsec orgmode markup"
   , testCase "Parses strikethrough" $
       testDocS "+strike this+" (Strike "strike this")
 
-  -- Super/subscript examples taken from:
-  -- https://orgmode.org/manual/Subscripts-and-superscripts.html
-
   , testCase "Parses subscript" $
       testDocS "_sun " (Subscript "sun")
-
   , testCase "Parses subscript with curly braces" $
       testDocS "_{Alpha Centauri} " (Subscript "Alpha Centauri")
+
+  , testCase "Parses superscript" $
+      testDocS "^10 " (Subscript "10")
+  , testCase "Parses subscript with curly braces" $
+      testDocS "^{ref 1} " (Subscript "ref 1")
   ]
   where
     testDocS s r = expectParse parseMarkup s (Right r)
