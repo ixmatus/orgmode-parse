@@ -27,6 +27,7 @@ module Data.OrgMode.Types
 , Duration
 , Headline          (..)
 , Logbook           (..)
+, Markup            (..)
 , PlanningKeyword   (..)
 , Plannings         (..)
 , Priority          (..)
@@ -52,6 +53,23 @@ import           Data.Text            (Text, pack)
 import           Data.Thyme.Calendar  (YearMonthDay (..))
 import           Data.Thyme.LocalTime (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
+
+-- | Inline markup elements.
+-- https://orgmode.org/manual/Emphasis-and-monospace.html
+data Markup
+  = Bold Text
+  | Italic Text
+  | Underline Text
+  | Monospace Text
+  | Code Text
+  | Strike Text
+  | Subscript Text
+  | Superscript Text
+  | Plain Text
+  deriving (Show, Eq, Generic)
+
+instance Aeson.ToJSON Markup
+instance Aeson.FromJSON Markup
 
 -- | Org-mode document.
 data Document = Document

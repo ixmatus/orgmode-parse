@@ -9,17 +9,7 @@ module Data.OrgMode.Parse.Attoparsec.Markup
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types                  as Attoparsec
 import           Data.Text                              (Text)
-
--- | Inline markup elements.
--- https://orgmode.org/manual/Emphasis-and-monospace.html
-data Markup
-  = Bold Text
-  | Italic Text
-  | Underline Text
-  | Monospace Text
-  | Code Text
-  | Strike Text
-  deriving (Show, Eq)
+import           Data.OrgMode.Types
 
 parseMarkup :: Attoparsec.Parser Text Markup
 parseMarkup = choice
