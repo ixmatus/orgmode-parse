@@ -61,5 +61,5 @@ parseSuperscript = do
   _ <- char '^'
   braces <- option Nothing (Just <$> char '{')
   case braces of
-    Nothing -> Subscript <$> takeTill isHorizontalSpace
-    Just _ -> Subscript <$> takeTill (== '}')
+    Nothing -> Superscript <$> takeTill isHorizontalSpace
+    Just _ -> Superscript <$> takeTill (== '}')

@@ -29,9 +29,9 @@ parserMarkupTests = testGroup "Attoparsec orgmode markup"
       testDocS "_{Alpha Centauri} " (Subscript "Alpha Centauri")
 
   , testCase "Parses superscript" $
-      testDocS "^10 " (Subscript "10")
+      testDocS "^10 " (Superscript "10")
   , testCase "Parses subscript with curly braces" $
-      testDocS "^{ref 1} " (Subscript "ref 1")
+      testDocS "^{ref 1} " (Superscript "ref 1")
   ]
   where
     testDocS s r = expectParse parseMarkup s (Right r)
