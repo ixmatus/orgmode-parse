@@ -13,7 +13,6 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE ViewPatterns      #-}
 
 module Data.OrgMode.Parse.Attoparsec.Time
@@ -23,24 +22,22 @@ module Data.OrgMode.Parse.Attoparsec.Time
 )
 where
 
-import           Control.Applicative
-import           Control.Monad              (liftM)
+import           Control.Applicative        
 import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
 import           Data.Attoparsec.Combinator as Attoparsec
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types      as Attoparsec (Parser)
 import qualified Data.ByteString.Char8      as BS
+import           Data.Functor               (($>))
 import           Data.HashMap.Strict        (HashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
-import           Data.Monoid
+import           Data.Monoid                ()
 import           Data.Text                  (Text)
 import qualified Data.Text                  as Text
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
-import           Prelude                    hiding (concat, null, repeat,
-                                             takeWhile, unwords, words)
 import           System.Locale              (defaultTimeLocale)
-
+import           Data.Semigroup             ((<>))
 import           Data.OrgMode.Types
 
 -- | Parse a planning line.
@@ -51,12 +48,12 @@ import           Data.OrgMode.Types
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> (many' (skipSpace *> planning <* skipSpace))
+parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
   where
     planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-    pType    = choice [string "SCHEDULED" *> pure SCHEDULED
-                      ,string "DEADLINE"  *> pure DEADLINE
-                      ,string "CLOSED"    *> pure CLOSED
+    pType    = choice [string "SCHEDULED" $>  SCHEDULED
+                      ,string "DEADLINE"  $>  DEADLINE
+                      ,string "CLOSED"    $>  CLOSED
                       ]
 
 -- | Parse a clock line.
@@ -88,8 +85,7 @@ parseTimestamp :: Attoparsec.Parser Text Timestamp
 parseTimestamp = do
   (ts1, tsb1, act) <- transformBracketedDateTime <$> parseBracketedDateTime
 
-  blk2 <- liftM (maybe Nothing (Just . transformBracketedDateTime))
-                optionalBracketedDateTime
+  blk2 <- fmap (fmap transformBracketedDateTime)  optionalBracketedDateTime
 
   -- TODO: refactor this case logic
   case (tsb1, blk2) of
@@ -220,11 +216,11 @@ parseHM = (,) <$> decimal <* char ':' <*> decimal
 -- | Parse the Timeunit part of a delay or repeater flag.
 parseTimeUnit :: Attoparsec.Parser Text TimeUnit
 parseTimeUnit =
-  choice [ char 'h' *> pure UnitHour
-         , char 'd' *> pure UnitDay
-         , char 'w' *> pure UnitWeek
-         , char 'm' *> pure UnitMonth
-         , char 'y' *> pure UnitYear
+  choice [ char 'h' $> UnitHour
+         , char 'd' $> UnitDay
+         , char 'w' $> UnitWeek
+         , char 'm' $> UnitMonth
+         , char 'y' $> UnitYear
          ]
 
 -- | Parse a repeater flag, e.g. @.+4w@, or @++1y@.
@@ -232,9 +228,9 @@ parseRepeater :: Attoparsec.Parser Text Repeater
 parseRepeater =
   Repeater
   <$> choice
-        [ string "++" *> pure RepeatCumulate
-        , char   '+'  *> pure RepeatCatchUp
-        , string ".+" *> pure RepeatRestart
+        [ string "++" $> RepeatCumulate
+        , char   '+'  $> RepeatCatchUp
+        , string ".+" $> RepeatRestart
         ]
   <*> decimal
   <*> parseTimeUnit
@@ -244,8 +240,8 @@ parseDelay :: Attoparsec.Parser Text Delay
 parseDelay =
   Delay
   <$> choice
-        [ string "--" *> pure DelayFirst
-        , char   '-'  *> pure DelayAll
+        [ string "--" $> DelayFirst
+        , char   '-'  $> DelayAll
         ]
   <*> decimal
   <*> parseTimeUnit

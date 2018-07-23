@@ -25,8 +25,6 @@ import           Data.Attoparsec.Types                        as Attoparsec
 import           Data.HashMap.Strict                          (fromList)
 import           Data.Text                                    (Text)
 import qualified Data.Text                                    as Text
-import           Prelude                                      hiding (concat,
-                                                               null, takeWhile)
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
 import           Data.OrgMode.Types

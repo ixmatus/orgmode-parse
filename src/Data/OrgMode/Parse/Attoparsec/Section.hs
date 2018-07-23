@@ -9,17 +9,16 @@
 -- Parsing combinators for org-mode headline sections.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings #-}
+
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative
+import           Control.Applicative                  ()
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types                as Attoparsec
-import           Data.Monoid
+import           Data.Monoid                          ()
 import           Data.Text                            (Text)
 import qualified Data.Text                            as Text
-import           Prelude                              hiding (unlines)
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time

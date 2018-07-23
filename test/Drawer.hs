@@ -11,16 +11,16 @@ import           Util
 
 parserDrawerTests :: TestTree
 parserDrawerTests = testGroup "Attoparsec PropertyDrawer"
-    [ testCase "Parse a :PROPERTY: drawer" $
+    [ testCase "Parse a :PROPERTY: drawer"
         testPropertyDrawer
 
-    , testCase "Parse empty :PROPERTY: drawer" $
+    , testCase "Parse empty :PROPERTY: drawer"
         (testParser parseProperties ":PROPERTIES:\n:END:\n")
 
-    , testCase "Parse a :LOGBOOK: drawer" $
+    , testCase "Parse a :LOGBOOK: drawer"
         testLogbookDrawer
 
-    , testCase "Parse a user-defined drawer" $
+    , testCase "Parse a user-defined drawer"
         testGenericDrawer
     ]
 

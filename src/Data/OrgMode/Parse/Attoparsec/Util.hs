@@ -19,7 +19,7 @@ import qualified Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Types (Parser)
 import           Data.Text             (Text)
 import qualified Data.Text             as Text
-
+import           Data.Functor          (($>))
 
 -- | Skip whitespace characters, only!
 --
@@ -36,7 +36,7 @@ skipOnlySpace = Attoparsec.Text.skipWhile spacePred
 nonHeadline :: Parser Text Text
 nonHeadline = nonHeadline0 <|> nonHeadline1
   where
-    nonHeadline0 = Attoparsec.Text.endOfLine *> pure (Text.pack "")
+    nonHeadline0 = Attoparsec.Text.endOfLine $> Text.pack ""
     nonHeadline1 = Text.pack <$> do
       h <- Attoparsec.Text.notChar '*'
       t <- Attoparsec.Text.manyTill Attoparsec.Text.anyChar Attoparsec.Text.endOfLine

@@ -32,10 +32,10 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   , testCase "Parse Headline no \n" $
       testDocS "* T" (Document "" [emptyHeadline {title="T"}])
 
-  , testCase "Parse Document from File" $
+  , testCase "Parse Document from File"
       testDocFile
 
-  , testCase "Parse Document with Subtree List Items" $
+  , testCase "Parse Document with Subtree List Items"
       testSubtreeListItemDocFile
   ]
 

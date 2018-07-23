@@ -9,7 +9,7 @@
 -- Parsing combinators for org-mode headlines.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ViewPatterns               #-}
 
@@ -38,6 +38,7 @@ import           Data.OrgMode.Parse.Attoparsec.Section
 import qualified Data.OrgMode.Parse.Attoparsec.Time    as OrgMode.Time
 import           Data.OrgMode.Parse.Attoparsec.Util
 import           Data.OrgMode.Types
+import           Data.Functor                          (($>))
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.
@@ -78,7 +79,7 @@ headlineBelowDepth stateKeywords d = do
   TitleMeta
     ( titleText
     , stats'
-    , (fromMaybe [] -> tags')
+    , fromMaybe [] -> tags'
     ) <- parseTitle
 
   section'      <- parseSection
@@ -129,7 +130,7 @@ headingPriority :: Attoparsec.Parser Text Priority
 headingPriority = start *> zipChoice <* end
   where
     zipChoice     = choice (zipWith mkPParser "ABC" [A,B,C])
-    mkPParser c p = char c *> pure p
+    mkPParser c p = char c $> p
     start         = string "[#"
     end           = char   ']'
 
@@ -141,8 +142,8 @@ parseTitle :: Attoparsec.Parser Text TitleMeta
 parseTitle =
   mkTitleMeta            <$>
     titleStart           <*>
-    (optMeta parseStats) <*>
-    (optMeta parseTags)  <*>
+    optMeta parseStats <*>
+    optMeta parseTags  <*>
     -- Parse what's leftover AND till end of line or input; discarding
     -- everything but the leftovers
     leftovers <* (endOfLine <|> endOfInput)
@@ -160,7 +161,7 @@ mkTitleMeta :: Text            -- ^ Start of title till the end of line
             -> Text            -- ^ Leftovers (may be empty) of the title
             -> TitleMeta
 mkTitleMeta start stats' tags' leftovers =
-    TitleMeta ((cleanTitle start leftovers), stats', tags')
+    TitleMeta (cleanTitle start leftovers, stats', tags')
   where
     cleanTitle t l
       | Text.null leftovers = Text.strip t
@@ -185,7 +186,7 @@ parseStats = pct <|> frac
 parseTags :: Attoparsec.Parser Text [Tag]
 parseTags = tags' >>= test
   where
-    tags' = (char ':' *> takeWhile (/= '\n'))
+    tags' = char ':' *> takeWhile (/= '\n')
     test t
        | Text.null t        = fail "no data after beginning ':'"
        | Text.last t /= ':' = fail $ Text.unpack $ "expected ':' at end of tag list but got: " `Text.snoc` Text.last t
