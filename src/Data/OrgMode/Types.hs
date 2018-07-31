@@ -52,7 +52,7 @@ import           Data.Text            (Text, pack)
 import           Data.Thyme.Calendar  (YearMonthDay (..))
 import           Data.Thyme.LocalTime (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
-
+import           Data.Semigroup       (Semigroup)
 -- | Org-mode document.
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
@@ -94,13 +94,15 @@ data Section = Section
   } deriving (Show, Eq, Generic)
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
+
 
 instance Aeson.ToJSON Properties
 instance Aeson.FromJSON Properties
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
-  deriving (Show, Eq, Generic, Monoid)
+  deriving (Show, Eq, Generic, Semigroup, Monoid)
+
 
 instance Aeson.ToJSON Logbook
 instance Aeson.FromJSON Logbook
@@ -274,7 +276,7 @@ instance Aeson.ToJSON Plannings where
     where jPair (k, v) = pack (show k) .= Aeson.toJSON v
 
 instance Aeson.FromJSON Plannings where
-  parseJSON (Aeson.Object v) = Plns . fromList <$> (traverse jPair (keys v))
+  parseJSON (Aeson.Object v) = Plns . fromList <$> traverse jPair (keys v)
     where jPair k = v .: k
   parseJSON _ = mzero
 

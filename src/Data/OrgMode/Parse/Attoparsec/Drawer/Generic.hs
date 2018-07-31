@@ -9,7 +9,7 @@
 -- Parsing combinators for org-mode section generic drawers.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE LambdaCase        #-}
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
@@ -24,8 +24,6 @@ import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types              as Attoparsec
 import           Data.Text                          (Text)
 import qualified Data.Text                          as Text
-import           Prelude                            hiding (concat, null,
-                                                     takeWhile)
 
 import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 import           Data.OrgMode.Types

@@ -6,7 +6,7 @@ import           Data.Either
 import           Data.Text             as T
 import           Test.HUnit
 
-testParser :: (TP.Parser Text a) -> String -> Assertion
+testParser :: TP.Parser Text a -> String -> Assertion
 testParser f v = fromEither (parseOnly f $ T.pack v)
 
 expectParse :: (Eq a, Show a) => TP.Parser Text a -- ^ Parser under test

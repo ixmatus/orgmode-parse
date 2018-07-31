@@ -20,8 +20,6 @@ import           Control.Applicative                          ((*>))
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types                        as Attoparsec
 import           Data.Text                                    (Text)
-import           Prelude                                      hiding (concat,
-                                                               null, takeWhile)
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
 import           Data.OrgMode.Parse.Attoparsec.Time           (parseClock)
