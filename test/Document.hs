@@ -52,9 +52,10 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
     testSubtreeListItemDocFile  = do
       doc <- TextIO.readFile "test/subtree-list-items.org"
 
-      let subtreeListItemsDoc = parseOnly (parseDocument []) doc
+      -- let subtreeListItemsDoc = parseOnly (parseDocument []) doc
 
-      assertBool "Expected to parse document" (subtreeListItemsDoc == goldenSubtreeListItemDoc)
+      -- assertBool "Expected to parse document" (subtreeListItemsDoc == goldenSubtreeListItemDoc)
+      expectParse (parseDocument []) doc  goldenSubtreeListItemDoc
 
     kw           = ["TODO", "CANCELED", "DONE"]
     pText        = "Paragraph text\n.No headline here.\n##--------\n"
@@ -71,7 +72,7 @@ sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
                [emptyHeadline {title="Test1", tags=["Hi there"]}
-               ,emptyHeadline {section=emptySection{sectionParagraph=" *\n"}}
+               ,emptyHeadline {section=emptySection{sectionParagraph= plainParagraphs " *"}}
                ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
@@ -114,5 +115,83 @@ spaces = flip Text.replicate " "
 emptySection :: Section
 emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty mempty
 
+plainParagraphs :: Text -> [Paragraph]
+plainParagraphs str = [Paragraph [Plain str]]
+
 goldenSubtreeListItemDoc :: Either String Document
-goldenSubtreeListItemDoc = Right (Document {documentText = "", documentHeadlines = [Headline {depth = Depth 1, stateKeyword = Nothing, priority = Nothing, title = "Header1", timestamp = Nothing, stats = Nothing, tags = [], section = Section {sectionTimestamp = Nothing, sectionPlannings = Plns (fromList []), sectionClocks = [], sectionProperties = Properties {unProperties = fromList []}, sectionLogbook = Logbook {unLogbook = []}, sectionDrawers = [], sectionParagraph = ""}, subHeadlines = [Headline {depth = Depth 2, stateKeyword = Nothing, priority = Nothing, title = "Header2", timestamp = Nothing, stats = Nothing, tags = [], section = Section {sectionTimestamp = Nothing, sectionPlannings = Plns (fromList []), sectionClocks = [], sectionProperties = Properties {unProperties = fromList []}, sectionLogbook = Logbook {unLogbook = []}, sectionDrawers = [], sectionParagraph = ""}, subHeadlines = [Headline {depth = Depth 3, stateKeyword = Nothing, priority = Nothing, title = "Header3", timestamp = Nothing, stats = Nothing, tags = [], section = Section {sectionTimestamp = Nothing, sectionPlannings = Plns (fromList []), sectionClocks = [], sectionProperties = Properties {unProperties = fromList [("ONE","two")]}, sectionLogbook = Logbook {unLogbook = []}, sectionDrawers = [], sectionParagraph = "\n    * Item1\n    * Item2\n"}, subHeadlines = []}]},Headline {depth = Depth 2, stateKeyword = Nothing, priority = Nothing, title = "Header4", timestamp = Nothing, stats = Nothing, tags = [], section = Section {sectionTimestamp = Nothing, sectionPlannings = Plns (fromList []), sectionClocks = [], sectionProperties = Properties {unProperties = fromList []}, sectionLogbook = Logbook {unLogbook = []}, sectionDrawers = [], sectionParagraph = ""}, subHeadlines = []}]}]})
+goldenSubtreeListItemDoc = Right (Document 
+  {documentText = "", 
+  documentHeadlines = [Headline 
+    {depth = Depth 1,
+    stateKeyword = Nothing,
+    priority = Nothing,
+    title = "Header1", 
+    timestamp = Nothing,
+    stats = Nothing,
+    tags = [], 
+    section = Section 
+      {sectionTimestamp = Nothing,
+      sectionPlannings = Plns (fromList []), 
+      sectionClocks = [], 
+      sectionProperties = Properties {unProperties = fromList []}, 
+      sectionLogbook = Logbook {unLogbook = []}, 
+      sectionDrawers = [], 
+      sectionParagraph = [] 
+      },
+    subHeadlines = [Headline {
+      depth = Depth 2,
+      stateKeyword = Nothing,
+      priority = Nothing,
+      title = "Header2", 
+      timestamp = Nothing,
+      stats = Nothing,
+      tags = [], 
+      section = Section {
+        sectionTimestamp = Nothing,
+        sectionPlannings = Plns (fromList []), 
+        sectionClocks = [], 
+        sectionProperties = Properties { unProperties = fromList []},
+        sectionLogbook = Logbook {unLogbook = []},
+        sectionDrawers = [], 
+        sectionParagraph = []
+      },
+      subHeadlines = [Headline {
+        depth = Depth 3,
+        stateKeyword = Nothing,
+        priority = Nothing,
+        title = "Header3",
+        timestamp = Nothing,
+        stats = Nothing,
+        tags = [],
+        section = Section {
+          sectionTimestamp = Nothing,
+          sectionPlannings = Plns (fromList []),
+          sectionClocks = [],
+          sectionProperties = Properties {unProperties = fromList [("ONE","two")]},
+          sectionLogbook = Logbook {unLogbook = []},
+          sectionDrawers = [],
+          sectionParagraph = plainParagraphs "    * Item1     * Item2"
+        },
+        subHeadlines = []
+      }]
+    },
+    Headline {
+      depth = Depth 2,
+      stateKeyword = Nothing,
+      priority = Nothing,
+      title = "Header4",
+      timestamp = Nothing,
+      stats = Nothing,
+      tags = [],
+      section = Section {
+        sectionTimestamp = Nothing,
+        sectionPlannings = Plns (fromList []),
+        sectionClocks = [],
+        sectionProperties = Properties {unProperties = fromList []},
+        sectionLogbook = Logbook {unLogbook = []},
+        sectionDrawers = [],
+        sectionParagraph = []
+      },
+      subHeadlines = []}
+  ]}
+]})

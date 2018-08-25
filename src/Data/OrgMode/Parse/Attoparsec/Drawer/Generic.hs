@@ -20,8 +20,7 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
 where
 
 import           Control.Applicative                ((*>), (<*))
-import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types              as Attoparsec
+import           Data.Attoparsec.Text               ((<?>), char, takeWhile1, skipSpace, Parser, manyTill, endOfLine, asciiCI)
 import           Data.Text                          (Text)
 import qualified Data.Text                          as Text
 
@@ -33,7 +32,7 @@ import           Data.OrgMode.Types
 -- > :MYTEXT:
 -- > whatever I want, can go in here except for headlines and drawers
 -- > :END:
-parseDrawer :: Attoparsec.Parser Text Drawer
+parseDrawer :: Parser Drawer
 parseDrawer =
   Drawer                <$>
     parseDrawerName     <*>
@@ -44,23 +43,23 @@ parseDrawer =
 -- > :DRAWERNAME:
 -- > my text in a drawer
 -- > :END:
-parseDrawerName :: Attoparsec.Parser Text Text
+parseDrawerName :: Parser Text
 parseDrawerName =
-  skipSpace *> skip (== ':') *>
+  skipSpace *> char ':' *>
   takeWhile1 (/= ':')        <*
-  skip (== ':') <* skipSpace
+  char ':' <* skipSpace
 
 -- | Parse drawer delimiters, e.g the beginning and end of a property
 -- drawer:
 --
 -- > :PROPERTIES:
 -- > :END:
-parseDrawerDelim :: Text -> Attoparsec.Parser Text Text
+parseDrawerDelim :: Text -> Parser Text
 parseDrawerDelim v =
-  skipSpace *> skip (== ':') *>
+  skipSpace *> char  ':' *>
   asciiCI v                  <*
-  skip (== ':') <* Util.skipOnlySpace
+  char ':' <* Util.skipOnlySpace
 
 -- | Parse the @:END:@ of a drawer.
-drawerEnd :: Attoparsec.Parser Text Text
-drawerEnd = parseDrawerDelim "END"
+drawerEnd :: Parser Text
+drawerEnd = parseDrawerDelim "END"   <?> "Expect Drawer End :END:"

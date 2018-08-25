@@ -23,7 +23,7 @@ import qualified Data.Text                            as Text
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
 import qualified Data.OrgMode.Parse.Attoparsec.Util   as Util
-
+import           Data.OrgMode.Parse.Attoparsec.Paragraph  (parseParagraph)
 import           Data.OrgMode.Types
 
 -- | Parse a heading section
@@ -40,4 +40,4 @@ parseSection =
    <*> option mempty parseProperties
    <*> option mempty parseLogbook
    <*> many' parseDrawer
-   <*> (Text.unlines <$> many' Util.nonHeadline)
+   <*> many' parseParagraph

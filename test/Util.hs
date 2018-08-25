@@ -1,15 +1,14 @@
 module Util where
 
-import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types as TP
+import           Data.Attoparsec.Text    (Parser, parseOnly)
 import           Data.Either
-import           Data.Text             as T
+import           Data.Text               (pack, Text)
 import           Test.HUnit
 
-testParser :: TP.Parser Text a -> String -> Assertion
-testParser f v = fromEither (parseOnly f $ T.pack v)
+testParser :: Parser a -> String -> Assertion
+testParser f v = fromEither (parseOnly f $ pack v)
 
-expectParse :: (Eq a, Show a) => TP.Parser Text a -- ^ Parser under test
+expectParse :: (Eq a, Show a) => Parser a -- ^ Parser under test
                               -> Text             -- ^ Message under test
                               -> Either String a  -- ^ Expected parse result
                               -> Assertion

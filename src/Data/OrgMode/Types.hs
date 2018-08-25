@@ -41,6 +41,8 @@ module Data.OrgMode.Types
 , TimeUnit          (..)
 , Timestamp         (..)
 , YearMonthDay      (..)
+, Paragraph         (..)
+, MarkupText        (..)
 ) where
 
 import           Control.Monad        (mzero)
@@ -82,6 +84,14 @@ newtype Depth = Depth Int
 instance Aeson.ToJSON Depth
 instance Aeson.FromJSON Depth
 
+data MarkupText = Plain Text | Bold [MarkupText] | Italic [MarkupText] deriving (Show, Eq, Generic)
+newtype Paragraph = Paragraph [MarkupText] deriving (Show, Eq, Generic, Semigroup, Monoid)
+
+instance Aeson.ToJSON MarkupText
+instance Aeson.FromJSON MarkupText
+instance Aeson.ToJSON Paragraph
+instance Aeson.FromJSON Paragraph
+
 -- | Section of text directly following a headline.
 data Section = Section
   { sectionTimestamp  :: Maybe Timestamp -- ^ A headline's section timestamp
@@ -90,7 +100,7 @@ data Section = Section
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionDrawers    :: [Drawer]        -- ^ A list of parsed user-defined drawers
-  , sectionParagraph  :: Text            -- ^ Arbitrary text
+  , sectionParagraph  :: [Paragraph]            -- ^ Content of Section
   } deriving (Show, Eq, Generic)
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
@@ -310,3 +320,4 @@ type Duration = (Hour,Minute)
 
 instance Hashable PlanningKeyword where
   hashWithSalt salt k = hashWithSalt salt (fromEnum k)
+
