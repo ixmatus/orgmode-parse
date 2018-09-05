@@ -72,7 +72,7 @@ sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
                [emptyHeadline {title="Test1", tags=["Hi there"]}
-               ,emptyHeadline {section=emptySection{sectionParagraph= plainParagraphs " *"}}
+               ,emptyHeadline {section=emptySection{sectionBlocks = plainParagraphs " *"}}
                ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
@@ -113,10 +113,10 @@ spaces :: Int -> Text
 spaces = flip Text.replicate " "
 
 emptySection :: Section
-emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty mempty
+emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty
 
-plainParagraphs :: Text -> [Paragraph]
-plainParagraphs str = [Paragraph [Plain str]]
+plainParagraphs :: Text -> [Either Drawer SectionBlock]
+plainParagraphs str = [Right (SectionBlock $ Right $ Paragraph [Plain str])]
 
 goldenSubtreeListItemDoc :: Either String Document
 goldenSubtreeListItemDoc = Right (Document 
@@ -135,8 +135,7 @@ goldenSubtreeListItemDoc = Right (Document
       sectionClocks = [], 
       sectionProperties = Properties {unProperties = fromList []}, 
       sectionLogbook = Logbook {unLogbook = []}, 
-      sectionDrawers = [], 
-      sectionParagraph = [] 
+      sectionBlocks = [] 
       },
     subHeadlines = [Headline {
       depth = Depth 2,
@@ -152,8 +151,7 @@ goldenSubtreeListItemDoc = Right (Document
         sectionClocks = [], 
         sectionProperties = Properties { unProperties = fromList []},
         sectionLogbook = Logbook {unLogbook = []},
-        sectionDrawers = [], 
-        sectionParagraph = []
+        sectionBlocks = []
       },
       subHeadlines = [Headline {
         depth = Depth 3,
@@ -169,8 +167,11 @@ goldenSubtreeListItemDoc = Right (Document
           sectionClocks = [],
           sectionProperties = Properties {unProperties = fromList [("ONE","two")]},
           sectionLogbook = Logbook {unLogbook = []},
-          sectionDrawers = [],
-          sectionParagraph = plainParagraphs "    * Item1     * Item2"
+          sectionBlocks = [Right $ SectionBlock $ Left $ List [
+            Item [Plain "Item1"],
+            Item [Plain "Item2"]
+            ]
+          ]
         },
         subHeadlines = []
       }]
@@ -189,8 +190,7 @@ goldenSubtreeListItemDoc = Right (Document
         sectionClocks = [],
         sectionProperties = Properties {unProperties = fromList []},
         sectionLogbook = Logbook {unLogbook = []},
-        sectionDrawers = [],
-        sectionParagraph = []
+        sectionBlocks = []
       },
       subHeadlines = []}
   ]}

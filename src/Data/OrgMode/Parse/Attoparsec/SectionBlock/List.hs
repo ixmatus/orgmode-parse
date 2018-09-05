@@ -1,0 +1,61 @@
+-----------------------------------------------------------------------------
+-- |
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Item
+-- Copyright   :  © 2014 Parnell Springmeyer
+-- License     :  All Rights Reserved
+-- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
+-- Stability   :  stable
+--
+-- Parsing combinators for org-mode markups and paragraphs.
+----------------------------------------------------------------------------
+
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE OverloadedStrings          #-}
+
+
+module Data.OrgMode.Parse.Attoparsec.SectionBlock.List
+( 
+  parseList
+)
+where
+
+import           Control.Applicative                   ()
+import           Control.Monad                         (when)
+import           Data.Semigroup                        
+import           Data.Char                             (isSpace)
+import           Data.Text                             (Text)
+import qualified Data.Text                      as     Text
+import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, (<?>), many1', atEnd)
+import           Data.OrgMode.Types                    (Item (..), List (..))
+import           Data.OrgMode.Parse.Attoparsec.Util    (takeALine, takeLinesTill, takeEmptyLine, feedParserText)
+import           Data.Maybe                            (isNothing)
+import           GHC.Generics
+import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup   (parseMarkupContent)
+
+data ItemStart = ItemStart { prefixLength :: Int, firstLine :: Text} deriving (Show, Eq, Generic)
+
+parseItemStart :: Parser ItemStart
+parseItemStart = do
+  (prefix, content) <- Text.span isSpace <$> takeALine
+  result prefix content where 
+      errorMessage =  "not an item start"
+      result prefix content = if Text.compareLength prefix 2 == GT
+                  then (ItemStart (Text.length prefix) <$> hasFirstLine content) <?> errorMessage
+                  else fail errorMessage
+      hasFirstLine :: Text -> Parser Text
+      hasFirstLine content = if Text.null content || Text.head content /= '*'
+                                then fail ""
+                                else return $ (Text.dropWhile isSpace . Text.tail) content
+
+hasMorePrefixSpaceThan :: Int -> Text -> Bool
+hasMorePrefixSpaceThan i str = Text.compareLength str i == GT && isNothing (Text.find (not . isSpace) (Text.take (i + 1) str))
+
+parseItem :: Parser Item
+parseItem = do 
+  itemStart <- parseItemStart
+  textLines <- takeLinesTill (hasMorePrefixSpaceThan (prefixLength itemStart)) <> return ""
+  Item <$> feedParserText parseMarkupContent (Text.append (firstLine itemStart) textLines)
+
+-- TODO: Support nested List
+parseList :: Parser List
+parseList = List <$> many1' parseItem

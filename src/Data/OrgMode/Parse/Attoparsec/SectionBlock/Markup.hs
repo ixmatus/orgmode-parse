@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.Paragraph
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Paragraph.Markup
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -10,25 +10,23 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TupleSections #-}
 
-module Data.OrgMode.Parse.Attoparsec.Paragraph
+module Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup
 ( 
-  parseParagraph,
+  parseMarkupContent,
   parsePlainText,
 )
 where
 
 import           Control.Applicative            
-import           Control.Monad                         (when)
 import           Data.Semigroup
 import           Data.Char                             (isSpace)
-import           Data.Text                             (Text, cons, append, snoc, intercalate)
+import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip)
 import qualified Data.Text                      as     Text
-import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, (<?>), many', atEnd)
-import           Data.OrgMode.Types          (MarkupText (..), Paragraph (..))
+import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, skipSpace)
+import           Data.OrgMode.Types                    (MarkupText (..))
 import           Prelude                        hiding (takeWhile)
-import           Data.OrgMode.Parse.Attoparsec.Util    (takeLinesTill, isHeadLine, takeContentBeforeBlockTill, takeEmptyLine)
+import           Data.OrgMode.Parse.Attoparsec.Util    (takeLinesTill, isHeadLine, takeContentBeforeBlockTill)
 
 data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText} 
 
@@ -41,7 +39,7 @@ isNotToken c = c /= '*' && c /= '_'
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
 createTokenParser innerParser Token{..}= do 
   _ <- char keyChar
-  content <- takeWhile (/= keyChar) 
+  content <- takeWhile (/= keyChar)
   _ <- char keyChar
   case parseOnly innerParser content of
      Left s -> fail s
@@ -51,11 +49,14 @@ parsePlainText :: Parser MarkupText
 parsePlainText = do
   c <- anyChar
   content <- takeWhile isNotToken
-  return $ Plain $ refactorLineEnd (cons c content) 
+  return $ Plain $ refactorLineEnd $ cons c content
 
 refactorLineEnd :: Text -> Text
 refactorLineEnd str = fix content where
-  content = intercalate (Text.pack " ") (map (Text.dropWhileEnd isSpace) (Text.split isEndOfLine str)) 
+  textLines = case Text.split isEndOfLine str of 
+            [] -> []
+            (firstLine : restLines) -> dropWhileEnd isSpace firstLine : map strip restLines
+  content = intercalate (Text.pack " ") textLines
   fix s = if isSpace (Text.last str)
            then snoc s ' '
            else s
@@ -70,28 +71,7 @@ appendElement h t
   | head t == emptyMarkup = h: tail t
   | otherwise = h:t
 
-takeTextAsParagraph :: Text -> Parser Paragraph
-takeTextAsParagraph text = 
-  case parseOnly parseMarkupContent text of 
-    Left s -> fail s
-    Right s -> return $ Paragraph s
-
-parseParagraph :: Parser Paragraph
-parseParagraph = many' takeEmptyLine *> parseContent where
-  parseContent = (dropLastSpaces <$> (isNotAtEndOfInput *> takeContentTillHeadline)) >>= takeTextAsParagraph
-  dropLastSpaces = Text.dropWhileEnd isSpace 
-  takeContentTillHeadline = takeLinesTill isHeadLine <?> "Not a paragraph line"
-  isNotAtEndOfInput = atEnd >>= (`when` fail "")
-
-takeParagraphAndBlock :: Parser s -> Parser (Maybe Paragraph, Maybe s)
-takeParagraphAndBlock parseBlock = do
-  (content, block) <- takeContentBeforeBlockTill isHeadLine parseBlock
-  let paragraphText = Text.dropWhileEnd isSpace content in 
-      if Text.null paragraphText 
-         then return (Nothing, block)
-         else (, block) . Just <$> takeTextAsParagraph content 
-
 parseMarkupContent :: Parser [MarkupText]
 parseMarkup :: Parser MarkupText
-parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup endOfInput  
+parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput)
 parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parsePlainText

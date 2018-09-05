@@ -8,7 +8,7 @@ import           Drawer
 import           Headline
 import           Test.Tasty
 import           Timestamps
-import           Paragraph
+import           SectionBlock.Paragraph
 
 main :: IO ()
 main = defaultMain tests
@@ -21,5 +21,5 @@ tests = testGroup
           , parserTimestampTests
           , parserSmallDocumentTests
           , parserWeekdayTests
-          , parserMarkupTests 
+          , parserParagraphs
           ]

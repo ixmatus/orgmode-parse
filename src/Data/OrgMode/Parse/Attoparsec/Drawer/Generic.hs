@@ -20,7 +20,7 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
 where
 
 import           Control.Applicative                ((*>), (<*))
-import           Data.Attoparsec.Text               ((<?>), char, takeWhile1, skipSpace, Parser, manyTill, endOfLine, asciiCI)
+import           Data.Attoparsec.Text               ((<?>), char, takeWhile1, skipSpace, Parser, manyTill, asciiCI)
 import           Data.Text                          (Text)
 import qualified Data.Text                          as Text
 
