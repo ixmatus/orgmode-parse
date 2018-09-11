@@ -17,12 +17,9 @@ import           Control.Applicative                  ()
 import           Data.Attoparsec.Text                 (skipSpace, many', option)
 import qualified Data.Attoparsec.Text                 as Attoparsec.Text
 import           Data.Monoid                          ()
-import           Data.Text                            (Text)
-import qualified Data.Text                            as Text
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
-import qualified Data.OrgMode.Parse.Attoparsec.Util   as Util
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock  (parseBlockAndDrawer)
 import           Data.OrgMode.Types                          
 

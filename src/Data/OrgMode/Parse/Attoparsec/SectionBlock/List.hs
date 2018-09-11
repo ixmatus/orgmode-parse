@@ -28,7 +28,7 @@ import qualified Data.Text                      as     Text
 import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, (<?>), many1', atEnd)
 import           Data.OrgMode.Types                    (Item (..), List (..))
 import           Data.OrgMode.Parse.Attoparsec.Util    (takeALine, takeLinesTill, takeEmptyLine, feedParserText)
-import           Data.Maybe                            (isNothing)
+import           Data.Maybe                            (isJust)
 import           GHC.Generics
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup   (parseMarkupContent)
 
@@ -45,15 +45,15 @@ parseItemStart = do
       hasFirstLine :: Text -> Parser Text
       hasFirstLine content = if Text.null content || Text.head content /= '*'
                                 then fail ""
-                                else return $ (Text.dropWhile isSpace . Text.tail) content
+                                else return $ (Text.strip . Text.tail) content
 
-hasMorePrefixSpaceThan :: Int -> Text -> Bool
-hasMorePrefixSpaceThan i str = Text.compareLength str i == GT && isNothing (Text.find (not . isSpace) (Text.take (i + 1) str))
+hasLessPrefixSpaceThen :: Int -> Text -> Bool
+hasLessPrefixSpaceThen i str = Text.compareLength str i /= GT || isJust (Text.find (not . isSpace) (Text.take (i + 1) str))
 
 parseItem :: Parser Item
 parseItem = do 
   itemStart <- parseItemStart
-  textLines <- takeLinesTill (hasMorePrefixSpaceThan (prefixLength itemStart)) <> return ""
+  textLines <- takeLinesTill (hasLessPrefixSpaceThen (prefixLength itemStart)) <> return ""
   Item <$> feedParserText parseMarkupContent (Text.append (firstLine itemStart) textLines)
 
 -- TODO: Support nested List

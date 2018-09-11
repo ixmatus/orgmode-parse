@@ -60,7 +60,7 @@ hasMoreInput = do
   Control.Monad.when x $ fail "reach the end of input"
 
 takeLinesTill :: (Text -> Bool) -> Parser Text
-takeLinesTill p = hasMoreInput *> takeText where
+takeLinesTill p = hasMoreInput *> many' takeEmptyLine *> takeText where
   takeText = fst <$> Attoparsec.Text.match takePLines 
   takePLines = takeALine >>= continueALine
   continueALine content
