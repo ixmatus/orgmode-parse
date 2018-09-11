@@ -43,6 +43,7 @@ module Data.OrgMode.Types
 , YearMonthDay      (..)
 , SectionBlock      (..)
 , module Data.OrgMode.Types.SectionBlock
+, sectionDrawer
 ) where
 
 import           Control.Monad                     (mzero)
@@ -96,6 +97,9 @@ data Section = Section
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionBlocks     :: [Either Drawer SectionBlock]  -- ^ Content of Section
   } deriving (Show, Eq, Generic)
+
+sectionDrawer :: Section -> [Drawer]
+sectionDrawer section = lefts (sectionBlocks section)
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
