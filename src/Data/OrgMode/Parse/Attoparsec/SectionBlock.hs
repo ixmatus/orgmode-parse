@@ -25,7 +25,7 @@ import qualified Data.Text                      as     Text
 import           Data.Attoparsec.Text                  (Parser, many')
 import           Data.OrgMode.Types                    (SectionBlock (..), List (..), Paragraph (..))
 
-import           Data.OrgMode.Parse.Attoparsec.Util                (takeLinesTill, isHeadLine, takeContentBeforeBlockTill, takeEmptyLine, feedParserText, isEmptyLine)
+import           Data.OrgMode.Parse.Attoparsec.Util                (isHeadLine, takeContentBeforeBlockTill, feedParserText, isEmptyLine)
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup    (parseMarkupContent)
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.List      (parseList)
 

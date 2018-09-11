@@ -28,7 +28,7 @@ import qualified Control.Monad
 import           Data.Semigroup        
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, anyChar, endOfLine, notChar, isHorizontalSpace, atEnd, many', parseOnly)
-import           Data.Text             (Text, cons, snoc, find, dropWhileEnd, compareLength)
+import           Data.Text             (Text, cons, snoc)
 import qualified Data.Text             as Text
 import           Data.Char             (isSpace)
 import           Data.Functor          (($>))
@@ -68,20 +68,16 @@ takeLinesTill p = hasMoreInput *> many' takeEmptyLine *> takeText where
     | p content           = fail ""
     | otherwise = takePLines <> return ()
 
--- Whether the content is ended by *text* or :text:, is used to handle isDrawer and isHeadLine
-isLastSurroundBy :: Char -> Text -> Bool
-isLastSurroundBy c content = result where
-  trimContent = dropWhileEnd isSpace content
-  result 
-    | Text.null trimContent = False
-    | Text.last trimContent /= c = False
-    | otherwise = compareLength (Text.filter (== c) trimContent) 2 == EQ 
-
 isHeadLine :: Text -> Bool
-isHeadLine content = (not . Text.null) content && Text.head content == '*' && not (isLastSurroundBy '*' content)
+isHeadLine content 
+  | Text.null content = False
+  | Text.head content /= '*' = False
+  | content == Text.pack "*" = True
+  | Text.head (Text.tail content) == '*' = True
+  | otherwise = isNothing (Text.find (=='*') (Text.tail content))
 
 isEmptyLine :: Text -> Bool
-isEmptyLine  = isNothing . find (not . isSpace)
+isEmptyLine  = isNothing . Text.find (not . isSpace)
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
