@@ -52,7 +52,7 @@ hasLessPrefixSpaceThen i str = Text.compareLength str i /= GT || isJust (Text.fi
 parseItem :: Parser Item
 parseItem = do 
   itemStart <- parseItemStart
-  textLines <- takeLinesTill (hasLessPrefixSpaceThen (prefixLength itemStart)) <> return ""
+  textLines <- (Text.append "\n" <$> takeLinesTill (hasLessPrefixSpaceThen (prefixLength itemStart))) <> return ""
   Item <$> feedParserText parseMarkupContent (Text.append (firstLine itemStart) textLines)
 
 -- TODO: Support nested List
