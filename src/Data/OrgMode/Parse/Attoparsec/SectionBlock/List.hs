@@ -19,15 +19,14 @@ module Data.OrgMode.Parse.Attoparsec.SectionBlock.List
 )
 where
 
-import           Control.Applicative                   ()
-import           Control.Monad                         (when)
+import           Control.Applicative                   
 import           Data.Semigroup                        
 import           Data.Char                             (isSpace)
 import           Data.Text                             (Text)
 import qualified Data.Text                      as     Text
-import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, (<?>), many1', atEnd)
+import           Data.Attoparsec.Text                  (Parser, (<?>), many1')
 import           Data.OrgMode.Types                    (Item (..), List (..))
-import           Data.OrgMode.Parse.Attoparsec.Util    (takeALine, takeLinesTill, takeEmptyLine, feedParserText)
+import           Data.OrgMode.Parse.Attoparsec.Util    (takeALine, takeLinesTill, feedParserText)
 import           Data.Maybe                            (isJust)
 import           GHC.Generics
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup   (parseMarkupContent)

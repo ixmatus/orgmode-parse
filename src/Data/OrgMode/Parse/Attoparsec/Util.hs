@@ -25,7 +25,7 @@ module Data.OrgMode.Parse.Attoparsec.Util
 where
 
 import qualified Control.Monad
-import           Data.Semigroup        ()
+import           Data.Semigroup        
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, anyChar, endOfLine, notChar, isHorizontalSpace, atEnd, many', parseOnly)
 import           Data.Text             (Text, cons, snoc, find, dropWhileEnd, compareLength)
