@@ -57,7 +57,7 @@ import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes
 import           GHC.Generics
 import           Data.Semigroup                    (Semigroup)
 import           Data.OrgMode.Types.SectionBlock   
-
+import           Data.Either                       (lefts)
 -- | Org-mode document.
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
