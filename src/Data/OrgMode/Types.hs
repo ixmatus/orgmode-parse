@@ -99,7 +99,7 @@ data Section = Section
   } deriving (Show, Eq, Generic)
 
 sectionDrawer :: Section -> [Drawer]
-sectionDrawer section = lefts (sectionBlocks section)
+sectionDrawer s = lefts (sectionBlocks s)
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
