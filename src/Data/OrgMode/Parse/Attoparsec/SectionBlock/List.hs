@@ -14,13 +14,13 @@
 
 
 module Data.OrgMode.Parse.Attoparsec.SectionBlock.List
-( 
+(
   parseList
 )
 where
 
-import           Control.Applicative                   
-import           Data.Semigroup                        
+import           Control.Applicative
+import           Data.Semigroup
 import           Data.Char                             (isSpace)
 import           Data.Text                             (Text)
 import qualified Data.Text                      as     Text
@@ -43,7 +43,7 @@ parseItemStart = do
                   else fail errorMessage
       hasFirstLine :: Text -> Parser Text
       hasFirstLine content = if Text.null content || Text.head content /= '*'
-                                then fail ""
+                                then fail "not an item line"
                                 else return $ (Text.strip . Text.tail) content
 
 hasLessPrefixSpaceThen :: Int -> Text -> Bool
