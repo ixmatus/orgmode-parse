@@ -25,7 +25,7 @@ module Data.OrgMode.Parse.Attoparsec.Util
 where
 
 import qualified Control.Monad
-import           Data.Semigroup        
+import           Data.Semigroup
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, anyChar, endOfLine, notChar, isHorizontalSpace, atEnd, many', parseOnly)
 import           Data.Text             (Text, cons, snoc)
@@ -33,6 +33,7 @@ import qualified Data.Text             as Text
 import           Data.Char             (isSpace)
 import           Data.Functor          (($>))
 import           Data.Maybe            (isNothing)
+
 -- | Skip whitespace characters, only!
 --
 -- @Data.Attoparsec.Text.skipSpace@ uses the @isSpace@ predicate from
@@ -54,11 +55,17 @@ takeALine = do
   content <- takeTill isEndOfLine
   Attoparsec.Text.option content (snoc content <$> anyChar)
 
+-- | Match only if there are more content to be consumed.
+--
+-- Opposite of @Attoparsec.Text.endOfInput@
 hasMoreInput :: Parser ()
 hasMoreInput = do
   x <- atEnd
   Control.Monad.when x $ fail "reach the end of input"
 
+-- | Consume input lines until the incoming line meets the condition.
+--
+-- The line-wise version of @Attoparsec.Text.takeWHile@
 takeLinesTill :: (Text -> Bool) -> Parser Text
 takeLinesTill p = hasMoreInput *> many' takeEmptyLine *> takeText where
   takeText = fst <$> Attoparsec.Text.match takePLines 
@@ -68,16 +75,26 @@ takeLinesTill p = hasMoreInput *> many' takeEmptyLine *> takeText where
     | p content           = fail ""
     | otherwise = takePLines <> return ()
 
+-- | whether a text stands for a headline
+--
+-- 1. A headline must start with `*`
+-- 2. If headline start with multiple `*`, like `"**"`, then it must be a headline
+-- 3. Lines like `"*text*"` is considered as a normal markup rather than a headline
 isHeadLine :: Text -> Bool
-isHeadLine content 
+isHeadLine content
   | Text.null content = False
   | Text.head content /= '*' = False
   | content == Text.pack "*" = True
   | Text.head (Text.tail content) == '*' = True
   | otherwise = isNothing (Text.find (=='*') (Text.tail content))
 
+-- | Whether a text consist only spaces
 isEmptyLine :: Text -> Bool
 isEmptyLine  = isNothing . Text.find (not . isSpace)
+
+-- | Matches only if the incoming text line consists nothing or only spaces
+--
+-- A empty line always ends a SectionBlock
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
