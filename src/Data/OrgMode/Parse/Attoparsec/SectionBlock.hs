@@ -34,7 +34,7 @@ parseBlockAndDrawer parseDrawer = do
   (content, drawer) <- takeContentBeforeBlockTill isHeadLine parseDrawer
   if isEmptyLine content
      then return ([], drawer)
-     else (, drawer) <$> innerTextToBlocks content 
+     else (, drawer) <$> innerTextToBlocks content
 
 innerTextToBlocks :: Text -> Parser [SectionBlock]
 innerTextToBlocks = feedParserText parseBlocks where

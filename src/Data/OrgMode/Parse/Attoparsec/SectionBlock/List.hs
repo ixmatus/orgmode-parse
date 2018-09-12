@@ -33,6 +33,7 @@ import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup   (parseMarku
 
 data ItemStart = ItemStart { prefixLength :: Int, firstLine :: Text} deriving (Show, Eq, Generic)
 
+-- Parse the first line of Item, get the number of spaces before the item token like `*`
 parseItemStart :: Parser ItemStart
 parseItemStart = do
   (prefix, content) <- Text.span isSpace <$> takeALine
@@ -46,15 +47,18 @@ parseItemStart = do
                                 then fail "not an item line"
                                 else return $ (Text.strip . Text.tail) content
 
+-- Decides the line has more space than given number, decides whether the new line is text part of the preceding item or a new block
 hasLessPrefixSpaceThen :: Int -> Text -> Bool
 hasLessPrefixSpaceThen i str = Text.compareLength str i /= GT || isJust (Text.find (not . isSpace) (Text.take (i + 1) str))
 
+-- Parse a item from item start line, with all following lines having more preceding spaces than the first line
+-- TODO: Support nested List
 parseItem :: Parser Item
-parseItem = do 
+parseItem = do
   itemStart <- parseItemStart
   textLines <- (Text.append "\n" <$> takeLinesTill (hasLessPrefixSpaceThen (prefixLength itemStart))) <> return ""
   Item <$> feedParserText parseMarkupContent (Text.append (firstLine itemStart) textLines)
 
--- TODO: Support nested List
+-- Parse a list
 parseList :: Parser List
 parseList = List <$> many1' parseItem

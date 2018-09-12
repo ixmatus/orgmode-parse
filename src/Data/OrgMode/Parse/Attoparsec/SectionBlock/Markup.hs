@@ -26,34 +26,39 @@ import qualified Data.Text                      as     Text
 import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, skipSpace)
 import           Data.OrgMode.Types                    (MarkupText (..))
 import           Prelude                        hiding (takeWhile)
-import           Data.OrgMode.Parse.Attoparsec.Util    (takeLinesTill, isHeadLine, takeContentBeforeBlockTill)
 
+-- TODO: Support LaTeX
 data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText} 
 
 tokens :: [Token]
 tokens = [ Token '*' Bold, Token '_' Italic ]
 
+-- For better efficiency suggested by Attoparsec, we will hard code the token filter
 isNotToken :: Char -> Bool
 isNotToken c = c /= '*' && c /= '_'
 
+-- Create a markup parser based on a token
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
-createTokenParser innerParser Token{..}= do 
+createTokenParser innerParser Token{..}= do
   _ <- char keyChar
   content <- takeWhile (/= keyChar)
   _ <- char keyChar
+  -- We need another parser passed in to parse the markup inside the markup
   case parseOnly innerParser content of
      Left s -> fail s
      Right a -> return $ markup a
 
+-- The fallback default if all markup parser fails
 parsePlainText :: Parser MarkupText
 parsePlainText = do
   c <- anyChar
   content <- takeWhile isNotToken
   return $ Plain $ refactorLineEnd $ cons c content
 
+-- At the end-of-line, line-break and spaces are considered together as one-space in org and other markup content
 refactorLineEnd :: Text -> Text
 refactorLineEnd str = fix content where
-  textLines = case Text.split isEndOfLine str of 
+  textLines = case Text.split isEndOfLine str of
             [] -> []
             (firstLine : restLines) -> dropWhileEnd isSpace firstLine : map strip restLines
   content = intercalate (Text.pack " ") textLines
@@ -61,17 +66,22 @@ refactorLineEnd str = fix content where
            then snoc s ' '
            else s
 
-emptyMarkup :: MarkupText
-emptyMarkup = Plain Text.empty
+-- Normalize to a concise Markup Array after serially running parsers.
+--  1. Concat the neighbour Plain Texts
+--  2. Remove empty Plain Text
 appendElement :: MarkupText -> [MarkupText] -> [MarkupText]
 appendElement a [] = [a]
-appendElement (Plain nonEmptyText) (Plain parserFailedText: xs) = Plain (append nonEmptyText parserFailedText) : xs
+appendElement (Plain text1) (Plain text2: xs)
+ | Text.null text1 && Text.null text2 = xs
+ | otherwise = Plain (append text1 text2) : xs
 appendElement h t
-  | h == emptyMarkup = t
-  | head t == emptyMarkup = h: tail t
+  | h == Plain Text.empty = t
+  | head t == Plain Text.empty = h: tail t
   | otherwise = h:t
 
+-- Parse the whole text content to an array of Markup Text.
+-- This parser will not handle the block stop.  The block stop shall be already handled before passing text with this Parser
 parseMarkupContent :: Parser [MarkupText]
-parseMarkup :: Parser MarkupText
-parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput)
-parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parsePlainText
+parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput) where
+  parseMarkup :: Parser MarkupText
+  parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parsePlainText
