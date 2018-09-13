@@ -18,7 +18,6 @@ module Data.OrgMode.Parse.Attoparsec.Util
   isHeadLine,
   takeContentBeforeBlockTill,
   takeEmptyLine,
-  dropLastSpaces,
   feedParserText,
   isEmptyLine
 )
@@ -98,22 +97,23 @@ isEmptyLine  = isNothing . Text.find (not . isSpace)
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
+-- | Save the content for future passing until reaching to the start of a new block,
+-- and try to parse the new block with a given parser.
+--
 takeContentBeforeBlockTill :: (Text -> Bool) -> Parser s -> Parser (Text, Maybe s)
 takeContentBeforeBlockTill p parseBlock = many' takeEmptyLine *> hasMoreInput *> scanBlock where
   scanBlock = ((Text.empty, ) . Just  <$> parseBlock) <> (takeALine >>= appendALine)
   -- Empty line is always an breaker
-  appendALine content 
+  appendALine content
     | isEmptyLine content = return (content, Nothing)
     | p content = fail ""
-    | otherwise = do 
+    | otherwise = do
       (restContent, block) <- scanBlock <> return (Text.empty, Nothing)
       return (Text.append content restContent, block)
 
-dropLastSpaces :: Text -> Text
-dropLastSpaces = Text.dropWhileEnd isSpace 
-
+-- | Transform a text content as block to work with current parser state
 feedParserText :: Parser s -> Text -> Parser s
-feedParserText  p t = 
-  case parseOnly p t of 
+feedParserText  p t =
+  case parseOnly p t of
     Left s -> fail s
     Right s -> return s

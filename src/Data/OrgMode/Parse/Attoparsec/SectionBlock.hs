@@ -12,7 +12,7 @@
 {-# LANGUAGE TupleSections        #-}
 
 module Data.OrgMode.Parse.Attoparsec.SectionBlock
-( 
+(
   parseBlockAndDrawer
 )
 where
@@ -29,6 +29,7 @@ import           Data.OrgMode.Parse.Attoparsec.Util                (isHeadLine, 
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup    (parseMarkupContent)
 import           Data.OrgMode.Parse.Attoparsec.SectionBlock.List      (parseList)
 
+-- | Parse the content until reaching a drawer or a block end;  Try to parse the upcoming drawer
 parseBlockAndDrawer :: Parser s -> Parser ([SectionBlock], Maybe s)
 parseBlockAndDrawer parseDrawer = do
   (content, drawer) <- takeContentBeforeBlockTill isHeadLine parseDrawer
