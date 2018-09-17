@@ -38,6 +38,7 @@ parseBlockAndDrawer parseDrawer = do
      else (, drawer) <$> innerTextToBlocks content
 
 innerTextToBlocks :: Text -> Parser [SectionBlock]
+
 innerTextToBlocks = feedParserText parseBlocks where
   parseBlocks :: Parser [SectionBlock]
   parseBlocks = concat <$> many' parseBlock
