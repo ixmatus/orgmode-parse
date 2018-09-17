@@ -42,6 +42,8 @@ module Data.OrgMode.Types
 , Timestamp         (..)
 , YearMonthDay      (..)
 , SectionBlock      (..)
+, MarkupText        (..)
+, Item              (..)
 , sectionDrawer
 ) where
 
@@ -55,7 +57,6 @@ import           Data.Thyme.Calendar               (YearMonthDay (..))
 import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           Data.Semigroup                    (Semigroup)
-import           Data.OrgMode.Types.SectionBlock   
 import           Data.Either                       (lefts)
 -- | Org-mode document.
 data Document = Document
@@ -98,26 +99,21 @@ data Section = Section
   } deriving (Show, Eq, Generic)
 
 sectionDrawer :: Section -> [Drawer]
-sectionDrawer s = lefts (sectionBlocks s)
+sectionDrawer s = folder getDrawer [] (sectionBlocks s) where
+  getDrawer (SectionDrawer x) drawers = x:drawers
+  getDrawer _ drawers = drawers
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
 
 data MarkupText = Plain Text | Bold [MarkupText] | Italic [MarkupText] deriving (Show, Eq, Generic)
 
-newtype SectionBlock = SectionBlock (Either List Paragraph) deriving (Show, Eq, Generic, Semigroup)
 newtype Item = Item [MarkupText] deriving (Show, Eq, Generic, Semigroup, Monoid)
-
-data SectionBlock = List [Item] | Paragraph [MarkupText] | Drawer deriving (Show, Eq, Generic)
-
+data SectionBlock = List [Item] | Paragraph [MarkupText] | SectionDrawer Drawer deriving (Show, Eq, Generic)
 
 instance Aeson.ToJSON MarkupText
 instance Aeson.FromJSON MarkupText
-instance Aeson.ToJSON Paragraph
-instance Aeson.FromJSON Paragraph
 
-instance Aeson.ToJSON List
-instance Aeson.FromJSON List
 instance Aeson.ToJSON Item
 instance Aeson.FromJSON Item
 
