@@ -42,7 +42,6 @@ module Data.OrgMode.Types
 , Timestamp         (..)
 , YearMonthDay      (..)
 , SectionBlock      (..)
-, module Data.OrgMode.Types.SectionBlock
 , sectionDrawer
 ) where
 
@@ -95,7 +94,7 @@ data Section = Section
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionBlocks     :: [Either Drawer SectionBlock]  -- ^ Content of Section
+  , sectionBlocks     :: [SectionBlock]  -- ^ Content of Section
   } deriving (Show, Eq, Generic)
 
 sectionDrawer :: Section -> [Drawer]
@@ -104,6 +103,26 @@ sectionDrawer s = lefts (sectionBlocks s)
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
 
+data MarkupText = Plain Text | Bold [MarkupText] | Italic [MarkupText] deriving (Show, Eq, Generic)
+
+newtype SectionBlock = SectionBlock (Either List Paragraph) deriving (Show, Eq, Generic, Semigroup)
+newtype Item = Item [MarkupText] deriving (Show, Eq, Generic, Semigroup, Monoid)
+
+data SectionBlock = List [Item] | Paragraph [MarkupText] | Drawer deriving (Show, Eq, Generic)
+
+
+instance Aeson.ToJSON MarkupText
+instance Aeson.FromJSON MarkupText
+instance Aeson.ToJSON Paragraph
+instance Aeson.FromJSON Paragraph
+
+instance Aeson.ToJSON List
+instance Aeson.FromJSON List
+instance Aeson.ToJSON Item
+instance Aeson.FromJSON Item
+
+instance Aeson.ToJSON SectionBlock
+instance Aeson.FromJSON SectionBlock
 
 instance Aeson.ToJSON Properties
 instance Aeson.FromJSON Properties
