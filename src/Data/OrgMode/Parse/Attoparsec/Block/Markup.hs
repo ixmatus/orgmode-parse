@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.Paragraph.Markup
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Block.Markup
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -11,14 +11,14 @@
 
 {-# LANGUAGE RecordWildCards   #-}
 
-module Data.OrgMode.Parse.Attoparsec.SectionBlock.Markup
-( 
+module Data.OrgMode.Parse.Attoparsec.Block.Markup
+(
   parseMarkupContent,
   parsePlainText,
 )
 where
 
-import           Control.Applicative            
+import           Control.Applicative
 import           Data.Semigroup
 import           Data.Char                             (isSpace)
 import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip)
@@ -27,17 +27,20 @@ import           Data.Attoparsec.Text                  (Parser, takeWhile, choic
 import           Data.OrgMode.Types                    (MarkupText (..))
 import           Prelude                        hiding (takeWhile)
 
--- TODO: Support LaTeX
-data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText} 
+-- | I do not know it yet
+--
+--  TODO: Support LaTeX
+data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText}
 
+-- | A set of definition for markup keyword
 tokens :: [Token]
 tokens = [ Token '*' Bold, Token '_' Italic ]
 
--- For better efficiency suggested by Attoparsec, we will hard code the token filter
+-- | For better efficiency suggested by Attoparsec, we will hard code the token filter
 isNotToken :: Char -> Bool
 isNotToken c = c /= '*' && c /= '_'
 
--- Create a markup parser based on a token
+-- | Create a markup parser based on a token
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
 createTokenParser innerParser Token{..}= do
   _ <- char keyChar
@@ -48,14 +51,14 @@ createTokenParser innerParser Token{..}= do
      Left s -> fail s
      Right a -> return $ markup a
 
--- The fallback default if all markup parser fails
+-- | The fallback default if all markup parser fails
 parsePlainText :: Parser MarkupText
 parsePlainText = do
   c <- anyChar
   content <- takeWhile isNotToken
   return $ Plain $ refactorLineEnd $ cons c content
 
--- At the end-of-line, line-break and spaces are considered together as one-space in org and other markup content
+-- | At the end-of-line, line-break and spaces are considered together as one-space in org and other markup content
 refactorLineEnd :: Text -> Text
 refactorLineEnd str = fix content where
   textLines = case Text.split isEndOfLine str of
@@ -66,7 +69,7 @@ refactorLineEnd str = fix content where
            then snoc s ' '
            else s
 
--- Normalize to a concise Markup Array after serially running parsers.
+-- | Normalize to a concise Markup Array after serially running parsers.
 --  1. Concat the neighbour Plain Texts
 --  2. Remove empty Plain Text
 appendElement :: MarkupText -> [MarkupText] -> [MarkupText]
@@ -79,7 +82,7 @@ appendElement h t
   | head t == Plain Text.empty = h: tail t
   | otherwise = h:t
 
--- Parse the whole text content to an array of Markup Text.
+-- |Parse the whole text content to an array of Markup Text.
 -- This parser will not handle the block stop.  The block stop shall be already handled before passing text with this Parser
 parseMarkupContent :: Parser [MarkupText]
 parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput) where

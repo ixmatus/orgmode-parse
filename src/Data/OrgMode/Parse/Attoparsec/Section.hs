@@ -20,8 +20,9 @@ import           Data.Monoid                          ()
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Attoparsec.SectionBlock  (parseBlockAndDrawer)
-import           Data.OrgMode.Types                          
+import           Data.OrgMode.Parse.Attoparsec.Util          (skipEmptyLines)
+import           Data.OrgMode.Parse.Attoparsec.Block         (parseBlocks)
+import           Data.OrgMode.Types
 
 -- | Parse a heading section
 --
@@ -29,17 +30,12 @@ import           Data.OrgMode.Types
 -- a list of clock entries, code blocks (not yet implemented),
 -- plain lists (not yet implemented), and unstructured text.
 parseSection :: Attoparsec.Text.Parser Section
-parseSection =
-  Section
+parseSection = parseSection' <* skipEmptyLines where
+  parseSection' = Section
    <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
    <*> (Plns <$> parsePlannings)
    <*> many' parseClock
    <*> option mempty parseProperties
    <*> option mempty parseLogbook
-   <*> parseBlocks where 
-     parseBlocks :: Attoparsec.Text.Parser [Either Drawer SectionBlock]
-     parseBlocks = concat <$> many' parseBlock 
-     parseBlock = mergeContent <$> parseBlockAndDrawer parseDrawer
-     mergeContent :: ([SectionBlock], Maybe Drawer) -> [Either Drawer SectionBlock]
-     mergeContent (blocks, Nothing) = map Right blocks
-     mergeContent (blocks, Just d) = map Right blocks ++ [Left d]
+   <*> parseBlocks
+

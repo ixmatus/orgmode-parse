@@ -8,30 +8,29 @@ Stability   :  stable
 Attoparsec utilities.
 -}
 
-{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Data.OrgMode.Parse.Attoparsec.Util
 ( skipOnlySpace,
   nonHeadline,
   takeALine,
-  takeLinesTill,
-  isHeadLine,
-  takeContentBeforeBlockTill,
-  takeEmptyLine,
-  feedParserText,
-  isEmptyLine
+  isEmptyLine,
+  isHeadline,
+  parseLinesTill,
+  takeBlockBreak,
+  skipEmptyLines,
 )
+
 where
 
 import qualified Control.Monad
+import           Control.Arrow         ((&&&))
 import           Data.Semigroup
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, anyChar, endOfLine, notChar, isHorizontalSpace, atEnd, many', parseOnly)
+import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, notChar, isHorizontalSpace, atEnd, many', parseOnly)
 import           Data.Text             (Text, cons, snoc)
 import qualified Data.Text             as Text
-import           Data.Char             (isSpace)
 import           Data.Functor          (($>))
-import           Data.Maybe            (isNothing)
 
 -- | Skip whitespace characters, only!
 --
@@ -62,34 +61,16 @@ hasMoreInput = do
   x <- atEnd
   Control.Monad.when x $ fail "reach the end of input"
 
--- | Consume input lines until the incoming line meets the condition.
---
--- The line-wise version of @Attoparsec.Text.takeWHile@
-takeLinesTill :: (Text -> Bool) -> Parser Text
-takeLinesTill p = hasMoreInput *> many' takeEmptyLine *> takeText where
-  takeText = fst <$> Attoparsec.Text.match takePLines 
-  takePLines = takeALine >>= continueALine
-  continueALine content
-    | isEmptyLine content = return ()
-    | p content           = fail ""
-    | otherwise = takePLines <> return ()
-
--- | whether a text stands for a headline
---
--- 1. A headline must start with `*`
--- 2. If headline start with multiple `*`, like `"**"`, then it must be a headline
--- 3. Lines like `"*text*"` is considered as a normal markup rather than a headline
-isHeadLine :: Text -> Bool
-isHeadLine content
-  | Text.null content = False
-  | Text.head content /= '*' = False
-  | content == Text.pack "*" = True
-  | Text.head (Text.tail content) == '*' = True
-  | otherwise = isNothing (Text.find (=='*') (Text.tail content))
-
--- | Whether a text consist only spaces
-isEmptyLine :: Text -> Bool
-isEmptyLine  = isNothing . Text.find (not . isSpace)
+-- | Is the parser parse-able at the current position
+resetPosition :: forall a. Parser a -> Parser Bool
+resetPosition c = backward where
+  c' = (Right <$> c) <> (Left <$> return ())
+  p = do
+    r <- c'
+    case r of
+      Right _ -> fail ""
+      Left _ -> return False
+  backward = p <> return True
 
 -- | Matches only if the incoming text line consists nothing or only spaces
 --
@@ -97,19 +78,30 @@ isEmptyLine  = isNothing . Text.find (not . isSpace)
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
--- | Save the content for future passing until reaching to the start of a new block,
--- and try to parse the new block with a given parser.
---
-takeContentBeforeBlockTill :: (Text -> Bool) -> Parser s -> Parser (Text, Maybe s)
-takeContentBeforeBlockTill p parseBlock = many' takeEmptyLine *> hasMoreInput *> scanBlock where
-  scanBlock = ((Text.empty, ) . Just  <$> parseBlock) <> (takeALine >>= appendALine)
-  -- Empty line is always an breaker
-  appendALine content
-    | isEmptyLine content = return (content, Nothing)
-    | p content = fail ""
-    | otherwise = do
-      (restContent, block) <- scanBlock <> return (Text.empty, Nothing)
-      return (Text.append content restContent, block)
+-- | Whether a text consist only spaces
+isEmptyLine :: Parser Bool
+isEmptyLine  = resetPosition takeEmptyLine
+
+-- | Is the current line is a Headline
+isHeadline :: Parser Bool
+isHeadline = resetPosition headline
+
+-- | Succeed if it is a headline
+headline :: Parser ()
+headline = hasHeadlinePrefix *> atLeastOneSpace where
+  atLeastOneSpace :: Parser ()
+  atLeastOneSpace = do
+    z <- anyChar
+    if isHorizontalSpace z
+      then return ()
+      else fail "Requiring a space after * for headline"
+  hasHeadlinePrefix = many1 (char '*')
+
+-- | Is the current line a @SectionBlock@ break.  A Line is a break
+takeBlockBreak ::  Parser ()
+takeBlockBreak = breakByEmptyLine <> breakByHeadline where
+  breakByEmptyLine = takeEmptyLine $> ()
+  breakByHeadline = headline $> ()
 
 -- | Transform a text content as block to work with current parser state
 feedParserText :: Parser s -> Text -> Parser s
@@ -117,3 +109,30 @@ feedParserText  p t =
   case parseOnly p t of
     Left s -> fail s
     Right s -> return s
+
+-- | Save the content and parse as the default Plain Text or default Section Paragraph
+-- and try to parse the new block if the new block exists under the same node
+parseLinesTill ::  forall a b. Parser a -> Parser (Either b a) -> Parser [a]
+parseLinesTill common end = skipEmptyLines *> hasMoreInput *> scanTill where
+  stop :: Parser (Either () a)
+  stop = do
+    z <- (Right <$> end) <> (Left <$> return ())
+    case z of
+      Left _ -> return (Left ())
+      Right (Left _) -> fail ""
+      Right (Right x) -> return (Right x)
+  takeContent ::  Parser (Text, [a])
+  takeContent = tContent <> return (Text.empty, [])
+  tContent ::  Parser (Text, [a])
+  tContent = do
+    z <- stop
+    case z of
+      Left _ -> (\l -> (Text.append l . fst) &&& snd) <$> takeALine <*> takeContent
+      Right a -> return (Text.empty, [a])
+  scanTill ::  Parser [a]
+  scanTill = do
+    (content, blocks) <- takeContent
+    (: blocks) <$> feedParserText common content
+
+skipEmptyLines :: Parser ()
+skipEmptyLines = many' takeEmptyLine $> ()
