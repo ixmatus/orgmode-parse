@@ -1,3 +1,6 @@
+0.2.2
+- Support building with GHC 8.4.3 (thank you @zhujinxuan!)
+
 0.2.1
 - Fix property drawer parsing of :END: delimiter, fixes #35
 
