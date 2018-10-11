@@ -15,6 +15,7 @@ import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Types
 import           Util
 
+
 parserSmallDocumentTests :: TestTree
 parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   [ testCase "Parse Empty Document" $
@@ -43,14 +44,14 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
     testDocS s r = expectParse (parseDocument kw) s (Right r)
 
     testDocFile  = do
-      doc <- TextIO.readFile "test/test-document.org"
+      doc <- TextIO.readFile "test/docs/test-document.org"
 
       let testDoc = parseOnly (parseDocument kw) doc
 
       assertBool "Expected to parse document" (parseSucceeded testDoc)
 
     testSubtreeListItemDocFile  = do
-      doc <- TextIO.readFile "test/subtree-list-items.org"
+      doc <- TextIO.readFile "test/docs/subtree-list-items.org"
 
       -- let subtreeListItemsDoc = parseOnly (parseDocument []) doc
 

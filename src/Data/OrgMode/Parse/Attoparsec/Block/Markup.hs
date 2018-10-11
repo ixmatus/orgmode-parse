@@ -10,6 +10,7 @@
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Block.Markup
 (
@@ -38,12 +39,22 @@ tokens = [ Token '*' Bold, Token '_' Italic ]
 
 -- | For better efficiency suggested by Attoparsec, we will hard code the token filter
 isNotToken :: Char -> Bool
-isNotToken c = c /= '*' && c /= '_'
+isNotToken c = c /= '*' && c /= '_' && c/= '$'
+
+-- | A Naive parser for LaTeX
+parseLaTeX :: Parser MarkupText
+parseLaTeX = char '$' *> (LaTeX <$> parseL) where
+  parseL = do
+    content <- takeWhile (/= '$')
+    if Text.last content /= '\\'
+      then return content
+      else  append content <$> parseL
 
 -- | Create a markup parser based on a token
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
 createTokenParser innerParser Token{..}= do
   _ <- char keyChar
+  _ <- skipSpace
   content <- takeWhile (/= keyChar)
   _ <- char keyChar
   -- We need another parser passed in to parse the markup inside the markup
@@ -58,7 +69,11 @@ parsePlainText = do
   content <- takeWhile isNotToken
   return $ Plain $ refactorLineEnd $ cons c content
 
--- | At the end-of-line, line-break and spaces are considered together as one-space in org and other markup content
+-- | Take the line break as common space
+--
+-- 1. spaces before "\n" shall be omitted
+-- 2. spaces after "\n" shall be omitted
+-- 3. "\n" shall be considered as simple " "
 refactorLineEnd :: Text -> Text
 refactorLineEnd str = fix content where
   textLines = case Text.split isEndOfLine str of
@@ -70,9 +85,15 @@ refactorLineEnd str = fix content where
            else s
 
 -- | Normalize to a concise Markup Array after serially running parsers.
---  1. Concat the neighbour Plain Texts
+--
+--  1. Concat the Neighbour Plain Texts
 --  2. Remove empty Plain Text
+--  3. Remove the Plain spaces at the end
 appendElement :: MarkupText -> [MarkupText] -> [MarkupText]
+appendElement (Plain t) []
+  | strip t == "" = []
+  | otherwise = [Plain (strip t)]
+
 appendElement a [] = [a]
 appendElement (Plain text1) (Plain text2: xs)
  | Text.null text1 && Text.null text2 = xs
@@ -87,4 +108,4 @@ appendElement h t
 parseMarkupContent :: Parser [MarkupText]
 parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput) where
   parseMarkup :: Parser MarkupText
-  parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parsePlainText
+  parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parseLaTeX <> parsePlainText
