@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module SectionBlock.Paragraph (
+module Block.Paragraph (
   parserParagraphs
                            )
   where
@@ -10,24 +10,9 @@ import           Data.OrgMode.Types
 import           Data.Text                                     (Text, pack)
 import           Data.OrgMode.Parse.Attoparsec.Block.Paragraph (parseParagraph)
 import           Util
+import           Util.Builder
 
-class BlockTest a where
-  toP :: a -> Block
-  mark :: ([MarkupText] -> MarkupText) -> a -> Block
-
-instance BlockTest Text where
-  toP =  toP . Plain
-  mark m = mark m . Plain
-
-instance BlockTest MarkupText where
-  toP = Paragraph . (:[])
-  mark m = Paragraph . (:[]) . m . (:[])
-
-instance BlockTest Block where
-  toP = id
-  mark _ = id
-
-testDocS :: (BlockTest t) => Text -> t -> Assertion
+testDocS :: (BlockBuilder t) => Text -> t -> Assertion
 testDocS s expected = expectParse parseParagraph s (Right (toP expected))
 
 parserParagraphs :: TestTree

@@ -1,14 +1,14 @@
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module SectionBlock.List where
+module Block.List where
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Data.OrgMode.Types                       (Block (..), MarkupText (..), Item (..))
+import           Data.OrgMode.Types                       (Block (..))
 import           Data.OrgMode.Parse.Attoparsec.Block.List (parseList)
 import qualified Data.Text                                as Text
-import           Data.Text                                (Text, pack)
+import           Data.Text                                (pack)
 import           Util
+import           Util.Builder
 
 parserMarkupTests :: TestTree
 parserMarkupTests = testGroup "Attoparsec orgmode Paragraph"
@@ -22,24 +22,3 @@ parserMarkupTests = testGroup "Attoparsec orgmode Paragraph"
   where
     testDocS s  = testDocS' (Text.unlines s)
     testDocS' s expected = expectParse parseList s (Right expected)
-
-class ListTest m where
-  toL :: ([Item] -> Block) -> m -> Block
-
-instance ListTest Text where
-  toL l  = toL l . Plain
-
-instance ListTest MarkupText where
-  toL l = l . (:[]) . Item . (:[]) . Paragraph . (:[]) 
-
-instance ListTest Block where
-  toL l x = case x of
-    UnorderedList _ -> x
-    OrderedList _ -> x
-    _ -> l [Item [x]]
-
-class ItemTest m where
-  toI :: m -> Item
-
-instance ItemTest Text where
-  toI = Item . (:[]) . Paragraph . (:[]) . Plain

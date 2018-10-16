@@ -116,8 +116,8 @@ spaces = flip Text.replicate " "
 emptySection :: Section
 emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty
 
-plainParagraphs :: Text -> [Either Drawer SectionBlock]
-plainParagraphs str = [Right (SectionBlock $ Right $ Paragraph [Plain str])]
+plainParagraphs :: Text -> [Block]
+plainParagraphs str = [Paragraph [Plain str]]
 
 goldenSubtreeListItemDoc :: Either String Document
 goldenSubtreeListItemDoc = Right (Document 
@@ -168,9 +168,9 @@ goldenSubtreeListItemDoc = Right (Document
           sectionClocks = [],
           sectionProperties = Properties {unProperties = fromList [("ONE","two")]},
           sectionLogbook = Logbook {unLogbook = []},
-          sectionBlocks = [Right $ SectionBlock $ Left $ List [
-            Item [Plain "Item1"],
-            Item [Plain "Item2"]
+          sectionBlocks = [UnorderedList [
+              Item [Plain "Item1"],
+              Item [Plain "Item2"]
             ]
           ]
         },
