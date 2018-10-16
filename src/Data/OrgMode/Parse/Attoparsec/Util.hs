@@ -76,7 +76,7 @@ resetPosition c = backward where
 --
 -- A empty line always ends a SectionBlock
 takeEmptyLine :: Parser Text
-takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
+takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* (endOfLine)
 
 -- | Whether a text consist only spaces
 isEmptyLine :: Parser Bool
@@ -101,7 +101,7 @@ headline = hasHeadlinePrefix *> atLeastOneSpace where
 takeBlockBreak ::  Parser ()
 takeBlockBreak = breakByEmptyLine <> breakByHeadline where
   breakByEmptyLine = takeEmptyLine $> ()
-  breakByHeadline = headline $> ()
+  breakByHeadline = headline
 
 -- | Transform a text content as block to work with current parser state
 feedParserText :: Parser s -> Text -> Parser s
@@ -131,8 +131,10 @@ parseLinesTill common end = skipEmptyLines *> hasMoreInput *> scanTill where
       Right a -> return (Text.empty, [a])
   scanTill ::  Parser [a]
   scanTill = do
-    (content, blocks) <- takeContent
-    (: blocks) <$> feedParserText common content
+    (content, blocks)<- takeContent
+    if Text.null content
+      then fail ""
+      else (: blocks) <$> feedParserText common content
 
 skipEmptyLines :: Parser ()
 skipEmptyLines = many' takeEmptyLine $> ()
