@@ -3,17 +3,18 @@
 module Document where
 
 import           Data.Attoparsec.Text
-import           Data.Text
+import           Data.Text                        hiding  (map)
 import qualified Data.Text                              as Text
 import qualified Data.Text.IO                           as TextIO
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Data.HashMap.Strict
+import           Data.HashMap.Strict              hiding   (map)
 
 import           Data.OrgMode.Parse.Attoparsec.Document
 import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Types
 import           Util
+import           Util.Builder
 
 
 parserSmallDocumentTests :: TestTree
@@ -168,11 +169,7 @@ goldenSubtreeListItemDoc = Right (Document
           sectionClocks = [],
           sectionProperties = Properties {unProperties = fromList [("ONE","two")]},
           sectionLogbook = Logbook {unLogbook = []},
-          sectionBlocks = [UnorderedList [
-              Item [Plain "Item1"],
-              Item [Plain "Item2"]
-            ]
-          ]
+          sectionBlocks = [UnorderedList $ map toI [pack "Item1",  pack "Item2"]]
         },
         subHeadlines = []
       }]

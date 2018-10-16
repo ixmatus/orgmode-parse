@@ -23,7 +23,7 @@ module Data.OrgMode.Types
 , DelayType         (..)
 , Depth             (..)
 , Document          (..)
-, Drawer            (..)
+, Drawer
 , Duration
 , Headline          (..)
 , Logbook           (..)

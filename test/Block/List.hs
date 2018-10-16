@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Block.List where
+module Block.List (parseLists) where
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.OrgMode.Types                       (Block (..))
@@ -10,8 +10,8 @@ import           Data.Text                                (pack)
 import           Util
 import           Util.Builder
 
-parserMarkupTests :: TestTree
-parserMarkupTests = testGroup "Attoparsec orgmode Paragraph"
+parseLists :: TestTree
+parseLists = testGroup "Attoparsec orgmode Paragraph"
   [ testCase "Parses a Simple Item" $
       testDocS ["  * text "]  $ toL UnorderedList (pack "text"),
     testCase "Parses a items with line break" $
