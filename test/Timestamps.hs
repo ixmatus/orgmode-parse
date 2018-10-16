@@ -25,7 +25,7 @@ parserPlanningTests = testGroup "Attoparsec Planning"
     , testCase "Parse Sample Schedule"   $ testPlanningS sExampleStrA sExampleResA
     ]
   where
-    testPlanning     = testParser parsePlannings 
+    testPlanning     = testParser parsePlannings
     testPlanningS t r = expectParse parsePlannings t (Right r)
 
     (sExampleStrA, sExampleResA) =

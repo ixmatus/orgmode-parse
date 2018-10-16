@@ -7,32 +7,49 @@ module SectionBlock.Paragraph (
 import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.OrgMode.Types
+import           Data.Text                                     (Text, pack)
 import           Data.OrgMode.Parse.Attoparsec.Block.Paragraph (parseParagraph)
 import           Util
 
+class BlockTest a where
+  toP :: a -> Block
+  mark :: ([MarkupText] -> MarkupText) -> a -> Block
+
+instance BlockTest Text where
+  toP =  toP . Plain
+  mark m = mark m . Plain
+
+instance BlockTest MarkupText where
+  toP = Paragraph . (:[])
+  mark m = Paragraph . (:[]) . m . (:[])
+
+instance BlockTest Block where
+  toP = id
+  mark _ = id
+
+testDocS :: (BlockTest t) => Text -> t -> Assertion
+testDocS s expected = expectParse parseParagraph s (Right (toP expected))
 
 parserParagraphs :: TestTree
 parserParagraphs = testGroup "Attoparsec orgmode Paragraph"
   [ testCase "Parses a Single Markup" $
-      testDocS "* text *"  [Bold [Plain  " text "]],
+      testDocS "* text *"  (mark Bold (pack " text ")),
     testCase "Parses a Plain Text (with line break)" $
-      testDocS " text \n"    [Plain " text"],
+      testDocS " text \n"  (pack " text"),
     testCase "Parses a Plain Text (without line break)" $
-      testDocS " text "    [Plain " text"],
+      testDocS " text "    (pack " text"),
     testCase "Parses a broken markup with token at start" $
-      testDocS "_ text"   [Plain "_ text"],
+      testDocS "_ text"   (pack "_ text"),
     testCase "Parses a broken markup Paragraph with token at end" $
-      testDocS " text *"   [Plain " text *"],
+      testDocS " text *"  (pack " text *"),
     testCase "Parses a broken markup Paragraph with token in middle" $
-      testDocS " te*xt "   [Plain   " te*xt"],
+      testDocS " te*xt "   (pack " te*xt"),
     testCase "Parses Nested Markup" $
-      testDocS "_* text *_"  [Italic [Bold [Plain  " text "]]],
+      testDocS "_* text *_"  $ mark (Italic . (:[]) . Bold) (pack " text "),
     testCase "Paragraph Parser shall not try to parse markup across lines" $
-      testDocS "_* l1p1 \nl2p2 *_"  [Italic [Bold [Plain  " l1p1 l2p2 "]]],
+      testDocS "_* l1p1 \nl2p2 *_"  $ mark (Italic . (:[]) . Bold) (pack " l1p1 l2p2 "),
     testCase "Paragraph Parser shall ignore the space before endOfLine (in plain)" $
-      testDocS " l1p1 \nl2p2 "  [Plain  " l1p1 l2p2"],
+      testDocS " l1p1 \nl2p2 "  (pack " l1p1 l2p2"),
     testCase "Paragraph Parser shall stop at the empty line" $
-      testDocS "l1p1 \n\nl2p2 "  [Plain  "l1p1"]
+      testDocS "l1p1 \n\nl2p2 "  (pack "l1p1")
   ]
-    where
-    testDocS s expected = expectParse parseParagraph s (Right (Paragraph expected))
