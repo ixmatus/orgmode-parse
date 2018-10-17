@@ -26,19 +26,21 @@ import qualified Data.Text                      as     Text
 import           Data.Attoparsec.Text                  (Parser, many1', isHorizontalSpace, char, digit, anyChar)
 import qualified Data.Attoparsec.Text           as     Attoparsec.Text
 import           Data.OrgMode.Types                    (Item (..), Block (..))
-import           Data.OrgMode.Parse.Attoparsec.Util    (parseLinesTill)
+import           Data.OrgMode.Parse.Attoparsec.Util    (parseLinesTill, parseLinesContextuallyTill, takeBlockBreak)
 import           Data.OrgMode.Parse.Attoparsec.Block.Paragraph    (parseParagraph)
 import           Data.Maybe                            (isJust)
 
 type TokenParser = Parser ([Item] -> Block)
 
-breakout :: forall b. Int -> Parser (Either () b)
-breakout n = do
-  x <-  Attoparsec.Text.takeWhile isHorizontalSpace
-  -- If no enough space in the new line, then it shall be another item or a new list
-  if Text.compareLength x (n + 1) == LT
-    then return $ Left ()
-    else fail ""
+breakout :: forall b. Int -> Int -> (Int, Parser (Either () b))
+breakout n x = (1, result x) where
+  result 0 = fail ""
+  result _= do
+    z <-  Attoparsec.Text.takeWhile isHorizontalSpace
+    -- If no enough space in the new line, then it shall be another item or a new list
+    if Text.compareLength z n  == LT
+      then return $ Left ()
+      else fail ""
 
 takeHorizontalSpace :: Parser ()
 takeHorizontalSpace = takeHorizontalSpaces 1
@@ -69,10 +71,9 @@ parseItemTermVia p = result where
   parseItem ::  Int -> Parser Item
   parseItem n = takeHorizontalSpaces n *> p *> takeHorizontalSpace *> parseItemCore n
   parseItemCore :: Int -> Parser Item
-  parseItemCore n =  Item . concat <$> parseLinesTill parseBlocks (breakout n)
+  parseItemCore n =  Item . concat <$> parseLinesContextuallyTill parseBlocks (breakout (n+1)) 0
   parseBlocks :: Parser [Block]
-  parseBlocks = concat <$> Attoparsec.Text.many' (parseLinesTill parseParagraph (Right <$> parseList))
-
+  parseBlocks = concat <$> Attoparsec.Text.many' (parseLinesTill parseParagraph (Attoparsec.Text.eitherP takeBlockBreak parseList))
 
 parseItemTerm :: Parser ItemTerm
 parseItemTerm = Attoparsec.Text.choice (map parseItemTermVia parseItemTokens)
