@@ -59,7 +59,7 @@ headline = hasHeadlinePrefix *> atLeastOneSpace where
 
 -- | Is the current line a @SectionBlock@ break.  A Line is a break
 takeBlockBreak ::  Parser ()
-takeBlockBreak = Attoparsec.Text.endOfInput <> breakByEmptyLine <> breakByHeadline where
+takeBlockBreak = breakByEmptyLine <> breakByHeadline where
   breakByEmptyLine = takeEmptyLine $> ()
   breakByHeadline = headline
 
@@ -84,7 +84,7 @@ class (Foldable m) => ParseLinesTill m where
                   else return . Right . toList $ x
 
   takeContent :: forall a b. Recursive m b a -> b -> Parser (Text, [a])
-  takeContent next c = tContent <> return (Text.empty, []) where
+  takeContent next c = (Attoparsec.Text.endOfInput $> (Text.empty, [])) <> tContent <> return (Text.empty, []) where
     (c', p) = next c
     tContent = do
       z <- stop p
