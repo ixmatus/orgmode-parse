@@ -75,7 +75,7 @@ type Recursive m b a = b -> (b, Parser (m a))
 class (Foldable m) => ParseLinesTill m where
   -- | Fail and reset position when a breaker is found
   stop :: forall a. Parser (m a) -> Parser (Either () [a])
-  stop p' = do
+  stop p' = hasMoreInput *> do
     z <- (Right <$> p') <> (return . Left) ()
     case z of
       Left _ -> return (Left ())
@@ -84,7 +84,7 @@ class (Foldable m) => ParseLinesTill m where
                   else return . Right . toList $ x
 
   takeContent :: forall a b. Recursive m b a -> b -> Parser (Text, [a])
-  takeContent next c = (Attoparsec.Text.endOfInput $> (Text.empty, [])) <> tContent <> return (Text.empty, []) where
+  takeContent next c = tContent <> return (Text.empty, []) where
     (c', p) = next c
     tContent = do
       z <- stop p
