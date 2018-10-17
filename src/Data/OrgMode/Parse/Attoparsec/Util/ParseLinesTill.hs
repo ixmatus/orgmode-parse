@@ -59,7 +59,7 @@ headline = hasHeadlinePrefix *> atLeastOneSpace where
 
 -- | Is the current line a @SectionBlock@ break.  A Line is a break
 takeBlockBreak ::  Parser ()
-takeBlockBreak = breakByEmptyLine <> breakByHeadline where
+takeBlockBreak = Attoparsec.Text.endOfInput <> breakByEmptyLine <> breakByHeadline where
   breakByEmptyLine = takeEmptyLine $> ()
   breakByHeadline = headline
 
