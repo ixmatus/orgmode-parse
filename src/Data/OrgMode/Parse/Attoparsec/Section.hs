@@ -30,7 +30,7 @@ import           Data.OrgMode.Types
 -- a list of clock entries, code blocks (not yet implemented),
 -- plain lists (not yet implemented), and unstructured text.
 parseSection :: Attoparsec.Text.Parser Section
-parseSection = parseSection' <* skipEmptyLines where
+parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines where
   parseSection' = Section
    <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
    <*> (Plns <$> parsePlannings)

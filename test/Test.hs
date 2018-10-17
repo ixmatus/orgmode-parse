@@ -20,8 +20,8 @@ tests = testGroup
           [ parserHeadlineTests
           , parserDrawerTests
           , parserTimestampTests
-          , parserSmallDocumentTests
-          , parserWeekdayTests
           , parserParagraphs
           , parseLists
+          , parserWeekdayTests
+          , parserSmallDocumentTests
           ]

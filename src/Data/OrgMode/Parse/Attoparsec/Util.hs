@@ -27,7 +27,7 @@ import qualified Control.Monad
 import           Control.Arrow         ((&&&))
 import           Data.Semigroup
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, notChar, isHorizontalSpace, atEnd, many', parseOnly)
+import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, notChar, isHorizontalSpace, atEnd, parseOnly)
 import           Data.Text             (Text, cons, snoc)
 import qualified Data.Text             as Text
 import           Data.Functor          (($>))
@@ -76,7 +76,7 @@ resetPosition c = backward where
 --
 -- A empty line always ends a SectionBlock
 takeEmptyLine :: Parser Text
-takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* (endOfLine)
+takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
 -- | Whether a text consist only spaces
 isEmptyLine :: Parser Bool
@@ -113,7 +113,7 @@ feedParserText  p t =
 -- | Save the content and parse as the default Plain Text or default Section Paragraph
 -- and try to parse the new block if the new block exists under the same node
 parseLinesTill ::  forall a b. Parser a -> Parser (Either b a) -> Parser [a]
-parseLinesTill common end = skipEmptyLines *> hasMoreInput *> scanTill where
+parseLinesTill common end = skipEmptyLines *> hasMoreInput *> scanTill <* skipEmptyLines where
   stop :: Parser (Either () a)
   stop = do
     z <- (Right <$> end) <> (Left <$> return ())
@@ -132,9 +132,9 @@ parseLinesTill common end = skipEmptyLines *> hasMoreInput *> scanTill where
   scanTill ::  Parser [a]
   scanTill = do
     (content, blocks)<- takeContent
-    if Text.null content
+    if Text.null content && null blocks 
       then fail ""
       else (: blocks) <$> feedParserText common content
 
 skipEmptyLines :: Parser ()
-skipEmptyLines = many' takeEmptyLine $> ()
+skipEmptyLines = Attoparsec.Text.many' takeEmptyLine $> ()

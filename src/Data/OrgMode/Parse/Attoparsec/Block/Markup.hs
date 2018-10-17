@@ -22,7 +22,7 @@ where
 import           Control.Applicative
 import           Data.Semigroup
 import           Data.Char                             (isSpace)
-import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip)
+import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip, stripEnd)
 import qualified Data.Text                      as     Text
 import           Data.Attoparsec.Text                  (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, skipSpace)
 import           Data.OrgMode.Types                    (MarkupText (..))
@@ -53,8 +53,8 @@ parseLaTeX = char '$' *> (LaTeX <$> parseL) where
 -- | Create a markup parser based on a token
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
 createTokenParser innerParser Token{..}= do
-  _ <- char keyChar
-  _ <- skipSpace
+  -- Spaces just after the spaces
+  _ <- char keyChar <* skipSpace
   content <- takeWhile (/= keyChar)
   _ <- char keyChar
   -- We need another parser passed in to parse the markup inside the markup
@@ -91,8 +91,9 @@ refactorLineEnd str = fix content where
 --  3. Remove the Plain spaces at the end
 appendElement :: MarkupText -> [MarkupText] -> [MarkupText]
 appendElement (Plain t) []
+  -- Remove the spaces by the end of paragraph or of markup
   | strip t == "" = []
-  | otherwise = [Plain (strip t)]
+  | otherwise = [Plain (stripEnd t)]
 
 appendElement a [] = [a]
 appendElement (Plain text1) (Plain text2: xs)

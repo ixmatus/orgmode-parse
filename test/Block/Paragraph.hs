@@ -18,7 +18,7 @@ testDocS s expected = expectParse parseParagraph s (Right (toP expected))
 parserParagraphs :: TestTree
 parserParagraphs = testGroup "Attoparsec orgmode Paragraph"
   [ testCase "Parses a Single Markup" $
-      testDocS "* text *"  (mark Bold (pack " text ")),
+      testDocS "* text *"  (mark Bold (pack "text")),
     testCase "Parses a Plain Text (with line break)" $
       testDocS " text \n"  (pack " text"),
     testCase "Parses a Plain Text (without line break)" $
@@ -30,11 +30,9 @@ parserParagraphs = testGroup "Attoparsec orgmode Paragraph"
     testCase "Parses a broken markup Paragraph with token in middle" $
       testDocS " te*xt "   (pack " te*xt"),
     testCase "Parses Nested Markup" $
-      testDocS "_* text *_"  $ mark (Italic . (:[]) . Bold) (pack " text "),
+      testDocS "_* text *_"  $ mark (Italic . (:[]) . Bold) (pack "text"),
     testCase "Paragraph Parser shall not try to parse markup across lines" $
-      testDocS "_* l1p1 \nl2p2 *_"  $ mark (Italic . (:[]) . Bold) (pack " l1p1 l2p2 "),
+      testDocS "_* l1p1 \nl2p2 *_"  $ mark (Italic . (:[]) . Bold) (pack "l1p1 l2p2"),
     testCase "Paragraph Parser shall ignore the space before endOfLine (in plain)" $
-      testDocS " l1p1 \nl2p2 "  (pack " l1p1 l2p2"),
-    testCase "Paragraph Parser shall stop at the empty line" $
-      testDocS "l1p1 \n\nl2p2 "  (pack "l1p1")
+      testDocS " l1p1 \nl2p2 "  (pack " l1p1 l2p2")
   ]
