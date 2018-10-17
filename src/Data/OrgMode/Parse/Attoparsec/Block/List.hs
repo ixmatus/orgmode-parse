@@ -19,6 +19,7 @@ module Data.OrgMode.Parse.Attoparsec.Block.List
 )
 where
 
+import           Control.Monad                         (when)
 import           Data.Functor
 import           Data.Semigroup
 import qualified Data.Text                      as     Text
@@ -27,27 +28,24 @@ import qualified Data.Attoparsec.Text           as     Attoparsec.Text
 import           Data.OrgMode.Types                    (Item (..), Block (..))
 import           Data.OrgMode.Parse.Attoparsec.Util    (parseLinesTill)
 import           Data.OrgMode.Parse.Attoparsec.Block.Paragraph    (parseParagraph)
-
+import           Data.Maybe                            (isJust)
 
 type TokenParser = Parser ([Item] -> Block)
 
 breakout :: forall b. Int -> Parser (Either () b)
 breakout n = do
   x <-  Attoparsec.Text.takeWhile isHorizontalSpace
-  if Text.compareLength x n == LT
-    then fail ""
-    else return $ Left ()
-
+  -- If no enough space in the new line, then it shall be another item or a new list
+  if Text.compareLength x (n + 1) == LT
+    then return $ Left ()
+    else fail ""
 
 takeHorizontalSpace :: Parser ()
-takeHorizontalSpace = do
-  x <- isHorizontalSpace <$> anyChar
-  if x
-    then return ()
-    else fail ""
+takeHorizontalSpace = takeHorizontalSpaces 1
 takeHorizontalSpaces :: Int -> Parser ()
-takeHorizontalSpaces 0 = return ()
-takeHorizontalSpaces n = takeHorizontalSpace *> takeHorizontalSpaces (n - 1)
+takeHorizontalSpaces n = do
+  t <- Attoparsec.Text.take n
+  when (isJust (Text.find (not . isHorizontalSpace) t)) $ fail ""
 
 parseItemTokens :: [TokenParser]
 parseItemTokens = ordered ++ unordered where
