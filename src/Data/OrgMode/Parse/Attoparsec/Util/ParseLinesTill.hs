@@ -46,8 +46,6 @@ hasMoreInput = do
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
-
-
 -- | Succeed if it is a headline
 headline :: Parser ()
 headline = hasHeadlinePrefix *> atLeastOneSpace where
