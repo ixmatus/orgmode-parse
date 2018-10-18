@@ -73,8 +73,8 @@ sampleAText = Text.concat [sampleParagraph,"* Test1", spaces 20,":Hi there:\n"
 sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
-               [emptyHeadline {title="Test1", tags=["Hi there"]}
-               ,emptyHeadline {section=emptySection{sectionBlocks = plainParagraphs " *"}}
+               -- Headline shall have space after *
+               [emptyHeadline {title="Test1", tags=["Hi there"], section = emptySection {sectionBlocks= [toP (Bold [])]}}
                ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
