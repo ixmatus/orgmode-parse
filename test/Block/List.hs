@@ -23,7 +23,7 @@ parserLists = testGroup "Attoparsec orgmode Paragraph"
     testCase "Parses multi items with child list" $
       testDocS ["  * item1 ", "    * child1", "  * item2 "]  $ UnorderedList 
           [
-            Item [toP (pack "item1"), UnorderedList $ [toI (pack "child1")]],
+            Item [toP (pack "item1"), UnorderedList [toI (pack "child1")]],
             toI (pack "item2")
           ]
   ]

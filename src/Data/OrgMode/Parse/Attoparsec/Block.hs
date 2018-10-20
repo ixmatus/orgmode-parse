@@ -26,7 +26,7 @@ import           Data.OrgMode.Parse.Attoparsec.Block.List      (parseList)
 import           Data.OrgMode.Parse.Attoparsec.Drawer                 (parseDrawer)
 
 
--- | Parse the content until reaching a drawer or a block end;  Try to parse the upcoming drawer
+-- | Parse the content until reaching a drawer, a list, or a block end.  And include the parsed drawer.
 parseBlocks :: Parser [Block]
 parseBlocks = result  where
   result = concat <$> many' p
