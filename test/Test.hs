@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-
 module Main where
 
 import           Document
@@ -10,6 +7,7 @@ import           Test.Tasty
 import           Timestamps
 import           Block.Paragraph
 import           Block.List
+import           Block.Blocks
 
 main :: IO ()
 main = defaultMain tests
@@ -21,7 +19,8 @@ tests = testGroup
           , parserDrawerTests
           , parserTimestampTests
           , parserParagraphs
-          , parseLists
+          , parserLists
+          , parserBlocks
           , parserWeekdayTests
           , parserSmallDocumentTests
           ]

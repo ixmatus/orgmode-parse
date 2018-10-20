@@ -31,6 +31,6 @@ parseBlocks :: Parser [Block]
 parseBlocks = result  where
   result = concat <$> many' p
   p :: Parser [Block]
-  p = parseLinesTill parseCommonBlocks (eitherP takeBlockBreak parseDrawer)
-  parseCommonBlocks :: Parser Block
-  parseCommonBlocks = parseList <> parseParagraph
+  p = do
+    blocks <- parseLinesTill parseParagraph (eitherP takeBlockBreak (parseDrawer <> parseList))
+    return $ filter (/= Paragraph []) blocks
