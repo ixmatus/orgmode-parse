@@ -6,7 +6,7 @@
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
 --
--- Parsing combinators for org-mode markups and paragraphs.
+-- Parsing combinators for org-mode markup and paragraphs.
 ----------------------------------------------------------------------------
 
 {-# LANGUAGE RecordWildCards   #-}
@@ -19,8 +19,7 @@ module Data.OrgMode.Parse.Attoparsec.Block.Markup
 )
 where
 
-import           Control.Applicative
-import           Data.Semigroup
+import           Data.Semigroup                        ((<>))
 import           Data.Char                             (isSpace)
 import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip, stripEnd)
 import qualified Data.Text                      as     Text
@@ -28,14 +27,11 @@ import           Data.Attoparsec.Text                  (Parser, takeWhile, choic
 import           Data.OrgMode.Types                    (MarkupText (..))
 import           Prelude                        hiding (takeWhile)
 
--- | I do not know it yet
---
---  TODO: Support LaTeX
 data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText}
 
--- | A set of definition for markup keyword
+-- | A set of token definitions for markup keywords
 tokens :: [Token]
-tokens = [ Token '*' Bold, Token '_' Italic ]
+tokens = [ Token '*' Bold, Token '_' UnderLine, Token '/' Italic]
 
 -- | For better efficiency suggested by Attoparsec, we will hard code the token filter
 isNotToken :: Char -> Bool
@@ -43,7 +39,8 @@ isNotToken c = c /= '*' && c /= '_' && c/= '$'
 
 -- | A Naive parser for LaTeX
 parseLaTeX :: Parser MarkupText
-parseLaTeX = char '$' *> (LaTeX <$> parseL) where
+parseLaTeX = char '$' *> (LaTeX <$> parseL)
+  where
   parseL = do
     content <- takeWhile (/= '$')
     if Text.last content /= '\\'
@@ -66,16 +63,18 @@ createTokenParser innerParser Token{..}= do
 parsePlainText :: Parser MarkupText
 parsePlainText = do
   c <- anyChar
-  content <- takeWhile isNotToken
-  return $ Plain $ refactorLineEnd $ cons c content
+  -- Append the first char and then refactor all spaces at line end and line beginning
+  content <- adaptSpace . cons c <$> takeWhile isNotToken
+  return $ Plain content
 
 -- | Take the line break as common space
 --
 -- 1. spaces before "\n" shall be omitted
 -- 2. spaces after "\n" shall be omitted
 -- 3. "\n" shall be considered as simple " "
-refactorLineEnd :: Text -> Text
-refactorLineEnd str = fix content where
+adaptSpace :: Text -> Text
+adaptSpace str = fix content
+  where
   textLines = case Text.split isEndOfLine str of
             [] -> []
             (firstLine : restLines) -> dropWhileEnd isSpace firstLine : map strip restLines
@@ -107,6 +106,7 @@ appendElement h t
 -- |Parse the whole text content to an array of Markup Text.
 -- This parser will not handle the block stop.  The block stop shall be already handled before passing text with this Parser
 parseMarkupContent :: Parser [MarkupText]
-parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput) where
+parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput)
+  where
   parseMarkup :: Parser MarkupText
   parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parseLaTeX <> parsePlainText

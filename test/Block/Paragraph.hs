@@ -30,9 +30,9 @@ parserParagraphs = testGroup "Attoparsec orgmode Paragraph"
     testCase "Parses a broken markup Paragraph with token in middle" $
       testDocS " te*xt "   (pack " te*xt"),
     testCase "Parses Nested Markup" $
-      testDocS "_* text *_"  $ mark (Italic . (:[]) . Bold) (pack "text"),
+      testDocS "_* text *_"  $ mark (UnderLine . (:[]) . Bold) (pack "text"),
     testCase "Paragraph Parser shall not try to parse markup across lines" $
-      testDocS "_* l1p1 \nl2p2 *_"  $ mark (Italic . (:[]) . Bold) (pack "l1p1 l2p2"),
+      testDocS "_* l1p1 \nl2p2 *_"  $ mark (UnderLine . (:[]) . Bold) (pack "l1p1 l2p2"),
     testCase "Paragraph Parser shall ignore the space before endOfLine (in plain)" $
       testDocS " l1p1 \nl2p2 "  (pack " l1p1 l2p2")
   ]

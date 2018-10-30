@@ -9,7 +9,6 @@
 -- Parsing combinators for org-mode markups and paragraphs.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
 
