@@ -6,7 +6,7 @@
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 -- Stability   :  stable
 --
--- Parsing combinators for org-mode markups and paragraphs.
+-- Parsing combinators for org-mode markup and paragraphs.
 ----------------------------------------------------------------------------
 
 module Data.OrgMode.Parse.Attoparsec.Block
@@ -15,8 +15,7 @@ module Data.OrgMode.Parse.Attoparsec.Block
 )
 where
 
-import           Control.Applicative                   ()
-import           Data.Semigroup
+import           Data.Semigroup                        ((<>))
 import           Data.Attoparsec.Text                  (Parser, many', eitherP)
 import           Data.OrgMode.Types                    (Block (..))
 
@@ -28,8 +27,8 @@ import           Data.OrgMode.Parse.Attoparsec.Drawer                 (parseDraw
 
 -- | Parse the content until reaching a drawer, a list, or a block end.  And include the parsed drawer.
 parseBlocks :: Parser [Block]
-parseBlocks = result  where
-  result = concat <$> many' p
+parseBlocks = concat <$> many' p
+  where
   p :: Parser [Block]
   p = do
     blocks <- parseLinesTill parseParagraph (eitherP takeBlockBreak (parseDrawer <> parseList))
