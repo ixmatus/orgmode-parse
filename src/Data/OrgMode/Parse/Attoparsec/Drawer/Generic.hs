@@ -62,4 +62,4 @@ parseDrawerDelim v =
 
 -- | Parse the @:END:@ of a drawer.
 drawerEnd :: Parser Text
-drawerEnd = parseDrawerDelim "END"   <?> "Expect Drawer End :END:"
+drawerEnd = parseDrawerDelim "END"   <?> "Expected Drawer End :END:"
