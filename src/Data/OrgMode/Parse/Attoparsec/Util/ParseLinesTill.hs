@@ -18,10 +18,12 @@ module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill (
   ) where
 
 import qualified Control.Monad
+import           Control.Monad         (guard)
 import           Control.Arrow         ((&&&))
+import           Data.Bifoldable       (bifoldMap)
 import           Data.Semigroup
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, isHorizontalSpace, atEnd, parseOnly)
+import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, isHorizontalSpace, atEnd, parseOnly,(<?>))
 import           Data.Text             (Text, snoc)
 import qualified Data.Text             as Text
 import           Data.Functor          (($>))
@@ -48,43 +50,39 @@ takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
 -- | Succeed if it is a headline
 headline :: Parser ()
-headline = hasHeadlinePrefix *> atLeastOneSpace where
+headline = hasHeadlinePrefix *> atLeastOneSpace
+  where
   atLeastOneSpace :: Parser ()
   atLeastOneSpace = do
     z <- anyChar
-    if isHorizontalSpace z
-      then return ()
-      else fail "Requiring a space after * for headline"
+    guard (isHorizontalSpace z) <?> "A space must follow the last * of a headline"
   hasHeadlinePrefix = many1 (char '*')
 
 -- | Is the current line a @SectionBlock@ break.  A Line is a break
 takeBlockBreak ::  Parser ()
-takeBlockBreak = breakByEmptyLine <> breakByHeadline where
+takeBlockBreak = breakByEmptyLine <> headline
+  where
   breakByEmptyLine = takeEmptyLine $> ()
-  breakByHeadline = headline
 
 -- | Transform a text content as block to work with current parser state
 feedParserText :: Parser s -> Text -> Parser s
-feedParserText  p t =
-  case parseOnly p t of
-    Left s -> fail s
-    Right s -> return s
+feedParserText  p t =  bifoldMap fail return (parseOnly p t)
 
 type Recursive m b a = b -> (b, Parser (m a))
 
-class (Foldable m) => ParseLinesTill m where
+class (Foldable m) => ParseLinesTill m
+  where
   -- | Fail and reset position when a breaker is found
   stop :: forall a. Parser (m a) -> Parser (Either () [a])
   stop p' = hasMoreInput *> do
     z <- (Right <$> p') <> (return . Left) ()
     case z of
       Left _ -> return (Left ())
-      Right x -> if null x
-                  then fail ""
-                  else return . Right . toList $ x
+      Right x -> guard ((not . null) x) $> (Right . toList $ x)
 
   takeContent :: forall a b. Recursive m b a -> b -> Parser (Text, [a])
-  takeContent next c = tContent <> return (Text.empty, []) where
+  takeContent next c = tContent <> return (Text.empty, [])
+    where
     (c', p) = next c
     tContent = do
       z <- stop p
@@ -97,9 +95,7 @@ class (Foldable m) => ParseLinesTill m where
   parseLinesContextuallyTill :: forall a b. Parser a -> Recursive m b a -> b -> Parser [a]
   parseLinesContextuallyTill pD next c= skipEmptyLines *> hasMoreInput *> do
     (content, blocks ) <- takeContent next c
-    if Text.null content && null blocks
-      then fail ""
-      else (: blocks) <$> feedParserText pD content
+    guard (not $ Text.null content && null blocks) *> ((: blocks) <$> feedParserText pD content)
 
   parseLinesTill :: forall a. Parser a -> Parser (m a) -> Parser [a]
   parseLinesTill pDefault pBreaker = parseLinesContextuallyTill pDefault  (const (0 :: Integer , pBreaker)) 0
