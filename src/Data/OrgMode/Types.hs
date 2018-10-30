@@ -99,9 +99,10 @@ data Section = Section
   } deriving (Show, Eq, Generic)
 
 sectionDrawer :: Section -> [Block]
-sectionDrawer s = foldr getDrawer [] (sectionBlocks s) where
-  getDrawer x drawers = case x of Drawer _ _ -> x:drawers
-                                  _ -> drawers
+sectionDrawer s = filter isDrawer (sectionBlocks s)
+  where
+  isDrawer (Drawer _ _) = True
+  isDrawer _ = False
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
