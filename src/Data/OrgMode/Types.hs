@@ -107,7 +107,13 @@ sectionDrawer s = filter isDrawer (sectionBlocks s)
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
 
-data MarkupText = Plain Text | LaTeX Text | Bold [MarkupText] | Italic [MarkupText] | UnderLine [MarkupText] deriving (Show, Eq, Generic)
+data MarkupText
+  = Plain Text
+  | LaTeX Text
+  | Bold [MarkupText]
+  | Italic [MarkupText]
+  | UnderLine [MarkupText]
+  deriving (Show, Eq, Generic)
 
 newtype Item = Item [Block] deriving (Show, Eq, Generic, Semigroup, Monoid)
 
