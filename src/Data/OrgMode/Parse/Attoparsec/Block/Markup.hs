@@ -11,6 +11,7 @@
 
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE CPP   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Block.Markup
 (
@@ -20,6 +21,9 @@ module Data.OrgMode.Parse.Attoparsec.Block.Markup
 where
 
 import           Data.Semigroup                        ((<>))
+#if __GLASGOW_HASKELL__ >= 810
+import           Data.Bifoldable                       (bifoldMap)
+#endif
 import           Data.Char                             (isSpace)
 import           Data.Text                             (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip, stripEnd)
 import qualified Data.Text                      as     Text
@@ -61,7 +65,7 @@ parseVerbatimLike :: Char -> (Text -> MarkupText) -> Parser MarkupText
 parseVerbatimLike c m = char c *> (m <$> parseL)
   where
   parseL = takeWhile (/= c) <* char c
-  
+
 parseVerbatim :: Parser MarkupText
 parseVerbatim = parseVerbatimLike '=' Verbatim
 
@@ -76,9 +80,13 @@ createTokenParser innerParser Token{..}= do
   content <- takeWhile (/= keyChar)
   _ <- char keyChar
   -- We need another parser passed in to parse the markup inside the markup
+#if __GLASGOW_HASKELL__ >= 810
+    bifoldMap fail (return . markup) (parseOnly innerParser content)
+#else
   case parseOnly innerParser content of
      Left s -> fail s
      Right a -> return $ markup a
+#endif
 
 -- | The fallback default if all markup parser fails
 parsePlainText :: Parser MarkupText
