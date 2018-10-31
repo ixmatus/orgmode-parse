@@ -6,7 +6,6 @@
 combinators for org-mode structured text.
 
 - [What's Finished](#whats-finished)
-- [What's Planned](#whats-planned)
 - [Building](#building)
 
 You can find the package on [Hackage](https://hackage.haskell.org/package/orgmode-parse).
@@ -27,29 +26,21 @@ parsing implementation and not:
 - [X] Scheduled and deadline timestamps (timestamp, range, duration, periodicity)
   - [X] Active and inactive timestamps
 - [X] Clock timestamps
-- [ ] Markup
-  - [ ] Emphasis
-    - [ ] Bold
-    - [ ] Italic
-    - [ ] Strikethrough
-    - [ ] Underline
+- [-] Markup
+  - [-] Emphasis
+    - [X] Bold
+    - [X] Italic
+    - [X] Strikethrough
+    - [X] Underline
     - [ ] Superscript
     - [ ] Subscript
-    - [ ] Code / monospaced
+    - [X] Code / monospaced
   - [ ] Tables
-  - [ ] Lists
-    - [ ] Unordered lists
-    - [ ] Numbered lists
+  - [-] Lists
+    - [X] Unordered lists
+    - [X] Numbered lists
     - [ ] Checkbox modified lists
   - [ ] Blocks (src / quote / example blocks)
-
-Parsing org-mode markup is currently being worked on.
-
-## What's Planned (outside of what's not finished)
-1. Modernizing this library and adding significantly more documentation to it
-2. Writing a sister library, `orgmode-pretty`, providing a pretty printer
-   implementation for an org-mode AST
-3. Pandoc integration
 
 ## Building
 There are a few ways to build this library if you're developing a patch:
@@ -61,7 +52,7 @@ You can also use the `nix-shell` provided cabal environment for incremental
 development:
 
 ```shell
-$ nix-shell --attr orgmode-parse.env release.nix
+$ nix-shell
 $ cabal build
 ```
 

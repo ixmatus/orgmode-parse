@@ -40,6 +40,8 @@ import           System.Locale              (defaultTimeLocale)
 import           Data.Semigroup             ((<>))
 import           Data.OrgMode.Types
 
+import           Prelude                    hiding (repeat)
+
 -- | Parse a planning line.
 --
 -- Plannings inhabit a heading section and are formatted as a keyword
