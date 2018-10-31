@@ -1,3 +1,14 @@
+0.3.0
+- Added support for parsing the following types of markup (thank you to
+  @zhujinxuan for the significant contribution!):
+  - `*bold*`
+  - `/italic/`
+  - `_underlined_`
+  - `=verbatim=`
+  - `~code~`
+  - `+strikethrough`
+  - LaTex markup
+
 0.2.2
 - Support building with GHC 8.4.3 (thank you @zhujinxuan!)
 

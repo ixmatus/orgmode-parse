@@ -1,5 +1,5 @@
 Name:                   orgmode-parse
-Version:                0.2.2
+Version:                0.3.0
 Author:                 Parnell Springmeyer <parnell@digitalmentat.com>
 Maintainer:             Parnell Springmeyer <parnell@digitalmentat.com>
 License:                BSD3
@@ -16,8 +16,7 @@ Description:
   document markup.
   .
   The provided Attoparsec combinators parse the human-readable and
-  textual representation into a simple AST for storage or output to
-  another format (HTML? Markdown?).
+  textual representation into a simple AST.
 
 Cabal-Version:          >= 1.10
 Build-Type:             Simple
@@ -31,7 +30,7 @@ Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
   Ghc-options:
-                 -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
+                 -Wall -Werror -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
