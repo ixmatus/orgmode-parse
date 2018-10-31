@@ -1,0 +1,11 @@
+* corner cases related to mark *
+*is not a headline, due to the missing of space after *
+
+*is a bold content*
+
+*is not a bold content, due to the space before *
+  * is an item
+    and content here belongs to item1.
+  *is not an item because of the missing spaces
+
+  *is bolded but not an item*

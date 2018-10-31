@@ -23,7 +23,7 @@ module Data.OrgMode.Types
 , DelayType         (..)
 , Depth             (..)
 , Document          (..)
-, Drawer            (..)
+, Drawer
 , Duration
 , Headline          (..)
 , Logbook           (..)
@@ -41,18 +41,23 @@ module Data.OrgMode.Types
 , TimeUnit          (..)
 , Timestamp         (..)
 , YearMonthDay      (..)
+, Block             (..)
+, MarkupText        (..)
+, Item              (..)
+, sectionDrawer
 ) where
 
-import           Control.Monad        (mzero)
-import           Data.Aeson           ((.:), (.=))
-import qualified Data.Aeson           as Aeson
-import           Data.Hashable        (Hashable (..))
-import           Data.HashMap.Strict  (HashMap, fromList, keys, toList)
-import           Data.Text            (Text, pack)
-import           Data.Thyme.Calendar  (YearMonthDay (..))
-import           Data.Thyme.LocalTime (Hour, Hours, Minute, Minutes)
+import           Control.Monad                     (mzero)
+import           Data.Aeson                        ((.:), (.=))
+import qualified Data.Aeson                        as Aeson
+import           Data.Hashable                     (Hashable (..))
+import           Data.HashMap.Strict               (HashMap, fromList, keys, toList)
+import           Data.Text                         (Text, pack)
+import           Data.Thyme.Calendar               (YearMonthDay (..))
+import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
-import           Data.Semigroup       (Semigroup)
+import           Data.Semigroup                    (Semigroup)
+
 -- | Org-mode document.
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
@@ -82,6 +87,7 @@ newtype Depth = Depth Int
 instance Aeson.ToJSON Depth
 instance Aeson.FromJSON Depth
 
+
 -- | Section of text directly following a headline.
 data Section = Section
   { sectionTimestamp  :: Maybe Timestamp -- ^ A headline's section timestamp
@@ -89,13 +95,45 @@ data Section = Section
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionDrawers    :: [Drawer]        -- ^ A list of parsed user-defined drawers
-  , sectionParagraph  :: Text            -- ^ Arbitrary text
+  , sectionBlocks     :: [Block]  -- ^ Content of Section
   } deriving (Show, Eq, Generic)
+
+sectionDrawer :: Section -> [Block]
+sectionDrawer s = filter isDrawer (sectionBlocks s)
+  where
+  isDrawer (Drawer _ _) = True
+  isDrawer _ = False
 
 newtype Properties = Properties { unProperties :: HashMap Text Text }
   deriving (Show, Eq, Generic, Semigroup, Monoid)
 
+data MarkupText
+  = Plain         Text
+  | LaTeX         Text
+  | Verbatim      Text
+  | Code          Text
+  | Bold          [MarkupText]
+  | Italic        [MarkupText]
+  | UnderLine     [MarkupText]
+  | Strikethrough [MarkupText]
+  deriving (Show, Eq, Generic)
+
+newtype Item = Item [Block] deriving (Show, Eq, Generic, Semigroup, Monoid)
+
+data Block = OrderedList [Item] | UnorderedList [Item] | Paragraph [MarkupText] | Drawer {
+    name     :: Text
+  , contents :: Text
+} deriving (Show, Eq, Generic)
+type Drawer = Block
+
+instance Aeson.ToJSON MarkupText
+instance Aeson.FromJSON MarkupText
+
+instance Aeson.ToJSON Item
+instance Aeson.FromJSON Item
+
+instance Aeson.ToJSON Block
+instance Aeson.FromJSON Block
 
 instance Aeson.ToJSON Properties
 instance Aeson.FromJSON Properties
@@ -106,14 +144,6 @@ newtype Logbook = Logbook { unLogbook :: [Clock] }
 
 instance Aeson.ToJSON Logbook
 instance Aeson.FromJSON Logbook
-
-data Drawer = Drawer
-  { name     :: Text
-  , contents :: Text
-  } deriving (Show, Eq, Generic)
-
-instance Aeson.ToJSON Drawer
-instance Aeson.FromJSON Drawer
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
@@ -310,3 +340,4 @@ type Duration = (Hour,Minute)
 
 instance Hashable PlanningKeyword where
   hashWithSalt salt k = hashWithSalt salt (fromEnum k)
+

@@ -8,18 +8,22 @@ Stability   :  stable
 Attoparsec utilities.
 -}
 
+
 module Data.OrgMode.Parse.Attoparsec.Util
-( skipOnlySpace
-, nonHeadline
+( skipOnlySpace,
+  nonHeadline,
+  module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
 )
+
 where
 
-import           Control.Applicative   ((<|>))
+import           Data.Semigroup        ((<>))
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Types (Parser)
-import           Data.Text             (Text)
+import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, endOfLine, notChar, isHorizontalSpace)
+import           Data.Text             (Text, cons)
 import qualified Data.Text             as Text
 import           Data.Functor          (($>))
+import           Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
 
 -- | Skip whitespace characters, only!
 --
@@ -27,17 +31,12 @@ import           Data.Functor          (($>))
 -- @Data.Char@ which also includes control characters such as a return
 -- and newline which we need to *not* consume in some cases during
 -- parsing.
-skipOnlySpace :: Parser Text ()
-skipOnlySpace = Attoparsec.Text.skipWhile spacePred
-  where
-    spacePred s = s == ' ' || s == '\t'
+skipOnlySpace :: Parser ()
+skipOnlySpace = Attoparsec.Text.skipWhile isHorizontalSpace
 
 -- | Parse a non-heading line of a section.
-nonHeadline :: Parser Text Text
-nonHeadline = nonHeadline0 <|> nonHeadline1
+nonHeadline :: Parser Text
+nonHeadline = nonHeadline0 <> nonHeadline1
   where
-    nonHeadline0 = Attoparsec.Text.endOfLine $> Text.pack ""
-    nonHeadline1 = Text.pack <$> do
-      h <- Attoparsec.Text.notChar '*'
-      t <- Attoparsec.Text.manyTill Attoparsec.Text.anyChar Attoparsec.Text.endOfLine
-      pure (h:t)
+    nonHeadline0 = endOfLine $> Text.empty
+    nonHeadline1 = cons <$> notChar '*' <*> (takeTill isEndOfLine <* endOfLine)

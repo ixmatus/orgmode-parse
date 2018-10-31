@@ -64,7 +64,7 @@ Test-Suite tests
   Type:                 exitcode-stdio-1.0
   Default-Language:     Haskell2010
   Hs-Source-Dirs:       test, src
-  Ghc-Options:          -Wall
+  Ghc-Options:          -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind  -fbreak-on-error
   Main-Is:              Test.hs
   Other-Modules:
                 Document,
