@@ -9,6 +9,7 @@ Attoparsec utilities
 -}
 
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE CPP #-}
 
 module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill (
   takeALine,
@@ -20,8 +21,11 @@ module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill (
 import qualified Control.Monad
 import           Control.Monad         (guard)
 import           Control.Arrow         ((&&&))
+#if __GLASGOW_HASKELL__ >= 810
 import           Data.Bifoldable       (bifoldMap)
-import           Data.Semigroup
+#endif
+
+import           Data.Semigroup        ((<>))
 import qualified Data.Attoparsec.Text  as Attoparsec.Text
 import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, isHorizontalSpace, atEnd, parseOnly,(<?>))
 import           Data.Text             (Text, snoc)
@@ -66,7 +70,15 @@ takeBlockBreak = breakByEmptyLine <> headline
 
 -- | Transform a text content as block to work with current parser state
 feedParserText :: Parser s -> Text -> Parser s
+
+#if __GLASGOW_HASKELL__ >= 810
 feedParserText  p t =  bifoldMap fail return (parseOnly p t)
+#else
+feedParserText  p t =
+  case parseOnly p t of
+    Left s -> fail s
+    Right s -> return s
+#endif
 
 type Recursive m b a = b -> (b, Parser (m a))
 
