@@ -44,7 +44,7 @@ takeALine = do
 hasMoreInput :: Parser ()
 hasMoreInput = do
   x <- atEnd
-  Control.Monad.when x $ fail "reach the end of input"
+  Control.Monad.when x $ fail "reached the end of input"
 
 -- | Matches only if the incoming text line consists nothing or only spaces
 --
