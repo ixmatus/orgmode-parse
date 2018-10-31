@@ -31,11 +31,18 @@ data Token = Token { keyChar :: Char, markup :: [MarkupText] -> MarkupText}
 
 -- | A set of token definitions for markup keywords
 tokens :: [Token]
-tokens = [ Token '*' Bold, Token '_' UnderLine, Token '/' Italic]
+tokens = [
+  Token '*' Bold
+  , Token '_' UnderLine
+  , Token '/' Italic
+  , Token '+' Strikethrough
+  ]
 
 -- | For better efficiency suggested by Attoparsec, we will hard code the token filter
 isNotToken :: Char -> Bool
-isNotToken c = c /= '*' && c /= '_' && c/= '$'
+isNotToken c = c `notElem` tokenKeywods
+  where
+    tokenKeywods = ['$', '=', '~'] ++ map keyChar tokens
 
 -- | A Naive parser for LaTeX
 parseLaTeX :: Parser MarkupText
@@ -46,6 +53,20 @@ parseLaTeX = char '$' *> (LaTeX <$> parseL)
     if Text.last content /= '\\'
       then return content
       else  append content <$> parseL
+
+-- | Create Naive Parser for Code and Verbatim
+--
+--  This cannot serve LaTeX because LaTeX code may include \$ in LaTeX block
+parseVerbatimLike :: Char -> (Text -> MarkupText) -> Parser MarkupText
+parseVerbatimLike c m = char c *> (m <$> parseL)
+  where
+  parseL = takeWhile (/= c) <* char c
+  
+parseVerbatim :: Parser MarkupText
+parseVerbatim = parseVerbatimLike '=' Verbatim
+
+parseCode :: Parser MarkupText
+parseCode = parseVerbatimLike '~' Code
 
 -- | Create a markup parser based on a token
 createTokenParser :: Parser [MarkupText] -> Token -> Parser MarkupText
@@ -109,4 +130,4 @@ parseMarkupContent :: Parser [MarkupText]
 parseMarkupContent =  foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput)
   where
   parseMarkup :: Parser MarkupText
-  parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> parseLaTeX <> parsePlainText
+  parseMarkup = choice (map (createTokenParser parseMarkupContent) tokens) <> choice [parseLaTeX, parseVerbatim, parseCode, parsePlainText]

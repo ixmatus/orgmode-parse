@@ -110,9 +110,12 @@ newtype Properties = Properties { unProperties :: HashMap Text Text }
 data MarkupText
   = Plain Text
   | LaTeX Text
+  | Verbatim Text
+  | Code Text
   | Bold [MarkupText]
   | Italic [MarkupText]
   | UnderLine [MarkupText]
+  | Strikethrough [MarkupText]
   deriving (Show, Eq, Generic)
 
 newtype Item = Item [Block] deriving (Show, Eq, Generic, Semigroup, Monoid)
