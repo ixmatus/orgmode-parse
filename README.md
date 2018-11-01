@@ -41,6 +41,7 @@ parsing implementation and not:
     - [X] Numbered lists
     - [ ] Checkbox modified lists
   - [ ] Blocks (src / quote / example blocks)
+- [ ] Position Annotated AST
 
 ## Building
 There are a few ways to build this library if you're developing a patch:
