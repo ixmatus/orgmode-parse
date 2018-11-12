@@ -34,15 +34,20 @@ Library
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
+                  Data.OrgMode.Parse.Attoparsec.Block,
+                  Data.OrgMode.Parse.Attoparsec.Block.List,
+                  Data.OrgMode.Parse.Attoparsec.Block.Markup,
+                  Data.OrgMode.Parse.Attoparsec.Block.Paragraph,
                   Data.OrgMode.Parse.Attoparsec.Document,
-                  Data.OrgMode.Parse.Attoparsec.Headline,
                   Data.OrgMode.Parse.Attoparsec.Drawer,
+                  Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Logbook,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Property,
-                  Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
+                  Data.OrgMode.Parse.Attoparsec.Headline,
                   Data.OrgMode.Parse.Attoparsec.Section,
                   Data.OrgMode.Parse.Attoparsec.Time,
                   Data.OrgMode.Parse.Attoparsec.Util,
+                  Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill,
                   Data.OrgMode.Types
 
   Build-Depends:
