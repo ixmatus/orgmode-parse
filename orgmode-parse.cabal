@@ -58,6 +58,7 @@ Library
               , bytestring                >= 0.10.4
               , containers                >= 0.5.6
               , free                      >= 4.9
+              , dhall                     >= 1.13.0
               , hashable                  >= 1.2
               , old-locale                >= 1.0
               , text                      >= 1.2
