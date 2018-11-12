@@ -19,7 +19,7 @@ import qualified Data.Attoparsec.Text                 as Attoparsec.Text
 import           Data.Monoid                          ()
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer
-import           Data.OrgMode.Parse.Attoparsec.Time
+import           Data.OrgMode.Parse.Attoparsec.Time          (parseClock, parsePlannings, parseTimestamp)
 import           Data.OrgMode.Parse.Attoparsec.Util          (skipEmptyLines)
 import           Data.OrgMode.Parse.Attoparsec.Block         (parseBlocks)
 import           Data.OrgMode.Types

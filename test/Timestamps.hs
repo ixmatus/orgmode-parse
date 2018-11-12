@@ -3,16 +3,16 @@
 
 module Timestamps where
 
-import           Control.Applicative  ((<*))
-import           Data.Attoparsec.Text (endOfLine)
-import           Data.HashMap.Strict
-import           Data.Monoid          ((<>))
-import           Data.Maybe           (isNothing)
+import           Control.Applicative        ((<*))
+import           Data.Attoparsec.Text       (endOfLine)
+import           Data.HashMap.Strict.InsOrd
+import           Data.Semigroup             ((<>))
+import           Data.Maybe                 (isNothing)
 import           Data.OrgMode.Parse
-import qualified Data.Text            as T
+import qualified Data.Text                  as T
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Weekdays             (weekdays)
+import           Weekdays                   (weekdays)
 
 import           Data.OrgMode.Types
 import           Util

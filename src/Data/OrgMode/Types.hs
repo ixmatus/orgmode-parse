@@ -13,6 +13,10 @@ Types for the AST of an org-mode document.
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE DataKinds                  #-}
 
 {-# OPTIONS -fno-warn-orphans           #-}
 
@@ -51,7 +55,7 @@ module Data.OrgMode.Types
 
 import           Control.Monad                     (mzero)
 import           Data.Aeson                        ((.:), (.=), FromJSON, ToJSON)
-import           Data.HashMap.Strict               (HashMap, fromList, keys, toList)
+import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap, fromList, toList)
 import           Data.Hashable                     (Hashable (..))
 import           Data.Semigroup                    (Semigroup)
 import           Data.Text                         (Text, pack)
@@ -59,18 +63,24 @@ import           Data.Thyme.Calendar               (YearMonthDay (..))
 import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           GHC.Natural                       (Natural)
---import           Dhall
+import           Dhall
 
+import qualified Data.HashMap.Strict               as HashMap
 import qualified Data.Aeson                        as Aeson
+
+deriving instance Inject YearMonthDay
+
+instance Inject a => Inject (InsOrdHashMap Text a) where
+  injectWith = injectWith
+
+instance Inject a => Inject (InsOrdHashMap PlanningKeyword a) where
+  injectWith = injectWith
 
 -- | Org-mode document.
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
-  } deriving (Show, Eq, Generic)
-
-instance Aeson.ToJSON Document
-instance Aeson.FromJSON Document
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | Headline within an org-mode document.
 data Headline = Headline
@@ -83,7 +93,7 @@ data Headline = Headline
   , tags         :: [Tag]              -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject,  Generic)
 
 -- | Headline nesting depth.
 newtype Depth = Depth Natural
@@ -91,6 +101,7 @@ newtype Depth = Depth Natural
   deriving newtype Num
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 -- | Section of text directly following a headline.
 data Section = Section
@@ -100,7 +111,7 @@ data Section = Section
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionBlocks     :: [Block]  -- ^ Content of Section
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 sectionDrawer :: Section -> [Block]
 sectionDrawer s = filter isDrawer (sectionBlocks s)
@@ -108,12 +119,13 @@ sectionDrawer s = filter isDrawer (sectionBlocks s)
   isDrawer (Drawer _ _) = True
   isDrawer _ = False
 
-newtype Properties = Properties { unProperties :: HashMap Text Text }
+newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
   deriving (Show, Eq, Generic)
   deriving newtype Semigroup
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 data MarkupText
   = Plain         Text
@@ -124,7 +136,7 @@ data MarkupText
   | Italic        [MarkupText]
   | UnderLine     [MarkupText]
   | Strikethrough [MarkupText]
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 newtype Item = Item [Block]
   deriving (Show, Eq, Generic)
@@ -132,6 +144,7 @@ newtype Item = Item [Block]
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 data Block
   =
@@ -141,27 +154,29 @@ data Block
   | Drawer
     { name     :: Text
     , contents :: Text
-    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+    } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 type Drawer = Block
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
-  deriving (Show, Eq,  Generic)
+  deriving (Show, Eq, Generic)
   deriving newtype Semigroup
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
   = Active
   | Inactive
-  deriving (Show, Eq, Read, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Read, ToJSON, FromJSON, Inject, Generic)
 
 newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
   deriving (Show, Eq, Generic)
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -172,7 +187,7 @@ data Timestamp = Timestamp
   { tsTime    :: DateTime       -- ^ A datetime stamp
   , tsActive  :: ActiveState    -- ^ Active or inactive?
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 instance Aeson.ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
@@ -224,7 +239,7 @@ data DateTime
     , hourMinute   :: Maybe (Hour,Minute)
     , repeater     :: Maybe Repeater
     , delay        :: Maybe Delay
-    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+    } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
@@ -232,7 +247,7 @@ data RepeaterType
   = RepeatCumulate
   | RepeatCatchUp
   | RepeatRestart
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A data type representing a repeater interval in a org-mode
 -- timestamp.
@@ -240,20 +255,20 @@ data Repeater = Repeater
   { repeaterType  :: RepeaterType -- ^ Type of repeater
   , repeaterValue :: Natural      -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A sum type representing the delay type of a delay value.
 data DelayType
   = DelayAll
   | DelayFirst
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A data type representing a delay value.
 data Delay = Delay
   { delayType  :: DelayType -- ^ Type of delay
   , delayValue :: Natural   -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A sum type representing the time units of a delay.
 data TimeUnit
@@ -262,7 +277,7 @@ data TimeUnit
   | UnitMonth
   | UnitDay
   | UnitHour
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
@@ -270,6 +285,7 @@ newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
   deriving (Show, Eq, Generic)
   deriving anyclass ToJSON
   deriving anyclass FromJSON
+  deriving anyclass Inject
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
@@ -278,8 +294,9 @@ data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving anyclass FromJSON
 
 -- | A type representing a map of planning timestamps.
-newtype Plannings = Plns (HashMap PlanningKeyword Timestamp)
-  deriving (Show, Eq,  Generic)
+newtype Plannings = Plns (InsOrdHashMap PlanningKeyword Timestamp)
+  deriving (Show, Eq, Generic)
+  deriving anyclass Inject
 
 instance Aeson.ToJSON Plannings where
   toJSON (Plns hm) = Aeson.object (map jPair (toList hm))
@@ -287,7 +304,7 @@ instance Aeson.ToJSON Plannings where
       jPair (k, v) = pack (show k) .= Aeson.toJSON v
 
 instance Aeson.FromJSON Plannings where
-  parseJSON (Aeson.Object v) = Plns . fromList <$> traverse jPair (keys v)
+  parseJSON (Aeson.Object v) = Plns . fromList <$> traverse jPair (HashMap.keys v)
     where
       jPair k = v .: k
 
@@ -296,7 +313,7 @@ instance Aeson.FromJSON Plannings where
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
-  deriving (Show, Read, Eq, Ord, ToJSON, FromJSON,  Generic)
+  deriving (Show, Read, Eq, Ord, ToJSON, FromJSON, Inject, Generic)
 
 type Tag = Text
 
@@ -307,7 +324,7 @@ type Tag = Text
 data Stats
   = StatsPct Natural
   | StatsOf  Natural Natural
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
 
 type Duration = (Hour,Minute)
 

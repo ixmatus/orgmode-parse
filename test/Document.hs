@@ -3,18 +3,18 @@
 module Document where
 
 import           Data.Attoparsec.Text
-import           Data.Text                        hiding  (map)
-import qualified Data.Text                              as Text
-import qualified Data.Text.IO                           as TextIO
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Data.HashMap.Strict              hiding   (map)
-
+import           Data.HashMap.Strict.InsOrd             hiding (map)
 import           Data.OrgMode.Parse.Attoparsec.Document
 import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Types
+import           Data.Text                              hiding (map)
+import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Util
 import           Util.Builder
+
+import qualified Data.Text                              as Text
+import qualified Data.Text.IO                           as TextIO
 
 
 parserSmallDocumentTests :: TestTree

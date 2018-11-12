@@ -29,7 +29,7 @@ import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types      as Attoparsec (Parser)
 import qualified Data.ByteString.Char8      as BS
 import           Data.Functor               (($>))
-import           Data.HashMap.Strict        (HashMap, fromList)
+import           Data.HashMap.Strict.InsOrd (InsOrdHashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
 import           Data.Monoid                ()
 import           Data.Text                  (Text)
@@ -49,7 +49,7 @@ import           Prelude                    hiding (repeat)
 -- the same line e.g:
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
-parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
+parsePlannings :: Attoparsec.Parser Text (InsOrdHashMap PlanningKeyword Timestamp)
 parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
   where
     planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
