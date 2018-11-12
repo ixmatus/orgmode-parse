@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Timestamps where
 
 import           Control.Applicative        ((<*))
 import           Data.Attoparsec.Text       (endOfLine)
-import           Data.HashMap.Strict.InsOrd
 import           Data.Semigroup             ((<>))
 import           Data.Maybe                 (isNothing)
 import           Data.OrgMode.Parse
@@ -25,19 +25,23 @@ parserPlanningTests = testGroup "Attoparsec Planning"
     , testCase "Parse Sample Schedule"   $ testPlanningS sExampleStrA sExampleResA
     ]
   where
-    testPlanning     = testParser parsePlannings
+    testPlanning      = testParser parsePlannings
     testPlanningS t r = expectParse parsePlannings t (Right r)
 
-    (sExampleStrA, sExampleResA) =
-      ("SCHEDULED: <2004-02-29 Sun 10:20 +1w -2d>"
-      ,fromList [(SCHEDULED, Timestamp
-                                    (DateTime
-                                     (YearMonthDay 2004 2 29)
-                                     (Just "Sun")
-                                     (Just (10,20))
-                                     (Just (Repeater RepeatCumulate 1 UnitWeek))
-                                     (Just (Delay DelayAll 2 UnitDay))
-                                    ) Active Nothing)])
+    (sExampleStrA, sExampleResA) = ( "SCHEDULED: <2004-02-29 Sun 10:20 +1w -2d>", [ Planning{..} ] )
+      where
+        keyword   = SCHEDULED
+        timestamp =
+          Timestamp
+            (DateTime
+              (YearMonthDay 2004 2 29)
+              (Just "Sun")
+              (Just (10,20))
+              (Just (Repeater RepeatCumulate 1 UnitWeek))
+              (Just (Delay DelayAll 2 UnitDay))
+            )
+            Active
+            Nothing
 
 parserTimestampTests :: TestTree
 parserTimestampTests = testGroup "Attoparsec Timestamp"

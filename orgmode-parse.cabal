@@ -69,36 +69,21 @@ Library
 Test-Suite tests
   Type:                 exitcode-stdio-1.0
   Default-Language:     Haskell2010
-  Hs-Source-Dirs:       test, src
+  Hs-Source-Dirs:       test
   Ghc-Options:          -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind  -fbreak-on-error
   Main-Is:              Test.hs
-  Other-Modules:
+
+  other-modules:
                 Block.Blocks
+              , Block.List
+              , Block.Paragraph
               , Document
               , Drawer
               , Headline
               , Timestamps
               , Util
-              , Weekdays
-              , Block.List
-              , Block.Paragraph
-              , Data.OrgMode.Parse
-              , Data.OrgMode.Parse.Attoparsec.Block
-              , Data.OrgMode.Parse.Attoparsec.Block.List
-              , Data.OrgMode.Parse.Attoparsec.Block.Markup
-              , Data.OrgMode.Parse.Attoparsec.Block.Paragraph
-              , Data.OrgMode.Parse.Attoparsec.Document
-              , Data.OrgMode.Parse.Attoparsec.Drawer
-              , Data.OrgMode.Parse.Attoparsec.Drawer.Generic
-              , Data.OrgMode.Parse.Attoparsec.Drawer.Logbook
-              , Data.OrgMode.Parse.Attoparsec.Drawer.Property
-              , Data.OrgMode.Parse.Attoparsec.Headline
-              , Data.OrgMode.Parse.Attoparsec.Section
-              , Data.OrgMode.Parse.Attoparsec.Time
-              , Data.OrgMode.Parse.Attoparsec.Util
-              , Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
-              , Data.OrgMode.Types
               , Util.Builder
+              , Weekdays
 
   Build-Depends:
                 base                      >= 4.8 && < 5

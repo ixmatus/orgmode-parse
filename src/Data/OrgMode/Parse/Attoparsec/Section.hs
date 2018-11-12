@@ -34,7 +34,7 @@ parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines
   where
   parseSection' = Section
    <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
-   <*> (Plns <$> parsePlannings)
+   <*> parsePlannings
    <*> many' parseClock
    <*> option mempty parseProperties
    <*> option mempty parseLogbook

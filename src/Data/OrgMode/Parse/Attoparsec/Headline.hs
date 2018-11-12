@@ -12,6 +12,7 @@
 
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headline
 ( headlineBelowDepth

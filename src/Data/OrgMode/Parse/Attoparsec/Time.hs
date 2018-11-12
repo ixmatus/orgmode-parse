@@ -29,7 +29,6 @@ import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types      as Attoparsec (Parser)
 import qualified Data.ByteString.Char8      as BS
 import           Data.Functor               (($>))
-import           Data.HashMap.Strict.InsOrd (InsOrdHashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
 import           Data.Monoid                ()
 import           Data.Text                  (Text)
@@ -49,14 +48,15 @@ import           Prelude                    hiding (repeat)
 -- the same line e.g:
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
-parsePlannings :: Attoparsec.Parser Text (InsOrdHashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
+parsePlannings :: Attoparsec.Parser Text [Planning]
+parsePlannings = many' (skipSpace *> planning <* skipSpace)
   where
-    planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-    pType    = choice [string "SCHEDULED" $>  SCHEDULED
-                      ,string "DEADLINE"  $>  DEADLINE
-                      ,string "CLOSED"    $>  CLOSED
-                      ]
+    planning = Planning <$> keyword <* char ':' <*> (skipSpace *> parseTimestamp)
+    keyword  =
+      choice [ string "SCHEDULED" $> SCHEDULED
+             , string "DEADLINE"  $> DEADLINE
+             , string "CLOSED"    $> CLOSED
+             ]
 
 -- | Parse a clock line.
 --

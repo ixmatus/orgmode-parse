@@ -10,6 +10,7 @@ Types for the AST of an org-mode document.
 
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingStrategies         #-}
@@ -34,7 +35,7 @@ module Data.OrgMode.Types
 , Headline          (..)
 , Logbook           (..)
 , PlanningKeyword   (..)
-, Plannings         (..)
+, Planning          (..)
 , Priority          (..)
 , Properties        (..)
 , Repeater          (..)
@@ -55,26 +56,38 @@ module Data.OrgMode.Types
 
 import           Control.Monad                     (mzero)
 import           Data.Aeson                        ((.:), (.=), FromJSON, ToJSON)
-import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap, fromList, toList)
+import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap)
 import           Data.Hashable                     (Hashable (..))
 import           Data.Semigroup                    (Semigroup)
-import           Data.Text                         (Text, pack)
+import           Data.Text                         (Text)
 import           Data.Thyme.Calendar               (YearMonthDay (..))
 import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           GHC.Natural                       (Natural)
 import           Dhall
 
-import qualified Data.HashMap.Strict               as HashMap
+--import qualified Dhall.TypeCheck
+--import qualified Dhall.Parser
+import qualified Dhall.Core
 import qualified Data.Aeson                        as Aeson
+import qualified Data.HashMap.Strict.InsOrd        as InsOrd
+
+instance Semigroup Natural where
+  a <> b = a + b
+
+instance Monoid Natural where
+  mempty = 0
 
 deriving instance Inject YearMonthDay
 
-instance Inject a => Inject (InsOrdHashMap Text a) where
-  injectWith = injectWith
+instance Inject (InsOrdHashMap Text Text) where
+  injectWith _ = InputType{..}
+    where
+      embed m =
+        Dhall.Core.RecordLit (fmap (Dhall.Core.TextLit . Dhall.Core.Chunks []) m)
 
-instance Inject a => Inject (InsOrdHashMap PlanningKeyword a) where
-  injectWith = injectWith
+      declared =
+        Dhall.Core.Record InsOrd.empty
 
 -- | Org-mode document.
 data Document = Document
@@ -106,7 +119,7 @@ newtype Depth = Depth Natural
 -- | Section of text directly following a headline.
 data Section = Section
   { sectionTimestamp  :: Maybe Timestamp -- ^ A headline's section timestamp
-  , sectionPlannings  :: Plannings       -- ^ A map of planning timestamps
+  , sectionPlannings  :: [Planning]      -- ^ A list of planning records
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
@@ -281,8 +294,10 @@ data TimeUnit
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
-newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
+newtype StateKeyword = StateKeyword { unStateKeyword :: Text }
   deriving (Show, Eq, Generic)
+  deriving newtype  Semigroup
+  deriving newtype  Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
   deriving anyclass Inject
@@ -292,28 +307,30 @@ data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-
--- | A type representing a map of planning timestamps.
-newtype Plannings = Plns (InsOrdHashMap PlanningKeyword Timestamp)
-  deriving (Show, Eq, Generic)
   deriving anyclass Inject
 
-instance Aeson.ToJSON Plannings where
-  toJSON (Plns hm) = Aeson.object (map jPair (toList hm))
-    where
-      jPair (k, v) = pack (show k) .= Aeson.toJSON v
-
-instance Aeson.FromJSON Plannings where
-  parseJSON (Aeson.Object v) = Plns . fromList <$> traverse jPair (HashMap.keys v)
-    where
-      jPair k = v .: k
-
-  parseJSON _ = mzero
+-- | A type representing a map of planning timestamps.
+data Planning = Planning
+  { keyword   :: PlanningKeyword
+  , timestamp :: Timestamp
+  } deriving (Show, Eq, Generic)
+    deriving anyclass ToJSON
+    deriving anyclass FromJSON
+    deriving anyclass Inject
 
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
-  deriving (Show, Read, Eq, Ord, ToJSON, FromJSON, Inject, Generic)
+  deriving
+    ( Show
+    , Read
+    , Eq
+    , Ord
+    , ToJSON
+    , FromJSON
+    , Inject
+    , Generic
+    )
 
 type Tag = Text
 
