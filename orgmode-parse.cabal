@@ -30,7 +30,7 @@ Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
   Ghc-options:
-                 -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
+                 -Wall -Werror -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
@@ -72,12 +72,32 @@ Test-Suite tests
   Ghc-Options:          -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind  -fbreak-on-error
   Main-Is:              Test.hs
   Other-Modules:
-                Document,
-                Headline,
-                Drawer,
-                Timestamps,
-                Util,
-                Weekdays
+                Block.Blocks
+              , Document
+              , Drawer
+              , Headline
+              , Timestamps
+              , Util
+              , Weekdays
+              , Block.List
+              , Block.Paragraph
+              , Data.OrgMode.Parse
+              , Data.OrgMode.Parse.Attoparsec.Block
+              , Data.OrgMode.Parse.Attoparsec.Block.List
+              , Data.OrgMode.Parse.Attoparsec.Block.Markup
+              , Data.OrgMode.Parse.Attoparsec.Block.Paragraph
+              , Data.OrgMode.Parse.Attoparsec.Document
+              , Data.OrgMode.Parse.Attoparsec.Drawer
+              , Data.OrgMode.Parse.Attoparsec.Drawer.Generic
+              , Data.OrgMode.Parse.Attoparsec.Drawer.Logbook
+              , Data.OrgMode.Parse.Attoparsec.Drawer.Property
+              , Data.OrgMode.Parse.Attoparsec.Headline
+              , Data.OrgMode.Parse.Attoparsec.Section
+              , Data.OrgMode.Parse.Attoparsec.Time
+              , Data.OrgMode.Parse.Attoparsec.Util
+              , Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
+              , Data.OrgMode.Types
+              , Util.Builder
 
   Build-Depends:
                 base                      >= 4.8 && < 5

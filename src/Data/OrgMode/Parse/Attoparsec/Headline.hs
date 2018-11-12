@@ -33,6 +33,7 @@ import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
 import           Prelude                               hiding (takeWhile)
 import           Text.Printf
+import           GHC.Natural                           (Natural)
 
 import           Data.OrgMode.Parse.Attoparsec.Section
 import qualified Data.OrgMode.Parse.Attoparsec.Time    as OrgMode.Time
@@ -105,9 +106,11 @@ headlineBelowDepth stateKeywords d = do
 headlineDepth :: Depth -> Attoparsec.Parser Text Depth
 headlineDepth (Depth d) = takeDepth >>= test
   where
-    takeDepth = Text.length <$> takeWhile1 (== '*')
-    test n | n <= d    = fail $ printf "Headline depth of %d cannot be higher than a depth constraint of %d" n d
-           | otherwise = pure $ Depth n
+    takeDepth = (fromIntegral . Text.length) <$> takeWhile1 (== '*')
+
+    test :: Natural -> Attoparsec.Parser Text Depth
+    test n | n <= d    = fail (printf "Headline depth of %d cannot be higher than a depth constraint of %d" n d)
+           | otherwise = pure (Depth n)
 
 -- | Parse the state indicator.
 --
