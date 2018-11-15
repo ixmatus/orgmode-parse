@@ -17,13 +17,15 @@ module Data.OrgMode.Parse.Attoparsec.Util
 
 where
 
-import           Data.Semigroup        ((<>))
-import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import           Data.Attoparsec.Text  (Parser, takeTill, isEndOfLine, endOfLine, notChar, isHorizontalSpace)
-import           Data.Text             (Text, cons)
+import Data.Semigroup       ((<>))
+import Data.Attoparsec.Text (Parser, takeTill, isEndOfLine, endOfLine, notChar, isHorizontalSpace)
+import Data.Text            (Text, cons)
+import Data.Functor         (($>))
+
+import Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
+
 import qualified Data.Text             as Text
-import           Data.Functor          (($>))
-import           Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
+import qualified Data.Attoparsec.Text  as Attoparsec.Text
 
 -- | Skip whitespace characters, only!
 --

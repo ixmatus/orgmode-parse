@@ -18,15 +18,17 @@ module Data.OrgMode.Parse.Attoparsec.Content.List
 )
 where
 
-import           Control.Monad                         (guard)
-import           Data.Functor                          (($>))
-import qualified Data.Text                      as     Text
-import           Data.Attoparsec.Text                  (Parser, many1', isHorizontalSpace, char, digit)
-import qualified Data.Attoparsec.Text           as     Attoparsec.Text
-import           Data.OrgMode.Types                    (Item (..), Content (..))
-import           Data.OrgMode.Parse.Attoparsec.Util    (parseLinesTill, parseLinesContextuallyTill, takeContentBreak)
-import           Data.OrgMode.Parse.Attoparsec.Content.Paragraph    (parseParagraph)
-import           Data.Maybe                            (isNothing)
+import Control.Monad                                   (guard)
+import Data.Attoparsec.Text                            (Parser, many1', isHorizontalSpace, char, digit)
+import Data.Functor                                    (($>))
+import Data.Maybe                                      (isNothing)
+
+import Data.OrgMode.Types                              (Item (..), Content (..))
+import Data.OrgMode.Parse.Attoparsec.Util              (parseLinesTill, parseLinesContextuallyTill, takeContentBreak)
+import Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
+
+import qualified Data.Text                             as Text
+import qualified Data.Attoparsec.Text                  as Attoparsec.Text
 
 type TokenParser = Parser ([Item] -> Content)
 
@@ -36,24 +38,26 @@ type TokenParser = Parser ([Item] -> Content)
 breakout :: forall b. Int -> Bool -> (Bool, Parser (Either () b))
 breakout n isInFirstLine = (False, result isInFirstLine)
   where
-  -- fail will take the following text in the same line into the Item content
-  -- see details in parseLinesTill of Util/ParseLinesTill.hs
-  result x= guard (not x) *> do
-    z <-  Attoparsec.Text.takeWhile isHorizontalSpace
-    -- If not enough space in the new line, then it shall be another item or a new list
-    guard (Text.compareLength z n  == LT) $> Left ()
+    -- fail will take the following text in the same line into the
+    -- Item content see details in parseLinesTill of
+    -- Util/ParseLinesTill.hs
+    result x= guard (not x) *> do
+      z <-  Attoparsec.Text.takeWhile isHorizontalSpace
+      -- If not enough space in the new line, then it shall be another
+      -- item or a new list
+      guard (Text.compareLength z n  == LT) $> Left ()
 
 takeHorizontalSpaces :: Int -> Parser ()
 takeHorizontalSpaces n = Attoparsec.Text.take n >>= assertSpaces
   where
-  assertSpaces t = guard (isNothing (Text.find (not . isHorizontalSpace) t))
+    assertSpaces t = guard (isNothing (Text.find (not . isHorizontalSpace) t))
 
 parseItemTokens :: [TokenParser]
 parseItemTokens = ordered ++ unordered
   where
-  ordered = [many1' digit $> OrderedList]
-  unordered = map parseToken ['*', '-']
-  parseToken x = char x $> UnorderedList
+    ordered      = [many1' digit $> OrderedList]
+    unordered    = map parseToken ['*', '-']
+    parseToken x = char x $> UnorderedList
 
 data ItemTerm = ItemTerm
   { parseNext :: Parser Item
@@ -65,25 +69,25 @@ data ItemTerm = ItemTerm
 parseItemTermVia :: TokenParser -> Parser ItemTerm
 parseItemTermVia p = result
   where
-  result :: Parser ItemTerm
-  result = do
-    n <- Text.length <$> Attoparsec.Text.takeWhile1 isHorizontalSpace
-    ItemTerm (parseItem n)  <$> p <*> (takeHorizontalSpaces 1*> parseItemCore n)
+    result :: Parser ItemTerm
+    result = do
+      n <- Text.length <$> Attoparsec.Text.takeWhile1 isHorizontalSpace
+      ItemTerm (parseItem n) <$> p <*> (takeHorizontalSpaces 1*> parseItemCore n)
 
-  parseItem ::  Int -> Parser Item
-  parseItem n = takeHorizontalSpaces n *> p *> takeHorizontalSpaces 1*> parseItemCore n
+    parseItem ::  Int -> Parser Item
+    parseItem n = takeHorizontalSpaces n *> p *> takeHorizontalSpaces 1*> parseItemCore n
 
-  parseItemCore :: Int -> Parser Item
-  parseItemCore n =  Item . concat <$> parseLinesContextuallyTill parseContents (breakout (n+1)) True
+    parseItemCore :: Int -> Parser Item
+    parseItemCore n =  Item . concat <$> parseLinesContextuallyTill parseContents (breakout (n+1)) True
 
-  parseContents :: Parser [Content]
-  parseContents = concat <$> Attoparsec.Text.many' (parseLinesTill parseParagraph (Attoparsec.Text.eitherP takeContentBreak parseList))
+    parseContents :: Parser [Content]
+    parseContents = concat <$> Attoparsec.Text.many' (parseLinesTill parseParagraph (Attoparsec.Text.eitherP takeContentBreak parseList))
 
 parseItemTerm :: Parser ItemTerm
 parseItemTerm = Attoparsec.Text.choice (map parseItemTermVia parseItemTokens)
 
 parseList :: Parser Content
 parseList = do
-  term <- parseItemTerm
+  term  <- parseItemTerm
   items <- Attoparsec.Text.many' (parseNext term)
   return $ toListContent term (item term:items)

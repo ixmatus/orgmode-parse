@@ -21,6 +21,6 @@ module Data.OrgMode.Parse.Attoparsec.Drawer (
 
 ) where
 
-import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic
-import           Data.OrgMode.Parse.Attoparsec.Drawer.Logbook
-import           Data.OrgMode.Parse.Attoparsec.Drawer.Property
+import Data.OrgMode.Parse.Attoparsec.Drawer.Generic
+import Data.OrgMode.Parse.Attoparsec.Drawer.Logbook
+import Data.OrgMode.Parse.Attoparsec.Drawer.Property
