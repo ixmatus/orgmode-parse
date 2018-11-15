@@ -56,7 +56,6 @@ Library
               , attoparsec                >= 0.13
               , bytestring                >= 0.10.4
               , containers                >= 0.5.6
-              , dhall                     >= 1.13.0
               , free                      >= 4.9
               , hashable                  >= 1.2
               , insert-ordered-containers >= 0.2.1.0
@@ -92,7 +91,6 @@ Test-Suite tests
               , attoparsec                >= 0.13
               , bytestring                >= 0.10.4
               , containers                >= 0.5.6
-              , dhall                     >= 1.13.0
               , free                      >= 4.9
               , hashable                  >= 1.2
               , insert-ordered-containers >= 0.2.1.0

@@ -64,12 +64,7 @@ import           Data.Thyme.Calendar               (YearMonthDay (..))
 import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           GHC.Natural                       (Natural)
-import           Dhall
 
---import qualified Dhall.TypeCheck
---import qualified Dhall.Parser
-import qualified Dhall.Core
-import qualified Data.Aeson                        as Aeson
 import qualified Data.HashMap.Strict.InsOrd        as InsOrd
 
 instance Semigroup Natural where
@@ -77,17 +72,6 @@ instance Semigroup Natural where
 
 instance Monoid Natural where
   mempty = 0
-
-deriving instance Inject YearMonthDay
-
-instance Inject (InsOrdHashMap Text Text) where
-  injectWith _ = InputType{..}
-    where
-      embed m =
-        Dhall.Core.RecordLit (fmap (Dhall.Core.TextLit . Dhall.Core.Chunks []) m)
-
-      declared =
-        Dhall.Core.Record InsOrd.empty
 
 -- | Org-mode document.
 data Document = Document
