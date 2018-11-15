@@ -34,10 +34,10 @@ Library
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
-                  Data.OrgMode.Parse.Attoparsec.Block,
-                  Data.OrgMode.Parse.Attoparsec.Block.List,
-                  Data.OrgMode.Parse.Attoparsec.Block.Markup,
-                  Data.OrgMode.Parse.Attoparsec.Block.Paragraph,
+                  Data.OrgMode.Parse.Attoparsec.Content,
+                  Data.OrgMode.Parse.Attoparsec.Content.List,
+                  Data.OrgMode.Parse.Attoparsec.Content.Markup,
+                  Data.OrgMode.Parse.Attoparsec.Content.Paragraph,
                   Data.OrgMode.Parse.Attoparsec.Document,
                   Data.OrgMode.Parse.Attoparsec.Drawer,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
@@ -73,9 +73,9 @@ Test-Suite tests
   Main-Is:              Test.hs
 
   other-modules:
-                Block.Blocks
-              , Block.List
-              , Block.Paragraph
+                Content.Contents
+              , Content.List
+              , Content.Paragraph
               , Document
               , Drawer
               , Headline

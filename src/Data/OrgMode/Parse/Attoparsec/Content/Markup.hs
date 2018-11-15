@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 -- |
--- Module      :  Data.OrgMode.Parse.Attoparsec.Block.Markup
+-- Module      :  Data.OrgMode.Parse.Attoparsec.Content.Markup
 -- Copyright   :  © 2014 Parnell Springmeyer
 -- License     :  All Rights Reserved
 -- Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
@@ -13,7 +13,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE CPP   #-}
 
-module Data.OrgMode.Parse.Attoparsec.Block.Markup
+module Data.OrgMode.Parse.Attoparsec.Content.Markup
 (
   parseMarkupContent,
   parsePlainText,

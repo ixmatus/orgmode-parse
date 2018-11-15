@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Block.List (
+module Content.List (
   parserLists
   ) where
 import           Test.Tasty
 import           Test.Tasty.HUnit
-import           Data.OrgMode.Types                       (Block (..), Item (..))
-import           Data.OrgMode.Parse.Attoparsec.Block.List (parseList)
+import           Data.OrgMode.Types                       (Content (..), Item (..))
+import           Data.OrgMode.Parse.Attoparsec.Content.List (parseList)
 import qualified Data.Text                                as Text
 import           Data.Text                                (pack)
 import           Util

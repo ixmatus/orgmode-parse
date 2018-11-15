@@ -1,8 +1,8 @@
 module Main where
 
-import           Block.Blocks
-import           Block.List
-import           Block.Paragraph
+import           Content.Contents
+import           Content.List
+import           Content.Paragraph
 import           Document
 import           Drawer
 import           Headline
@@ -20,7 +20,7 @@ tests = testGroup
           , parserTimestampTests
           , parserParagraphs
           , parserLists
-          , parserBlocks
+          , parserContents
           , parserWeekdayTests
           , parserSmallDocumentTests
           ]

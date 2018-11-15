@@ -14,7 +14,7 @@ Attoparsec utilities
 module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill (
   takeALine,
   ParseLinesTill (..),
-  takeBlockBreak,
+  takeContentBreak,
   skipEmptyLines,
   ) where
 
@@ -48,7 +48,7 @@ hasMoreInput = do
 
 -- | Matches only if the incoming text line consists nothing or only spaces
 --
--- A empty line always ends a SectionBlock
+-- A empty line always ends a SectionContent
 takeEmptyLine :: Parser Text
 takeEmptyLine = Attoparsec.Text.takeWhile isHorizontalSpace <* endOfLine
 
@@ -62,9 +62,9 @@ headline = hasHeadlinePrefix *> atLeastOneSpace
     guard (isHorizontalSpace z) <?> "A space must follow the last * of a headline"
   hasHeadlinePrefix = many1 (char '*')
 
--- | Is the current line a @SectionBlock@ break.  A Line is a break
-takeBlockBreak ::  Parser ()
-takeBlockBreak = breakByEmptyLine <> headline
+-- | Is the current line a @SectionContent@ break.  A Line is a break
+takeContentBreak ::  Parser ()
+takeContentBreak = breakByEmptyLine <> headline
   where
   breakByEmptyLine = takeEmptyLine $> ()
 

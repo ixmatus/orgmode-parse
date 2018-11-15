@@ -48,7 +48,7 @@ module Data.OrgMode.Types
 , TimeUnit          (..)
 , Timestamp         (..)
 , YearMonthDay      (..)
-, Block             (..)
+, Content             (..)
 , MarkupText        (..)
 , Item              (..)
 , sectionDrawer
@@ -104,11 +104,11 @@ data Section = Section
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionBlocks     :: [Block]  -- ^ Content of Section
+  , sectionContents     :: [Content]         -- ^ Content of Section
   } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
-sectionDrawer :: Section -> [Block]
-sectionDrawer s = filter isDrawer (sectionBlocks s)
+sectionDrawer :: Section -> [Content]
+sectionDrawer s = filter isDrawer (sectionContents s)
   where
   isDrawer (Drawer _ _) = True
   isDrawer _ = False
@@ -131,14 +131,14 @@ data MarkupText
   | Strikethrough [MarkupText]
   deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
-newtype Item = Item [Block]
+newtype Item = Item [Content]
   deriving (Show, Eq, Generic)
   deriving newtype Semigroup
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
 
-data Block
+data Content
   =
     OrderedList   [Item]
   | UnorderedList [Item]
@@ -148,7 +148,7 @@ data Block
     , contents :: Text
     } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
-type Drawer = Block
+type Drawer = Content
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
   deriving (Show, Eq, Generic)

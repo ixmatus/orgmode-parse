@@ -2,16 +2,16 @@ module Util.Builder
   (
     ListBuilder(..),
     ItemBuilder(..),
-    BlockBuilder(..)
+    ContentBuilder(..)
   )
   where
 
-import           Data.OrgMode.Types                       (Block (..), MarkupText (..), Item (..))
+import           Data.OrgMode.Types                       (Content (..), MarkupText (..), Item (..))
 import           Data.Text                                (Text)
 
 
 class ListBuilder m where
-  toL :: ([Item] -> Block) -> m -> Block
+  toL :: ([Item] -> Content) -> m -> Content
 
 instance ListBuilder Text where
   toL l  = toL l . Plain
@@ -19,7 +19,7 @@ instance ListBuilder Text where
 instance ListBuilder MarkupText where
   toL l = l . (:[]) . Item . (:[]) . Paragraph . (:[]) 
 
-instance ListBuilder Block where
+instance ListBuilder Content where
   toL l x = case x of
     UnorderedList _ -> x
     OrderedList _ -> x
@@ -31,18 +31,18 @@ class ItemBuilder m where
 instance ItemBuilder Text where
   toI = Item . (:[]) . Paragraph . (:[]) . Plain
 
-class BlockBuilder a where
-  toP :: a -> Block
-  mark :: ([MarkupText] -> MarkupText) -> a -> Block
+class ContentBuilder a where
+  toP :: a -> Content
+  mark :: ([MarkupText] -> MarkupText) -> a -> Content
 
-instance BlockBuilder Text where
+instance ContentBuilder Text where
   toP =  toP . Plain
   mark m = mark m . Plain
 
-instance BlockBuilder MarkupText where
+instance ContentBuilder MarkupText where
   toP = Paragraph . (:[])
   mark m = Paragraph . (:[]) . m . (:[])
 
-instance BlockBuilder Block where
+instance ContentBuilder Content where
   toP = id
   mark _ = id

@@ -75,7 +75,7 @@ sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
                -- Headline shall have space after *
-               [emptyHeadline {title="Test1", tags=["Hi there"], section = emptySection {sectionBlocks= [toP (Bold [])]}}
+               [emptyHeadline {title="Test1", tags=["Hi there"], section = emptySection {sectionContents= [toP (Bold [])]}}
                ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
@@ -114,7 +114,7 @@ spaces = flip Text.replicate " "
 emptySection :: Section
 emptySection = Section Nothing mempty mempty mempty mempty mempty
 
-plainParagraphs :: Text -> [Block]
+plainParagraphs :: Text -> [Content]
 plainParagraphs str = [Paragraph [Plain str]]
 
 goldenSubtreeListItemDoc :: Either String Document
@@ -138,7 +138,7 @@ goldenSubtreeListItemDoc =
              , sectionClocks     = Applicative.empty
              , sectionProperties = Properties mempty
              , sectionLogbook    = Logbook Applicative.empty
-             , sectionBlocks     = Applicative.empty
+             , sectionContents     = Applicative.empty
              }
          , subHeadlines = [
              Headline
@@ -156,7 +156,7 @@ goldenSubtreeListItemDoc =
                  , sectionClocks     = Applicative.empty
                  , sectionProperties = Properties mempty
                  , sectionLogbook    = Logbook Applicative.empty
-                 , sectionBlocks     = Applicative.empty
+                 , sectionContents     = Applicative.empty
                  }
              , subHeadlines = [
                  Headline
@@ -175,7 +175,7 @@ goldenSubtreeListItemDoc =
                      , sectionClocks     = Applicative.empty
                      , sectionProperties = Properties { unProperties = fromList [("ONE", "two")] }
                      , sectionLogbook    = Logbook Applicative.empty
-                     , sectionBlocks     = [ UnorderedList $ map toI [pack "Item1",  pack "Item2"] ]
+                     , sectionContents     = [ UnorderedList $ map toI [pack "Item1",  pack "Item2"] ]
                      }
                  }
                ]
@@ -196,7 +196,7 @@ goldenSubtreeListItemDoc =
                , sectionClocks     = Applicative.empty
                , sectionProperties = Properties mempty
                , sectionLogbook    = Logbook Applicative.empty
-               , sectionBlocks     = Applicative.empty
+               , sectionContents     = Applicative.empty
                }
            }
          ]
