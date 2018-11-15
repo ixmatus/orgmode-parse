@@ -34,6 +34,7 @@ Library
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
+                  Data.OrgMode.Parse.Attoparsec.Constants,
                   Data.OrgMode.Parse.Attoparsec.Content,
                   Data.OrgMode.Parse.Attoparsec.Content.List,
                   Data.OrgMode.Parse.Attoparsec.Content.Markup,
