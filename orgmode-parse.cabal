@@ -59,7 +59,7 @@ Library
               , containers                >= 0.5.6
               , free                      >= 4.9
               , hashable                  >= 1.2
-              , insert-ordered-containers >= 0.2.1.0
+              , insert-ordered-containers >= 0.1.0.0
               , old-locale                >= 1.0
               , semigroups
               , text                      >= 1.2
@@ -94,7 +94,7 @@ Test-Suite tests
               , containers                >= 0.5.6
               , free                      >= 4.9
               , hashable                  >= 1.2
-              , insert-ordered-containers >= 0.2.1.0
+              , insert-ordered-containers >= 0.1.0.0
               , neat-interpolation        >= 0.3
               , old-locale                >= 1.0
               , orgmode-parse
