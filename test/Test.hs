@@ -1,13 +1,13 @@
 module Main where
 
+import           Block.Blocks
+import           Block.List
+import           Block.Paragraph
 import           Document
 import           Drawer
 import           Headline
 import           Test.Tasty
 import           Timestamps
-import           Block.Paragraph
-import           Block.List
-import           Block.Blocks
 
 main :: IO ()
 main = defaultMain tests

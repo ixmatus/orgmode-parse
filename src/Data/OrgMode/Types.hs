@@ -55,7 +55,7 @@ module Data.OrgMode.Types
 ) where
 
 import           Control.Monad                     (mzero)
-import           Data.Aeson                        ((.:), (.=), FromJSON, ToJSON)
+import           Data.Aeson                        ((.:), (.=), FromJSON(..), ToJSON(..), Value(..), object)
 import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap)
 import           Data.Hashable                     (Hashable (..))
 import           Data.Semigroup                    (Semigroup)
@@ -64,8 +64,6 @@ import           Data.Thyme.Calendar               (YearMonthDay (..))
 import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           GHC.Natural                       (Natural)
-
-import qualified Data.HashMap.Strict.InsOrd        as InsOrd
 
 instance Semigroup Natural where
   a <> b = a + b
@@ -98,7 +96,6 @@ newtype Depth = Depth Natural
   deriving newtype Num
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 -- | Section of text directly following a headline.
 data Section = Section
@@ -122,7 +119,6 @@ newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 data MarkupText
   = Plain         Text
@@ -141,7 +137,6 @@ newtype Item = Item [Block]
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 data Block
   =
@@ -161,7 +156,6 @@ newtype Logbook = Logbook { unLogbook :: [Clock] }
   deriving newtype Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
@@ -173,7 +167,6 @@ newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
   deriving (Show, Eq, Generic)
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -186,19 +179,19 @@ data Timestamp = Timestamp
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
   } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
-instance Aeson.ToJSON YearMonthDay where
+instance ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
-    Aeson.object
-      [ "ymdYear"  .= y
-      , "ymdMonth" .= m
-      , "ymdDay"   .= d
+    object
+      [ "year"  .= y
+      , "month" .= m
+      , "day"   .= d
       ]
 
-instance Aeson.FromJSON YearMonthDay where
-  parseJSON (Aeson.Object v) = do
-    y <- v .: "ymdYear"
-    m <- v .: "ymdMonth"
-    d <- v .: "ymdDay"
+instance FromJSON YearMonthDay where
+  parseJSON (Object v) = do
+    y <- v .: "year"
+    m <- v .: "month"
+    d <- v .: "day"
     pure (YearMonthDay y m d)
   parseJSON _ = mzero
 
@@ -284,14 +277,12 @@ newtype StateKeyword = StateKeyword { unStateKeyword :: Text }
   deriving newtype  Monoid
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
   deriving anyclass ToJSON
   deriving anyclass FromJSON
-  deriving anyclass Inject
 
 -- | A type representing a map of planning timestamps.
 data Planning = Planning
@@ -300,7 +291,6 @@ data Planning = Planning
   } deriving (Show, Eq, Generic)
     deriving anyclass ToJSON
     deriving anyclass FromJSON
-    deriving anyclass Inject
 
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
@@ -312,7 +302,6 @@ data Priority = A | B | C
     , Ord
     , ToJSON
     , FromJSON
-    , Inject
     , Generic
     )
 
