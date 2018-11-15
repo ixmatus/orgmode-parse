@@ -205,9 +205,9 @@ parseTime' = stampRng <|> stampAbs
 parseDate :: Attoparsec.Parser Text YearMonthDay
 parseDate = consumeDate >>= either bad good . dateParse
   where
-    bad e        = fail $ "failure parsing date: " <> e
-    good t       = pure $ buildTime t
-    consumeDate  = manyTill anyChar $ char ' '
+    bad e        = fail ("failure parsing date: " <> e)
+    good t       = pure (buildTime t)
+    consumeDate  = manyTill anyChar (char ' ')
     dateParse    = Attoparsec.ByteString.parseOnly dpCombinator . BS.pack
     dpCombinator = timeParser defaultTimeLocale "%Y-%m-%d"
 
