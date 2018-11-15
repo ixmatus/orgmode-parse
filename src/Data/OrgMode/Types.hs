@@ -77,7 +77,7 @@ instance Monoid Natural where
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | Headline within an org-mode document.
 data Headline = Headline
@@ -90,7 +90,7 @@ data Headline = Headline
   , tags         :: [Tag]              -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject,  Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,   Generic)
 
 -- | Headline nesting depth.
 newtype Depth = Depth Natural
@@ -108,7 +108,7 @@ data Section = Section
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionBlocks     :: [Block]  -- ^ Content of Section
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 sectionDrawer :: Section -> [Block]
 sectionDrawer s = filter isDrawer (sectionBlocks s)
@@ -133,7 +133,7 @@ data MarkupText
   | Italic        [MarkupText]
   | UnderLine     [MarkupText]
   | Strikethrough [MarkupText]
-  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 newtype Item = Item [Block]
   deriving (Show, Eq, Generic)
@@ -151,7 +151,7 @@ data Block
   | Drawer
     { name     :: Text
     , contents :: Text
-    } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 type Drawer = Block
 
@@ -167,7 +167,7 @@ newtype Logbook = Logbook { unLogbook :: [Clock] }
 data ActiveState
   = Active
   | Inactive
-  deriving (Show, Eq, Read, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, Read, ToJSON, FromJSON,  Generic)
 
 newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
   deriving (Show, Eq, Generic)
@@ -184,7 +184,7 @@ data Timestamp = Timestamp
   { tsTime    :: DateTime       -- ^ A datetime stamp
   , tsActive  :: ActiveState    -- ^ Active or inactive?
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 instance Aeson.ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
@@ -236,7 +236,7 @@ data DateTime
     , hourMinute   :: Maybe (Hour,Minute)
     , repeater     :: Maybe Repeater
     , delay        :: Maybe Delay
-    } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
@@ -244,7 +244,7 @@ data RepeaterType
   = RepeatCumulate
   | RepeatCatchUp
   | RepeatRestart
-  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A data type representing a repeater interval in a org-mode
 -- timestamp.
@@ -252,20 +252,20 @@ data Repeater = Repeater
   { repeaterType  :: RepeaterType -- ^ Type of repeater
   , repeaterValue :: Natural      -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A sum type representing the delay type of a delay value.
 data DelayType
   = DelayAll
   | DelayFirst
-  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A data type representing a delay value.
 data Delay = Delay
   { delayType  :: DelayType -- ^ Type of delay
   , delayValue :: Natural   -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
-  } deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A sum type representing the time units of a delay.
 data TimeUnit
@@ -274,7 +274,7 @@ data TimeUnit
   | UnitMonth
   | UnitDay
   | UnitHour
-  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
@@ -325,7 +325,7 @@ type Tag = Text
 data Stats
   = StatsPct Natural
   | StatsOf  Natural Natural
-  deriving (Show, Eq, ToJSON, FromJSON, Inject, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 type Duration = (Hour,Minute)
 
