@@ -1,5 +1,4 @@
 flags: {}
-allow-newer: true
 nix:
   packages:
   - cabal-install
@@ -8,5 +7,6 @@ packages:
 - '.'
 extra-deps:
 - aeson-1.1.0.0
+- insert-ordered-containers-0.2.1.0
 resolver: lts-7.24
 
