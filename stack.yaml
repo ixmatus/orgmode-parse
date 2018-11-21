@@ -7,5 +7,4 @@ packages:
 - '.'
 extra-deps:
 - thyme-0.3.5.5
-- aeson-0.11.3.0@sha256:81676f93966361e4d1b9331498c5b6ddd884669786226eb9016a19608482fa69
 resolver: lts-12.2
