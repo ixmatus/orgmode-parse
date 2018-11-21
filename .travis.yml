@@ -18,14 +18,6 @@ before_install:
 
 matrix:
   include:
-  - env: BUILD=stack GHCVER=7.10.3 STACK_YAML=stack-7.10.3.yaml
-    compiler: ": #stack 7.10.3"
-    addons:
-      apt:
-        sources:
-        - hvr-ghc
-        packages:
-        - ghc-7.10.3
   - env: BUILD=stack GHCVER=8.0.1 STACK_YAML=stack-8.0.1.yaml
     compiler: ": #stack 8.0.1"
     addons:
