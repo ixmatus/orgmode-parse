@@ -56,7 +56,6 @@ module Data.OrgMode.Types
 import           Control.Monad                     (mzero)
 import           Data.Aeson                        ((.:), (.=), FromJSON(..), ToJSON(..), Value(..), object)
 import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap)
-import           Data.Hashable                     (Hashable (..))
 import           Data.Semigroup                    (Semigroup)
 import           Data.Text                         (Text)
 import           Data.Thyme.Calendar               (YearMonthDay (..))
@@ -316,7 +315,3 @@ data Stats
   deriving (Show, Eq, ToJSON, FromJSON,  Generic)
 
 type Duration = (Hour,Minute)
-
-instance Hashable PlanningKeyword where
-  hashWithSalt salt k = hashWithSalt salt (fromEnum k)
-
