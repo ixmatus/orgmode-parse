@@ -1,4 +1,5 @@
 flags: {}
+allow-newer: true
 nix:
   packages:
   - cabal-install
