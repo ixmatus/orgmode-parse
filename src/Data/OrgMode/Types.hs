@@ -14,9 +14,8 @@ Types for the AST of an org-mode document.
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE DisambiguateRecordFields   #-}
 {-# LANGUAGE DataKinds                  #-}
 
 {-# OPTIONS -fno-warn-orphans           #-}

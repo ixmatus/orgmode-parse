@@ -107,7 +107,7 @@ headlineBelowDepth stateKeywords d = do
 headlineDepth :: Depth -> Attoparsec.Parser Text Depth
 headlineDepth (Depth d) = takeDepth >>= test
   where
-    takeDepth = (fromIntegral . Text.length) <$> takeWhile1 (== '*')
+    takeDepth = fromIntegral . Text.length <$> takeWhile1 (== '*')
 
     test :: Natural -> Attoparsec.Parser Text Depth
     test n | n <= d    = fail (printf "Headline depth of %d cannot be higher than a depth constraint of %d" n d)
