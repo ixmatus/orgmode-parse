@@ -8,6 +8,7 @@ Stability   :  experimental
 Types for the AST of an org-mode document.
 -}
 
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DisambiguateRecordFields   #-}
@@ -64,10 +65,15 @@ import           Data.Thyme.LocalTime       (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
 import           GHC.Natural                (Natural)
 
+#if __GLASGOW_HASKELL__ >= 84
 instance Semigroup Natural where
   a <> b = a + b
+#endif
 
 instance Monoid Natural where
+#if __GLASGOW_HASKELL__ < 84
+  a <> b = a + b
+#endif
   mempty = 0
 
 -- | Org-mode document.
