@@ -12,8 +12,6 @@ Types for the AST of an org-mode document.
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE DisambiguateRecordFields   #-}
 {-# LANGUAGE DataKinds                  #-}
@@ -47,14 +45,14 @@ module Data.OrgMode.Types
 , TimeUnit          (..)
 , Timestamp         (..)
 , YearMonthDay      (..)
-, Content             (..)
+, Content           (..)
 , MarkupText        (..)
 , Item              (..)
 , sectionDrawer
 ) where
 
 import           Control.Monad                     (mzero)
-import           Data.Aeson                        ((.:), (.=), FromJSON(..), ToJSON(..), Value(..), object)
+import           Data.Aeson                        ((.:), (.=), FromJSON(..), ToJSON(..), Value(..), defaultOptions, genericToEncoding, object)
 import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap)
 import           Data.Semigroup                    (Semigroup)
 import           Data.Text                         (Text)
@@ -73,7 +71,12 @@ instance Monoid Natural where
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Document where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Document
 
 -- | Headline within an org-mode document.
 data Headline = Headline
@@ -86,14 +89,16 @@ data Headline = Headline
   , tags         :: [Tag]              -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
-  } deriving (Show, Eq, ToJSON, FromJSON,   Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Headline where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Headline
 
 -- | Headline nesting depth.
 newtype Depth = Depth Natural
-  deriving (Eq, Show, Generic)
-  deriving newtype Num
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Eq, Show, Num, ToJSON, FromJSON, Generic)
 
 -- | Section of text directly following a headline.
 data Section = Section
@@ -103,7 +108,12 @@ data Section = Section
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionContents     :: [Content]         -- ^ Content of Section
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Section where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Section
 
 sectionDrawer :: Section -> [Content]
 sectionDrawer s = filter isDrawer (sectionContents s)
@@ -112,11 +122,7 @@ sectionDrawer s = filter isDrawer (sectionContents s)
   isDrawer _ = False
 
 newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
-  deriving (Show, Eq, Generic)
-  deriving newtype Semigroup
-  deriving newtype Monoid
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 data MarkupText
   = Plain         Text
@@ -127,14 +133,15 @@ data MarkupText
   | Italic        [MarkupText]
   | UnderLine     [MarkupText]
   | Strikethrough [MarkupText]
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON MarkupText where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON MarkupText
 
 newtype Item = Item [Content]
-  deriving (Show, Eq, Generic)
-  deriving newtype Semigroup
-  deriving newtype Monoid
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 data Content
   =
@@ -144,27 +151,31 @@ data Content
   | Drawer
     { name     :: Text
     , contents :: Text
-    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON Content where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Content
 
 type Drawer = Content
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
-  deriving (Show, Eq, Generic)
-  deriving newtype Semigroup
-  deriving newtype Monoid
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
   = Active
   | Inactive
-  deriving (Show, Eq, Read, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Read, Generic)
+
+instance ToJSON ActiveState where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON ActiveState
 
 newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
-  deriving (Show, Eq, Generic)
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Show, Eq, ToJSON, FromJSON, Generic)
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -175,7 +186,12 @@ data Timestamp = Timestamp
   { tsTime    :: DateTime       -- ^ A datetime stamp
   , tsActive  :: ActiveState    -- ^ Active or inactive?
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Timestamp where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Timestamp
 
 instance ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
@@ -214,7 +230,12 @@ data BracketedDateTime = BracketedDateTime
 data TimePart
   = AbsoluteTime   AbsTime
   | TimeStampRange (AbsTime, AbsTime)
-  deriving (Eq, Ord, Show, ToJSON, FromJSON,  Generic)
+  deriving (Eq, Ord, Show, Generic)
+
+instance ToJSON TimePart where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON TimePart
 
 -- | A data type for parsed org-mode datetime stamps.
 --
@@ -227,7 +248,12 @@ data DateTime
     , hourMinute   :: Maybe (Hour,Minute)
     , repeater     :: Maybe Repeater
     , delay        :: Maybe Delay
-    } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+    } deriving (Show, Eq, Generic)
+
+instance ToJSON DateTime where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON DateTime
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
@@ -235,7 +261,12 @@ data RepeaterType
   = RepeatCumulate
   | RepeatCatchUp
   | RepeatRestart
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON RepeaterType where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON RepeaterType
 
 -- | A data type representing a repeater interval in a org-mode
 -- timestamp.
@@ -243,20 +274,35 @@ data Repeater = Repeater
   { repeaterType  :: RepeaterType -- ^ Type of repeater
   , repeaterValue :: Natural      -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Repeater where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Repeater
 
 -- | A sum type representing the delay type of a delay value.
 data DelayType
   = DelayAll
   | DelayFirst
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON DelayType where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON DelayType
 
 -- | A data type representing a delay value.
 data Delay = Delay
   { delayType  :: DelayType -- ^ Type of delay
   , delayValue :: Natural   -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
-  } deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  } deriving (Show, Eq, Generic)
+
+instance ToJSON Delay where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Delay
 
 -- | A sum type representing the time units of a delay.
 data TimeUnit
@@ -265,43 +311,47 @@ data TimeUnit
   | UnitMonth
   | UnitDay
   | UnitHour
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON TimeUnit where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON TimeUnit
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
 newtype StateKeyword = StateKeyword { unStateKeyword :: Text }
-  deriving (Show, Eq, Generic)
-  deriving newtype  Semigroup
-  deriving newtype  Monoid
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
-  deriving anyclass ToJSON
-  deriving anyclass FromJSON
+
+instance ToJSON PlanningKeyword where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON PlanningKeyword
 
 -- | A type representing a map of planning timestamps.
 data Planning = Planning
   { keyword   :: PlanningKeyword
   , timestamp :: Timestamp
   } deriving (Show, Eq, Generic)
-    deriving anyclass ToJSON
-    deriving anyclass FromJSON
+
+instance ToJSON Planning where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Planning
 
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
-  deriving
-    ( Show
-    , Read
-    , Eq
-    , Ord
-    , ToJSON
-    , FromJSON
-    , Generic
-    )
+  deriving (Show, Read, Eq, Ord, Generic)
+
+instance ToJSON Priority where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Priority
 
 type Tag = Text
 
@@ -312,6 +362,11 @@ type Tag = Text
 data Stats
   = StatsPct Natural
   | StatsOf  Natural Natural
-  deriving (Show, Eq, ToJSON, FromJSON,  Generic)
+  deriving (Show, Eq, Generic)
+
+instance ToJSON Stats where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Stats
 
 type Duration = (Hour,Minute)
