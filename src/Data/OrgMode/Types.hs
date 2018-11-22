@@ -72,7 +72,7 @@ instance Semigroup Natural where
 
 instance Monoid Natural where
 #if ! MIN_VERSION_base(4,11,0)
-  a <> b = a + b
+  a `mappend` b = a + b
 #endif
   mempty = 0
 
