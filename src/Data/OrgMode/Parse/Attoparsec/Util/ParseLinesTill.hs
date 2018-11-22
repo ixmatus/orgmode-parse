@@ -5,11 +5,11 @@ License     :  All Rights Reserved
 Maintainer  :  Parnell Springmeyer <parnell@digitalmentat.com>
 Stability   :  stable
 
-Attoparsec utilities 
+Attoparsec utilities
 -}
 
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE CPP #-}
 
 module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
 ( takeALine
@@ -20,20 +20,22 @@ module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
 where
 
 
-import           Control.Monad        (guard)
 import           Control.Arrow        ((&&&))
+import           Control.Monad        (guard)
 #if __GLASGOW_HASKELL__ >= 810
 import           Data.Bifoldable      (bifoldMap)
 #endif
-import           Data.Semigroup       ((<>))
-import           Data.Attoparsec.Text (Parser, takeTill, isEndOfLine, many1, anyChar, endOfLine, char, isHorizontalSpace, atEnd, parseOnly,(<?>))
-import           Data.Text            (Text, snoc)
+import           Data.Attoparsec.Text (Parser, anyChar, atEnd, char, endOfLine,
+                                       isEndOfLine, isHorizontalSpace, many1,
+                                       parseOnly, takeTill, (<?>))
+import           Data.Foldable        (Foldable (..))
 import           Data.Functor         (($>))
-import           Data.Foldable        (Foldable(..))
+import           Data.Semigroup       ((<>))
+import           Data.Text            (Text, snoc)
 
 import qualified Control.Monad
-import qualified Data.Attoparsec.Text  as Attoparsec.Text
-import qualified Data.Text             as Text
+import qualified Data.Attoparsec.Text as Attoparsec.Text
+import qualified Data.Text            as Text
 
 takeALine :: Parser Text
 takeALine = do
@@ -79,7 +81,7 @@ feedParserText = bifoldMap fail return . parseOnly
 #else
 feedParserText  p t =
   case parseOnly p t of
-    Left s -> fail s
+    Left s  -> fail s
     Right s -> return s
 #endif
 

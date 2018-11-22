@@ -13,17 +13,20 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import Control.Applicative                   ()
-import Data.Attoparsec.Text                  (skipSpace, many', option)
-import Data.Monoid                           ()
+import           Control.Applicative                   ()
+import           Data.Attoparsec.Text                  (many', option,
+                                                        skipSpace)
+import           Data.Monoid                           ()
 
-import Data.OrgMode.Parse.Attoparsec.Drawer
-import Data.OrgMode.Parse.Attoparsec.Time    (parseClock, parsePlannings, parseTimestamp)
-import Data.OrgMode.Parse.Attoparsec.Util    (skipEmptyLines)
-import Data.OrgMode.Parse.Attoparsec.Content (parseContents)
-import Data.OrgMode.Types
+import           Data.OrgMode.Parse.Attoparsec.Content (parseContents)
+import           Data.OrgMode.Parse.Attoparsec.Drawer
+import           Data.OrgMode.Parse.Attoparsec.Time    (parseClock,
+                                                        parsePlannings,
+                                                        parseTimestamp)
+import           Data.OrgMode.Parse.Attoparsec.Util    (skipEmptyLines)
+import           Data.OrgMode.Types
 
-import qualified Data.Attoparsec.Text as Attoparsec.Text
+import qualified Data.Attoparsec.Text                  as Attoparsec.Text
 
 -- | Parse a heading section
 --

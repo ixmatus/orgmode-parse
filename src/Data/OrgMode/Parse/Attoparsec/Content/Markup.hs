@@ -9,9 +9,9 @@
 -- Parsing combinators for org-mode markup and paragraphs.
 ----------------------------------------------------------------------------
 
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE CPP   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Content.Markup
 (
@@ -20,18 +20,21 @@ module Data.OrgMode.Parse.Attoparsec.Content.Markup
 )
 where
 
-import Data.Semigroup       ((<>))
+import           Data.Semigroup       ((<>))
 #if __GLASGOW_HASKELL__ >= 810
-import Data.Bifoldable      (bifoldMap)
+import           Data.Bifoldable      (bifoldMap)
 #endif
-import Data.Char            (isSpace)
-import Data.Text            (Text, cons, append, cons, snoc, intercalate, dropWhileEnd, strip, stripEnd)
-import Data.Attoparsec.Text (Parser, takeWhile, choice, char, anyChar, parseOnly, isEndOfLine, endOfInput, manyTill, skipSpace)
-import Prelude       hiding (takeWhile)
+import           Data.Attoparsec.Text (Parser, anyChar, char, choice,
+                                       endOfInput, isEndOfLine, manyTill,
+                                       parseOnly, skipSpace, takeWhile)
+import           Data.Char            (isSpace)
+import           Data.Text            (Text, append, cons, dropWhileEnd,
+                                       intercalate, snoc, strip, stripEnd)
+import           Prelude              hiding (takeWhile)
 
-import Data.OrgMode.Types   (MarkupText (..))
+import           Data.OrgMode.Types   (MarkupText (..))
 
-import qualified Data.Text as Text
+import qualified Data.Text            as Text
 
 data Token = Token
   { keyChar :: Char
@@ -150,7 +153,7 @@ appendElement h t
   = h:t
 
 -- | Parse the whole text content to an array of Markup Text.
--- 
+--
 -- This parser will not handle the block stop.  The block stop shall
 -- be already handled before passing text with this Parser
 parseMarkupContent :: Parser [MarkupText]

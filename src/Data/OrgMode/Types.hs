@@ -8,13 +8,13 @@ Stability   :  experimental
 Types for the AST of an org-mode document.
 -}
 
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE DuplicateRecordFields      #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE DisambiguateRecordFields   #-}
 {-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DisambiguateRecordFields   #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 {-# OPTIONS -fno-warn-orphans           #-}
 
@@ -51,15 +51,18 @@ module Data.OrgMode.Types
 , sectionDrawer
 ) where
 
-import           Control.Monad                     (mzero)
-import           Data.Aeson                        ((.:), (.=), FromJSON(..), ToJSON(..), Value(..), defaultOptions, genericToEncoding, object)
-import           Data.HashMap.Strict.InsOrd        (InsOrdHashMap)
-import           Data.Semigroup                    (Semigroup)
-import           Data.Text                         (Text)
-import           Data.Thyme.Calendar               (YearMonthDay (..))
-import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
+import           Control.Monad              (mzero)
+import           Data.Aeson                 (FromJSON (..), ToJSON (..),
+                                             Value (..), defaultOptions,
+                                             genericToEncoding, object, (.:),
+                                             (.=))
+import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import           Data.Semigroup             (Semigroup)
+import           Data.Text                  (Text)
+import           Data.Thyme.Calendar        (YearMonthDay (..))
+import           Data.Thyme.LocalTime       (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
-import           GHC.Natural                       (Natural)
+import           GHC.Natural                (Natural)
 
 instance Semigroup Natural where
   a <> b = a + b
@@ -107,7 +110,7 @@ data Section = Section
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionContents     :: [Content]         -- ^ Content of Section
+  , sectionContents   :: [Content]       -- ^ Content of Section
   } deriving (Show, Eq, Generic)
 
 instance ToJSON Section where
@@ -119,7 +122,7 @@ sectionDrawer :: Section -> [Content]
 sectionDrawer s = filter isDrawer (sectionContents s)
   where
   isDrawer (Drawer _ _) = True
-  isDrawer _ = False
+  isDrawer _            = False
 
 newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
   deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)

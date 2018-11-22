@@ -10,9 +10,9 @@
 ----------------------------------------------------------------------------
 
 
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ViewPatterns               #-}
-{-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headline
 ( headlineBelowDepth
@@ -32,15 +32,15 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
+import           GHC.Natural                           (Natural)
 import           Prelude                               hiding (takeWhile)
 import           Text.Printf
-import           GHC.Natural                           (Natural)
 
+import           Data.Functor                          (($>))
 import           Data.OrgMode.Parse.Attoparsec.Section
 import qualified Data.OrgMode.Parse.Attoparsec.Time    as OrgMode.Time
 import           Data.OrgMode.Parse.Attoparsec.Util
 import           Data.OrgMode.Types
-import           Data.Functor                          (($>))
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.

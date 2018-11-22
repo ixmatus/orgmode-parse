@@ -15,14 +15,17 @@ module Data.OrgMode.Parse.Attoparsec.Content
 )
 where
 
-import Data.Attoparsec.Text                            (Parser, many', eitherP)
-import Data.Semigroup                                  ((<>))
+import           Data.Attoparsec.Text                            (Parser,
+                                                                  eitherP,
+                                                                  many')
+import           Data.Semigroup                                  ((<>))
 
-import Data.OrgMode.Parse.Attoparsec.Content.List      (parseList)
-import Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
-import Data.OrgMode.Parse.Attoparsec.Drawer            (parseDrawer)
-import Data.OrgMode.Parse.Attoparsec.Util              (parseLinesTill, takeContentBreak)
-import Data.OrgMode.Types                              (Content (..))
+import           Data.OrgMode.Parse.Attoparsec.Content.List      (parseList)
+import           Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
+import           Data.OrgMode.Parse.Attoparsec.Drawer            (parseDrawer)
+import           Data.OrgMode.Parse.Attoparsec.Util              (parseLinesTill,
+                                                                  takeContentBreak)
+import           Data.OrgMode.Types                              (Content (..))
 
 
 -- | Parse the content until reaching a drawer, a list, or a content end.  And include the parsed drawer.

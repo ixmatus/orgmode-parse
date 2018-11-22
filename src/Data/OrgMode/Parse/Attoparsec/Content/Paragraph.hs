@@ -15,10 +15,10 @@ module Data.OrgMode.Parse.Attoparsec.Content.Paragraph
 )
 where
 
-import Data.Attoparsec.Text                         (Parser)
+import           Data.Attoparsec.Text                         (Parser)
 
-import Data.OrgMode.Parse.Attoparsec.Content.Markup (parseMarkupContent)
-import Data.OrgMode.Types                           (Content (..))
+import           Data.OrgMode.Parse.Attoparsec.Content.Markup (parseMarkupContent)
+import           Data.OrgMode.Types                           (Content (..))
 
 -- | If a chunk of text cannot be parsed as other blocks, parse the chunk of text as a paragraph
 parseParagraph :: Parser Content

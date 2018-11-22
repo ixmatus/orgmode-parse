@@ -9,7 +9,7 @@
 -- Parsing combinators for org-mode markups and paragraphs.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 
 module Data.OrgMode.Parse.Attoparsec.Content.List
@@ -18,17 +18,23 @@ module Data.OrgMode.Parse.Attoparsec.Content.List
 )
 where
 
-import Control.Monad                                   (guard)
-import Data.Attoparsec.Text                            (Parser, many1', isHorizontalSpace, char, digit)
-import Data.Functor                                    (($>))
-import Data.Maybe                                      (isNothing)
+import           Control.Monad                                   (guard)
+import           Data.Attoparsec.Text                            (Parser, char,
+                                                                  digit,
+                                                                  isHorizontalSpace,
+                                                                  many1')
+import           Data.Functor                                    (($>))
+import           Data.Maybe                                      (isNothing)
 
-import Data.OrgMode.Types                              (Item (..), Content (..))
-import Data.OrgMode.Parse.Attoparsec.Util              (parseLinesTill, parseLinesContextuallyTill, takeContentBreak)
-import Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
+import           Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
+import           Data.OrgMode.Parse.Attoparsec.Util              (parseLinesContextuallyTill,
+                                                                  parseLinesTill,
+                                                                  takeContentBreak)
+import           Data.OrgMode.Types                              (Content (..),
+                                                                  Item (..))
 
-import qualified Data.Text                             as Text
-import qualified Data.Attoparsec.Text                  as Attoparsec.Text
+import qualified Data.Attoparsec.Text                            as Attoparsec.Text
+import qualified Data.Text                                       as Text
 
 type TokenParser = Parser ([Item] -> Content)
 
@@ -60,9 +66,9 @@ parseItemTokens = ordered ++ unordered
     parseToken x = char x $> UnorderedList
 
 data ItemTerm = ItemTerm
-  { parseNext :: Parser Item
+  { parseNext     :: Parser Item
   , toListContent :: [Item] -> Content
-  , item :: Item
+  , item          :: Item
   }
 
 -- | Create a Parser to Parse Item

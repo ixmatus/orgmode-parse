@@ -19,9 +19,11 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
 )
 where
 
-import Control.Applicative  ((*>), (<*))
-import Data.Attoparsec.Text ((<?>), char, takeWhile1, skipSpace, Parser, manyTill, asciiCI)
-import Data.Text            (Text)
+import           Control.Applicative                ((*>), (<*))
+import           Data.Attoparsec.Text               (Parser, asciiCI, char,
+                                                     manyTill, skipSpace,
+                                                     takeWhile1, (<?>))
+import           Data.Text                          (Text)
 
 import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 import           Data.OrgMode.Types

@@ -15,15 +15,15 @@ module Data.OrgMode.Parse.Attoparsec.Document
 )
 where
 
-import           Control.Applicative                    ((<$>), (<*>))
+import           Control.Applicative                     ((<$>), (<*>))
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types                  as Attoparsec
-import           Data.Text                              (Text)
-import qualified Data.Text                              as Text
+import           Data.Attoparsec.Types                   as Attoparsec
+import           Data.Text                               (Text)
+import qualified Data.Text                               as Text
 
+import qualified Data.OrgMode.Parse.Attoparsec.Constants as Constants
 import           Data.OrgMode.Parse.Attoparsec.Headline
 import qualified Data.OrgMode.Parse.Attoparsec.Util      as Util
-import qualified Data.OrgMode.Parse.Attoparsec.Constants as Constants
 import           Data.OrgMode.Types
 
 ------------------------------------------------------------------------------

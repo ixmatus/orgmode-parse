@@ -22,20 +22,20 @@ module Data.OrgMode.Parse.Attoparsec.Time
 )
 where
 
-import Control.Applicative        
-import Data.Attoparsec.Combinator as Attoparsec
-import Data.Attoparsec.Text
-import Data.Attoparsec.Types      as Attoparsec (Parser)
-import Data.Functor                  (($>))
-import Data.Maybe                    (listToMaybe)
-import Data.Semigroup                ((<>))
-import Data.Text                     (Text)
-import Data.Thyme.Format             (buildTime, timeParser)
-import Data.Thyme.LocalTime          (Hours, Minutes)
-import System.Locale                 (defaultTimeLocale)
-import Prelude                    hiding (repeat)
+import           Control.Applicative
+import           Data.Attoparsec.Combinator as Attoparsec
+import           Data.Attoparsec.Text
+import           Data.Attoparsec.Types      as Attoparsec (Parser)
+import           Data.Functor               (($>))
+import           Data.Maybe                 (listToMaybe)
+import           Data.Semigroup             ((<>))
+import           Data.Text                  (Text)
+import           Data.Thyme.Format          (buildTime, timeParser)
+import           Data.Thyme.LocalTime       (Hours, Minutes)
+import           Prelude                    hiding (repeat)
+import           System.Locale              (defaultTimeLocale)
 
-import Data.OrgMode.Types
+import           Data.OrgMode.Types
 
 import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
 import qualified Data.ByteString.Char8      as BS

@@ -19,16 +19,16 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Property
 )
 where
 
-import Control.Applicative                             ((*>), (<*))
-import Data.Attoparsec.Text                         as T
-import Data.Attoparsec.Types                        as Attoparsec
-import Data.HashMap.Strict.InsOrd                      (fromList)
-import Data.Text                                       (Text)
+import           Control.Applicative                          ((*>), (<*))
+import           Data.Attoparsec.Text                         as T
+import           Data.Attoparsec.Types                        as Attoparsec
+import           Data.HashMap.Strict.InsOrd                   (fromList)
+import           Data.Text                                    (Text)
 
-import Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
-import Data.OrgMode.Types
+import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
+import           Data.OrgMode.Types
 
-import qualified Data.Text                          as Text
+import qualified Data.Text                                    as Text
 
 type PropertyKey = Text
 type PropertyVal = Text

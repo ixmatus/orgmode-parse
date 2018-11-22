@@ -9,7 +9,7 @@
 -- Constants for some default values.
 ----------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Data.OrgMode.Parse.Attoparsec.Constants
 (
@@ -17,7 +17,7 @@ module Data.OrgMode.Parse.Attoparsec.Constants
 )
 where
 
-import Data.String (IsString)
+import           Data.String (IsString)
 
 keywords :: IsString a => [a]
 keywords = [ "TODO", "CANCELED", "DONE" ]
