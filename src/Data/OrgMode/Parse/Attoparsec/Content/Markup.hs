@@ -14,9 +14,8 @@
 {-# LANGUAGE RecordWildCards   #-}
 
 module Data.OrgMode.Parse.Attoparsec.Content.Markup
-(
-  parseMarkupContent,
-  parsePlainText,
+( parseMarkupContent
+, parsePlainText
 )
 where
 
@@ -24,7 +23,7 @@ import           Data.Semigroup       ((<>))
 #if __GLASGOW_HASKELL__ >= 810
 import           Data.Bifoldable      (bifoldMap)
 #endif
-import           Data.Attoparsec.Text (Parser, anyChar, char, choice,
+import           Data.Attoparsec.Text (Parser, anyChar, char, choice, option,
                                        endOfInput, isEndOfLine, manyTill,
                                        parseOnly, skipSpace, takeWhile)
 import           Data.Char            (isSpace)
@@ -56,6 +55,23 @@ isNotToken :: Char -> Bool
 isNotToken c = c `notElem` tokenKeywods
   where
     tokenKeywods = ['$', '=', '~'] ++ map keyChar tokens
+
+-- | A parser for hyper-link markup.
+parseHyperLink :: Parser MarkupText
+parseHyperLink = do
+  _ <- char '['
+
+  link        <- parseLink
+  description <- option Nothing (Just <$> parseDescription)
+
+  _ <- char ']'
+
+  pure HyperLink{..}
+
+  where
+    parseLink        = parseBracketText
+    parseDescription = parseBracketText
+    parseBracketText = char '[' *> takeWhile (/= ']') <* char ']'
 
 -- | A Naive parser for LaTeX
 parseLaTeX :: Parser MarkupText
@@ -102,7 +118,8 @@ createTokenParser innerParser Token{..} = do
 parsePlainText :: Parser MarkupText
 parsePlainText = do
   c <- anyChar
-  -- Append the first char and then refactor all spaces at line end and line beginning
+  -- Append the first char and then refactor all spaces at line end
+  -- and line beginning
   content <- adaptSpace . cons c <$> takeWhile isNotToken
   return $ Plain content
 
@@ -154,12 +171,12 @@ appendElement h t
 
 -- | Parse the whole text content to an array of Markup Text.
 --
--- This parser will not handle the block stop.  The block stop shall
--- be already handled before passing text with this Parser
+-- This parser will not handle the block stop. The block stop shall be
+-- already handled before passing text with this Parser
 parseMarkupContent :: Parser [MarkupText]
 parseMarkupContent = foldr appendElement [] <$> manyTill parseMarkup (skipSpace *> endOfInput)
   where
     parseMarkup :: Parser MarkupText
     parseMarkup =
       choice (map (createTokenParser parseMarkupContent) tokens) <>
-      choice [parseLaTeX, parseVerbatim, parseCode, parsePlainText]
+      choice [ parseHyperLink, parseLaTeX, parseVerbatim, parseCode, parsePlainText ]

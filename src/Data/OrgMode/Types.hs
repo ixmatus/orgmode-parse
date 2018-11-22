@@ -41,7 +41,6 @@ module Data.OrgMode.Types
 , Section           (..)
 , StateKeyword      (..)
 , Stats             (..)
-, Tag
 , TimePart          (..)
 , TimeUnit          (..)
 , Timestamp         (..)
@@ -95,7 +94,7 @@ data Headline = Headline
   , title        :: Text               -- ^ Primary text of the headline
   , timestamp    :: Maybe Timestamp    -- ^ A timestamp that may be embedded in the headline
   , stats        :: Maybe Stats        -- ^ Fraction of subtasks completed, e.g: [33%] or [1/2]
-  , tags         :: [Tag]              -- ^ Tags on the headline
+  , tags         :: [Text]             -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
   } deriving (Show, Eq, Generic)
@@ -142,6 +141,10 @@ data MarkupText
   | Italic        [MarkupText]
   | UnderLine     [MarkupText]
   | Strikethrough [MarkupText]
+  | HyperLink
+    { link        :: Text
+    , description :: Maybe Text
+    }
   deriving (Show, Eq, Generic)
 
 instance ToJSON MarkupText where
@@ -361,8 +364,6 @@ instance ToJSON Priority where
   toEncoding = genericToEncoding defaultOptions
 
 instance FromJSON Priority
-
-type Tag = Text
 
 -- | A data type representing a stats value in a headline, e.g @[2/3]@
 -- in this headline:
