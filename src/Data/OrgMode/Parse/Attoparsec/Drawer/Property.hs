@@ -22,12 +22,13 @@ where
 import           Control.Applicative                          ((*>), (<*))
 import           Data.Attoparsec.Text                         as T
 import           Data.Attoparsec.Types                        as Attoparsec
-import           Data.HashMap.Strict                          (fromList)
+import           Data.HashMap.Strict.InsOrd                   (fromList)
 import           Data.Text                                    (Text)
-import qualified Data.Text                                    as Text
 
 import           Data.OrgMode.Parse.Attoparsec.Drawer.Generic as Drawer.Generic
 import           Data.OrgMode.Types
+
+import qualified Data.Text                                    as Text
 
 type PropertyKey = Text
 type PropertyVal = Text

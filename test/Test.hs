@@ -1,13 +1,13 @@
 module Main where
 
+import           Content.Contents
+import           Content.List
+import           Content.Paragraph
 import           Document
 import           Drawer
 import           Headline
 import           Test.Tasty
 import           Timestamps
-import           Block.Paragraph
-import           Block.List
-import           Block.Blocks
 
 main :: IO ()
 main = defaultMain tests
@@ -20,7 +20,7 @@ tests = testGroup
           , parserTimestampTests
           , parserParagraphs
           , parserLists
-          , parserBlocks
+          , parserContents
           , parserWeekdayTests
           , parserSmallDocumentTests
           ]

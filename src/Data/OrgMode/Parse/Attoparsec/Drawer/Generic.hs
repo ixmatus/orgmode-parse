@@ -20,12 +20,15 @@ module Data.OrgMode.Parse.Attoparsec.Drawer.Generic
 where
 
 import           Control.Applicative                ((*>), (<*))
-import           Data.Attoparsec.Text               ((<?>), char, takeWhile1, skipSpace, Parser, manyTill, asciiCI)
+import           Data.Attoparsec.Text               (Parser, asciiCI, char,
+                                                     manyTill, skipSpace,
+                                                     takeWhile1, (<?>))
 import           Data.Text                          (Text)
-import qualified Data.Text                          as Text
 
 import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 import           Data.OrgMode.Types
+
+import qualified Data.Text                          as Text
 
 -- | Parse a user-defined drawer.
 --
@@ -34,8 +37,8 @@ import           Data.OrgMode.Types
 -- > :END:
 parseDrawer :: Parser Drawer
 parseDrawer =
-  Drawer                <$>
-    parseDrawerName     <*>
+  Drawer            <$>
+    parseDrawerName <*>
     (Text.unlines <$> manyTill Util.nonHeadline drawerEnd)
 
 -- | Parse a user-defined drawer's name, e.g:

@@ -8,7 +8,12 @@ Stability   :  experimental
 Types for the AST of an org-mode document.
 -}
 
+{-# LANGUAGE CPP                        #-}
+{-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DisambiguateRecordFields   #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 
@@ -28,7 +33,7 @@ module Data.OrgMode.Types
 , Headline          (..)
 , Logbook           (..)
 , PlanningKeyword   (..)
-, Plannings         (..)
+, Planning          (..)
 , Priority          (..)
 , Properties        (..)
 , Repeater          (..)
@@ -41,22 +46,35 @@ module Data.OrgMode.Types
 , TimeUnit          (..)
 , Timestamp         (..)
 , YearMonthDay      (..)
-, Block             (..)
+, Content           (..)
 , MarkupText        (..)
 , Item              (..)
 , sectionDrawer
 ) where
 
-import           Control.Monad                     (mzero)
-import           Data.Aeson                        ((.:), (.=))
-import qualified Data.Aeson                        as Aeson
-import           Data.Hashable                     (Hashable (..))
-import           Data.HashMap.Strict               (HashMap, fromList, keys, toList)
-import           Data.Text                         (Text, pack)
-import           Data.Thyme.Calendar               (YearMonthDay (..))
-import           Data.Thyme.LocalTime              (Hour, Hours, Minute, Minutes)
+import           Control.Monad              (mzero)
+import           Data.Aeson                 (FromJSON (..), ToJSON (..),
+                                             Value (..), defaultOptions,
+                                             genericToEncoding, object, (.:),
+                                             (.=))
+import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
+import           Data.Semigroup             (Semigroup)
+import           Data.Text                  (Text)
+import           Data.Thyme.Calendar        (YearMonthDay (..))
+import           Data.Thyme.LocalTime       (Hour, Hours, Minute, Minutes)
 import           GHC.Generics
-import           Data.Semigroup                    (Semigroup)
+import           GHC.Natural                (Natural)
+
+#if MIN_VERSION_base(4,11,0)
+instance Semigroup Natural where
+  a <> b = a + b
+#endif
+
+instance Monoid Natural where
+#if ! MIN_VERSION_base(4,11,0)
+  a `mappend` b = a + b
+#endif
+  mempty = 0
 
 -- | Org-mode document.
 data Document = Document
@@ -64,8 +82,10 @@ data Document = Document
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Document
-instance Aeson.FromJSON Document
+instance ToJSON Document where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Document
 
 -- | Headline within an org-mode document.
 data Headline = Headline
@@ -80,32 +100,38 @@ data Headline = Headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
   } deriving (Show, Eq, Generic)
 
+instance ToJSON Headline where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Headline
+
 -- | Headline nesting depth.
-newtype Depth = Depth Int
-  deriving (Eq, Show, Num, Generic)
-
-instance Aeson.ToJSON Depth
-instance Aeson.FromJSON Depth
-
+newtype Depth = Depth Natural
+  deriving (Eq, Show, Num, ToJSON, FromJSON, Generic)
 
 -- | Section of text directly following a headline.
 data Section = Section
   { sectionTimestamp  :: Maybe Timestamp -- ^ A headline's section timestamp
-  , sectionPlannings  :: Plannings       -- ^ A map of planning timestamps
+  , sectionPlannings  :: [Planning]      -- ^ A list of planning records
   , sectionClocks     :: [Clock]         -- ^ A list of clocks
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
-  , sectionBlocks     :: [Block]  -- ^ Content of Section
+  , sectionContents   :: [Content]       -- ^ Content of Section
   } deriving (Show, Eq, Generic)
 
-sectionDrawer :: Section -> [Block]
-sectionDrawer s = filter isDrawer (sectionBlocks s)
+instance ToJSON Section where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Section
+
+sectionDrawer :: Section -> [Content]
+sectionDrawer s = filter isDrawer (sectionContents s)
   where
   isDrawer (Drawer _ _) = True
-  isDrawer _ = False
+  isDrawer _            = False
 
-newtype Properties = Properties { unProperties :: HashMap Text Text }
-  deriving (Show, Eq, Generic, Semigroup, Monoid)
+newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 data MarkupText
   = Plain         Text
@@ -118,32 +144,33 @@ data MarkupText
   | Strikethrough [MarkupText]
   deriving (Show, Eq, Generic)
 
-newtype Item = Item [Block] deriving (Show, Eq, Generic, Semigroup, Monoid)
+instance ToJSON MarkupText where
+  toEncoding = genericToEncoding defaultOptions
 
-data Block = OrderedList [Item] | UnorderedList [Item] | Paragraph [MarkupText] | Drawer {
-    name     :: Text
-  , contents :: Text
-} deriving (Show, Eq, Generic)
-type Drawer = Block
+instance FromJSON MarkupText
 
-instance Aeson.ToJSON MarkupText
-instance Aeson.FromJSON MarkupText
+newtype Item = Item [Content]
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
-instance Aeson.ToJSON Item
-instance Aeson.FromJSON Item
+data Content
+  =
+    OrderedList   [Item]
+  | UnorderedList [Item]
+  | Paragraph     [MarkupText]
+  | Drawer
+    { name     :: Text
+    , contents :: Text
+    } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Block
-instance Aeson.FromJSON Block
+instance ToJSON Content where
+  toEncoding = genericToEncoding defaultOptions
 
-instance Aeson.ToJSON Properties
-instance Aeson.FromJSON Properties
+instance FromJSON Content
+
+type Drawer = Content
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
-  deriving (Show, Eq, Generic, Semigroup, Monoid)
-
-
-instance Aeson.ToJSON Logbook
-instance Aeson.FromJSON Logbook
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
@@ -151,14 +178,13 @@ data ActiveState
   | Inactive
   deriving (Show, Eq, Read, Generic)
 
-instance Aeson.ToJSON ActiveState
-instance Aeson.FromJSON ActiveState
+instance ToJSON ActiveState where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON ActiveState
 
 newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
-  deriving (Show, Eq, Generic)
-
-instance Aeson.ToJSON Clock
-instance Aeson.FromJSON Clock
+  deriving (Show, Eq, ToJSON, FromJSON, Generic)
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -171,25 +197,26 @@ data Timestamp = Timestamp
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Timestamp
-instance Aeson.FromJSON Timestamp
+instance ToJSON Timestamp where
+  toEncoding = genericToEncoding defaultOptions
 
-instance Aeson.ToJSON YearMonthDay where
+instance FromJSON Timestamp
+
+instance ToJSON YearMonthDay where
   toJSON (YearMonthDay y m d) =
-    Aeson.object
-      [ "ymdYear"  .= y
-      , "ymdMonth" .= m
-      , "ymdDay"   .= d
+    object
+      [ "year"  .= y
+      , "month" .= m
+      , "day"   .= d
       ]
 
-instance Aeson.FromJSON YearMonthDay where
-  parseJSON (Aeson.Object v) = do
-    y <- v .: "ymdYear"
-    m <- v .: "ymdMonth"
-    d <- v .: "ymdDay"
+instance FromJSON YearMonthDay where
+  parseJSON (Object v) = do
+    y <- v .: "year"
+    m <- v .: "month"
+    d <- v .: "day"
     pure (YearMonthDay y m d)
   parseJSON _ = mzero
-
 
 type Weekday = Text
 type AbsTime = (Hours, Minutes)
@@ -212,22 +239,30 @@ data BracketedDateTime = BracketedDateTime
 data TimePart
   = AbsoluteTime   AbsTime
   | TimeStampRange (AbsTime, AbsTime)
-  deriving (Eq, Ord, Show)
+  deriving (Eq, Ord, Show, Generic)
+
+instance ToJSON TimePart where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON TimePart
 
 -- | A data type for parsed org-mode datetime stamps.
 --
 -- TODO: why do we have this data type and BracketedDateTime? They
 -- look almost exactly the same...
-data DateTime = DateTime {
-    yearMonthDay :: YearMonthDay
-  , dayName      :: Maybe Text
-  , hourMinute   :: Maybe (Hour,Minute)
-  , repeater     :: Maybe Repeater
-  , delay        :: Maybe Delay
-  } deriving (Show, Eq, Generic)
+data DateTime
+  = DateTime
+    { yearMonthDay :: YearMonthDay
+    , dayName      :: Maybe Text
+    , hourMinute   :: Maybe (Hour,Minute)
+    , repeater     :: Maybe Repeater
+    , delay        :: Maybe Delay
+    } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON DateTime
-instance Aeson.FromJSON DateTime
+instance ToJSON DateTime where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON DateTime
 
 -- | A sum type representing the repeater type of a repeater interval
 -- in a org-mode timestamp.
@@ -237,19 +272,23 @@ data RepeaterType
   | RepeatRestart
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON RepeaterType
-instance Aeson.FromJSON RepeaterType
+instance ToJSON RepeaterType where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON RepeaterType
 
 -- | A data type representing a repeater interval in a org-mode
 -- timestamp.
 data Repeater = Repeater
   { repeaterType  :: RepeaterType -- ^ Type of repeater
-  , repeaterValue :: Int          -- ^ Repeat value
+  , repeaterValue :: Natural      -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Repeater
-instance Aeson.FromJSON Repeater
+instance ToJSON Repeater where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Repeater
 
 -- | A sum type representing the delay type of a delay value.
 data DelayType
@@ -257,18 +296,22 @@ data DelayType
   | DelayFirst
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON DelayType
-instance Aeson.FromJSON DelayType
+instance ToJSON DelayType where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON DelayType
 
 -- | A data type representing a delay value.
 data Delay = Delay
   { delayType  :: DelayType -- ^ Type of delay
-  , delayValue :: Int       -- ^ Delay value
+  , delayValue :: Natural   -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
   } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Delay
-instance Aeson.FromJSON Delay
+instance ToJSON Delay where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Delay
 
 -- | A sum type representing the time units of a delay.
 data TimeUnit
@@ -279,65 +322,60 @@ data TimeUnit
   | UnitHour
   deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON TimeUnit
-instance Aeson.FromJSON TimeUnit
+instance ToJSON TimeUnit where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON TimeUnit
 
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
-newtype StateKeyword = StateKeyword {unStateKeyword :: Text}
-  deriving (Show, Eq, Generic)
-
-instance Aeson.ToJSON StateKeyword
-instance Aeson.FromJSON StateKeyword
+newtype StateKeyword = StateKeyword { unStateKeyword :: Text }
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
   deriving (Show, Eq, Enum, Ord, Generic)
 
-instance Aeson.ToJSON PlanningKeyword
-instance Aeson.FromJSON PlanningKeyword
+instance ToJSON PlanningKeyword where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON PlanningKeyword
 
 -- | A type representing a map of planning timestamps.
-newtype Plannings = Plns (HashMap PlanningKeyword Timestamp)
-                  deriving (Show, Eq, Generic)
+data Planning = Planning
+  { keyword   :: PlanningKeyword
+  , timestamp :: Timestamp
+  } deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Plannings where
-  toJSON (Plns hm) = Aeson.object $ map jPair (toList hm)
-    where jPair (k, v) = pack (show k) .= Aeson.toJSON v
+instance ToJSON Planning where
+  toEncoding = genericToEncoding defaultOptions
 
-instance Aeson.FromJSON Plannings where
-  parseJSON (Aeson.Object v) = Plns . fromList <$> traverse jPair (keys v)
-    where jPair k = v .: k
-  parseJSON _ = mzero
-
-instance Aeson.ToJSON Section
-instance Aeson.FromJSON Section
-
-instance Aeson.ToJSON Headline
-instance Aeson.FromJSON Headline
+instance FromJSON Planning
 
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
   deriving (Show, Read, Eq, Ord, Generic)
 
-instance Aeson.ToJSON Priority
-instance Aeson.FromJSON Priority
+instance ToJSON Priority where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Priority
+
 type Tag = Text
 
 -- | A data type representing a stats value in a headline, e.g @[2/3]@
 -- in this headline:
 --
 -- > * TODO [2/3] work on orgmode-parse
-data Stats = StatsPct Int
-           | StatsOf  Int Int
-           deriving (Show, Eq, Generic)
+data Stats
+  = StatsPct Natural
+  | StatsOf  Natural Natural
+  deriving (Show, Eq, Generic)
 
-instance Aeson.ToJSON Stats
-instance Aeson.FromJSON Stats
+instance ToJSON Stats where
+  toEncoding = genericToEncoding defaultOptions
+
+instance FromJSON Stats
 
 type Duration = (Hour,Minute)
-
-instance Hashable PlanningKeyword where
-  hashWithSalt salt k = hashWithSalt salt (fromEnum k)
-

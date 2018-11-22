@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Block.Paragraph (
+module Content.Paragraph (
   parserParagraphs
                            )
   where
@@ -8,11 +8,11 @@ import           Test.Tasty
 import           Test.Tasty.HUnit
 import           Data.OrgMode.Types
 import           Data.Text                                     (Text, pack)
-import           Data.OrgMode.Parse.Attoparsec.Block.Paragraph (parseParagraph)
+import           Data.OrgMode.Parse.Attoparsec.Content.Paragraph (parseParagraph)
 import           Util
 import           Util.Builder
 
-testDocS :: (BlockBuilder t) => Text -> t -> Assertion
+testDocS :: (ContentBuilder t) => Text -> t -> Assertion
 testDocS s expected = expectParse parseParagraph s (Right (toP expected))
 
 parserParagraphs :: TestTree

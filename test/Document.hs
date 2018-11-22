@@ -1,21 +1,22 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Document where
 
 import           Data.Attoparsec.Text
-import           Data.Text                        hiding  (map)
-import qualified Data.Text                              as Text
-import qualified Data.Text.IO                           as TextIO
-import           Test.Tasty
-import           Test.Tasty.HUnit
-import           Data.HashMap.Strict              hiding   (map)
-
+import           Data.HashMap.Strict.InsOrd             hiding (map)
 import           Data.OrgMode.Parse.Attoparsec.Document
 import           Data.OrgMode.Parse.Attoparsec.Time
 import           Data.OrgMode.Types
+import           Data.Text                              hiding (map)
+import           Test.Tasty
+import           Test.Tasty.HUnit
 import           Util
 import           Util.Builder
 
+import qualified Data.Text                              as Text
+import qualified Data.Text.IO                           as TextIO
+import qualified Control.Applicative                    as Applicative
 
 parserSmallDocumentTests :: TestTree
 parserSmallDocumentTests = testGroup "Attoparsec Small Document"
@@ -42,12 +43,12 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   ]
 
   where
-    testDocS s r = expectParse (parseDocument kw) s (Right r)
+    testDocS s r = expectParse parseDocument s (Right r)
 
     testDocFile  = do
       doc <- TextIO.readFile "test/docs/test-document.org"
 
-      let testDoc = parseOnly (parseDocument kw) doc
+      let testDoc = parseOnly parseDocument doc
 
       assertBool "Expected to parse document" (parseSucceeded testDoc)
 
@@ -57,9 +58,8 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
       -- let subtreeListItemsDoc = parseOnly (parseDocument []) doc
 
       -- assertBool "Expected to parse document" (subtreeListItemsDoc == goldenSubtreeListItemDoc)
-      expectParse (parseDocument []) doc  goldenSubtreeListItemDoc
+      expectParse (parseDocumentWithKeywords []) doc  goldenSubtreeListItemDoc
 
-    kw           = ["TODO", "CANCELED", "DONE"]
     pText        = "Paragraph text\n.No headline here.\n##--------\n"
     parseSucceeded (Right _) = True
     parseSucceeded (Left _ ) = False
@@ -74,7 +74,7 @@ sampleAParse :: Document
 sampleAParse = Document
                sampleParagraph
                -- Headline shall have space after *
-               [emptyHeadline {title="Test1", tags=["Hi there"], section = emptySection {sectionBlocks= [toP (Bold [])]}}
+               [emptyHeadline {title="Test1", tags=["Hi there"], section = emptySection {sectionContents= [toP (Bold [])]}}
                ,emptyHeadline {title="Test2", tags=["Two","Tags"]}
                ]
 
@@ -84,15 +84,11 @@ samplePText = Text.concat ["* Test3\n"
                           ]
 
 samplePParse :: Document
-samplePParse = Document
-               ""
-               [emptyHeadline {title="Test3",section=emptySection{sectionPlannings=plns}}
-               ]
+samplePParse = Document "" [ emptyHeadline { title="Test3", section = sect } ]
   where
-    plns :: Plannings
-    plns = Plns con
-
-    Right con = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
+    sect = emptySection{ sectionPlannings = plannings }
+      where
+        Right plannings = parseOnly parsePlannings "SCHEDULED: <2015-06-12 Fri>"
 
 emptyHeadline :: Headline
 emptyHeadline =
@@ -115,81 +111,93 @@ spaces :: Int -> Text
 spaces = flip Text.replicate " "
 
 emptySection :: Section
-emptySection = Section Nothing (Plns mempty) mempty mempty mempty mempty
+emptySection = Section Nothing mempty mempty mempty mempty mempty
 
-plainParagraphs :: Text -> [Block]
+plainParagraphs :: Text -> [Content]
 plainParagraphs str = [Paragraph [Plain str]]
 
 goldenSubtreeListItemDoc :: Either String Document
-goldenSubtreeListItemDoc = Right (Document 
-  {documentText = "", 
-  documentHeadlines = [Headline 
-    {depth = Depth 1,
-    stateKeyword = Nothing,
-    priority = Nothing,
-    title = "Header1", 
-    timestamp = Nothing,
-    stats = Nothing,
-    tags = [], 
-    section = Section 
-      {sectionTimestamp = Nothing,
-      sectionPlannings = Plns (fromList []), 
-      sectionClocks = [], 
-      sectionProperties = Properties {unProperties = fromList []}, 
-      sectionLogbook = Logbook {unLogbook = []}, 
-      sectionBlocks = [] 
-      },
-    subHeadlines = [Headline {
-      depth = Depth 2,
-      stateKeyword = Nothing,
-      priority = Nothing,
-      title = "Header2", 
-      timestamp = Nothing,
-      stats = Nothing,
-      tags = [], 
-      section = Section {
-        sectionTimestamp = Nothing,
-        sectionPlannings = Plns (fromList []), 
-        sectionClocks = [], 
-        sectionProperties = Properties { unProperties = fromList []},
-        sectionLogbook = Logbook {unLogbook = []},
-        sectionBlocks = []
-      },
-      subHeadlines = [Headline {
-        depth = Depth 3,
-        stateKeyword = Nothing,
-        priority = Nothing,
-        title = "Header3",
-        timestamp = Nothing,
-        stats = Nothing,
-        tags = [],
-        section = Section {
-          sectionTimestamp = Nothing,
-          sectionPlannings = Plns (fromList []),
-          sectionClocks = [],
-          sectionProperties = Properties {unProperties = fromList [("ONE","two")]},
-          sectionLogbook = Logbook {unLogbook = []},
-          sectionBlocks = [UnorderedList $ map toI [pack "Item1",  pack "Item2"]]
-        },
-        subHeadlines = []
-      }]
-    },
-    Headline {
-      depth = Depth 2,
-      stateKeyword = Nothing,
-      priority = Nothing,
-      title = "Header4",
-      timestamp = Nothing,
-      stats = Nothing,
-      tags = [],
-      section = Section {
-        sectionTimestamp = Nothing,
-        sectionPlannings = Plns (fromList []),
-        sectionClocks = [],
-        sectionProperties = Properties {unProperties = fromList []},
-        sectionLogbook = Logbook {unLogbook = []},
-        sectionBlocks = []
-      },
-      subHeadlines = []}
-  ]}
-]})
+goldenSubtreeListItemDoc =
+  Right
+    (Document 
+     { documentText = ""
+     , documentHeadlines = [
+         Headline 
+         { depth        = Depth 1
+         , stateKeyword = Applicative.empty
+         , priority     = Applicative.empty
+         , title        = "Header1"
+         , timestamp    = Applicative.empty
+         , stats        = Applicative.empty
+         , tags         = Applicative.empty
+         , section      =
+             Section
+             { sectionTimestamp  = Applicative.empty
+             , sectionPlannings  = Applicative.empty
+             , sectionClocks     = Applicative.empty
+             , sectionProperties = Properties mempty
+             , sectionLogbook    = Logbook Applicative.empty
+             , sectionContents     = Applicative.empty
+             }
+         , subHeadlines = [
+             Headline
+             { depth        = Depth 2
+             , stateKeyword = Applicative.empty
+             , priority     = Applicative.empty
+             , title        = "Header2"
+             , timestamp    = Applicative.empty
+             , stats        = Applicative.empty
+             , tags         = Applicative.empty
+             , section      =
+                 Section
+                 { sectionTimestamp  = Applicative.empty
+                 , sectionPlannings  = Applicative.empty
+                 , sectionClocks     = Applicative.empty
+                 , sectionProperties = Properties mempty
+                 , sectionLogbook    = Logbook Applicative.empty
+                 , sectionContents     = Applicative.empty
+                 }
+             , subHeadlines = [
+                 Headline
+                 { depth        = Depth 3
+                 , stateKeyword = Applicative.empty
+                 , priority     = Applicative.empty
+                 , title        = "Header3"
+                 , timestamp    = Applicative.empty
+                 , stats        = Applicative.empty
+                 , tags         = Applicative.empty
+                 , subHeadlines = Applicative.empty
+                 , section      =
+                     Section
+                     { sectionTimestamp  = Applicative.empty
+                     , sectionPlannings  = Applicative.empty
+                     , sectionClocks     = Applicative.empty
+                     , sectionProperties = Properties { unProperties = fromList [("ONE", "two")] }
+                     , sectionLogbook    = Logbook Applicative.empty
+                     , sectionContents     = [ UnorderedList $ map toI [pack "Item1",  pack "Item2"] ]
+                     }
+                 }
+               ]
+             }
+         , Headline
+           { depth        = Depth 2
+           , stateKeyword = Applicative.empty
+           , priority     = Applicative.empty
+           , title        = "Header4"
+           , timestamp    = Applicative.empty
+           , stats        = Applicative.empty
+           , tags         = Applicative.empty
+           , subHeadlines = Applicative.empty
+           , section      =
+               Section
+               { sectionTimestamp  = Applicative.empty
+               , sectionPlannings  = Applicative.empty
+               , sectionClocks     = Applicative.empty
+               , sectionProperties = Properties mempty
+               , sectionLogbook    = Logbook Applicative.empty
+               , sectionContents   = Applicative.empty
+               }
+           }
+         ]
+         }
+       ]})

@@ -22,25 +22,24 @@ module Data.OrgMode.Parse.Attoparsec.Time
 )
 where
 
-import           Control.Applicative        
-import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
+import           Control.Applicative
 import           Data.Attoparsec.Combinator as Attoparsec
 import           Data.Attoparsec.Text
 import           Data.Attoparsec.Types      as Attoparsec (Parser)
-import qualified Data.ByteString.Char8      as BS
 import           Data.Functor               (($>))
-import           Data.HashMap.Strict        (HashMap, fromList)
 import           Data.Maybe                 (listToMaybe)
-import           Data.Monoid                ()
+import           Data.Semigroup             ((<>))
 import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
 import           Data.Thyme.Format          (buildTime, timeParser)
 import           Data.Thyme.LocalTime       (Hours, Minutes)
+import           Prelude                    hiding (repeat)
 import           System.Locale              (defaultTimeLocale)
-import           Data.Semigroup             ((<>))
+
 import           Data.OrgMode.Types
 
-import           Prelude                    hiding (repeat)
+import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
+import qualified Data.ByteString.Char8      as BS
+import qualified Data.Text                  as Text
 
 -- | Parse a planning line.
 --
@@ -49,14 +48,15 @@ import           Prelude                    hiding (repeat)
 -- the same line e.g:
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
-parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
+parsePlannings :: Attoparsec.Parser Text [Planning]
+parsePlannings = many' (skipSpace *> planning <* skipSpace)
   where
-    planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
-    pType    = choice [string "SCHEDULED" $>  SCHEDULED
-                      ,string "DEADLINE"  $>  DEADLINE
-                      ,string "CLOSED"    $>  CLOSED
-                      ]
+    planning = Planning <$> keyword <* char ':' <*> (skipSpace *> parseTimestamp)
+    keyword  =
+      choice [ string "SCHEDULED" $> SCHEDULED
+             , string "DEADLINE"  $> DEADLINE
+             , string "CLOSED"    $> CLOSED
+             ]
 
 -- | Parse a clock line.
 --
@@ -205,9 +205,9 @@ parseTime' = stampRng <|> stampAbs
 parseDate :: Attoparsec.Parser Text YearMonthDay
 parseDate = consumeDate >>= either bad good . dateParse
   where
-    bad e        = fail $ "failure parsing date: " <> e
-    good t       = pure $ buildTime t
-    consumeDate  = manyTill anyChar $ char ' '
+    bad e        = fail ("failure parsing date: " <> e)
+    good t       = pure (buildTime t)
+    consumeDate  = manyTill anyChar (char ' ')
     dateParse    = Attoparsec.ByteString.parseOnly dpCombinator . BS.pack
     dpCombinator = timeParser defaultTimeLocale "%Y-%m-%d"
 

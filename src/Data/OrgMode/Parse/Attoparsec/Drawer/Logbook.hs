@@ -12,7 +12,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Data.OrgMode.Parse.Attoparsec.Drawer.Logbook
-( parseLogbook
+(
+  parseLogbook
 )
 where
 

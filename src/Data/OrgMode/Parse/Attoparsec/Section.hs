@@ -13,16 +13,20 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                  ()
-import           Data.Attoparsec.Text                 (skipSpace, many', option)
-import qualified Data.Attoparsec.Text                 as Attoparsec.Text
-import           Data.Monoid                          ()
+import           Control.Applicative                   ()
+import           Data.Attoparsec.Text                  (many', option,
+                                                        skipSpace)
+import           Data.Monoid                           ()
 
+import           Data.OrgMode.Parse.Attoparsec.Content (parseContents)
 import           Data.OrgMode.Parse.Attoparsec.Drawer
-import           Data.OrgMode.Parse.Attoparsec.Time
-import           Data.OrgMode.Parse.Attoparsec.Util          (skipEmptyLines)
-import           Data.OrgMode.Parse.Attoparsec.Block         (parseBlocks)
+import           Data.OrgMode.Parse.Attoparsec.Time    (parseClock,
+                                                        parsePlannings,
+                                                        parseTimestamp)
+import           Data.OrgMode.Parse.Attoparsec.Util    (skipEmptyLines)
 import           Data.OrgMode.Types
+
+import qualified Data.Attoparsec.Text                  as Attoparsec.Text
 
 -- | Parse a heading section
 --
@@ -32,11 +36,11 @@ import           Data.OrgMode.Types
 parseSection :: Attoparsec.Text.Parser Section
 parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines
   where
-  parseSection' = Section
-   <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
-   <*> (Plns <$> parsePlannings)
-   <*> many' parseClock
-   <*> option mempty parseProperties
-   <*> option mempty parseLogbook
-   <*> parseBlocks
+    parseSection' = Section
+     <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
+     <*> parsePlannings
+     <*> many' parseClock
+     <*> option mempty parseProperties
+     <*> option mempty parseLogbook
+     <*> parseContents
 

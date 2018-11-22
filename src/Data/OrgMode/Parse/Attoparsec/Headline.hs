@@ -10,8 +10,9 @@
 ----------------------------------------------------------------------------
 
 
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module Data.OrgMode.Parse.Attoparsec.Headline
 ( headlineBelowDepth
@@ -31,14 +32,15 @@ import           Data.Maybe
 import           Data.Monoid
 import           Data.Text                             (Text)
 import qualified Data.Text                             as Text
+import           GHC.Natural                           (Natural)
 import           Prelude                               hiding (takeWhile)
 import           Text.Printf
 
+import           Data.Functor                          (($>))
 import           Data.OrgMode.Parse.Attoparsec.Section
 import qualified Data.OrgMode.Parse.Attoparsec.Time    as OrgMode.Time
 import           Data.OrgMode.Parse.Attoparsec.Util
 import           Data.OrgMode.Types
-import           Data.Functor                          (($>))
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.
@@ -105,9 +107,11 @@ headlineBelowDepth stateKeywords d = do
 headlineDepth :: Depth -> Attoparsec.Parser Text Depth
 headlineDepth (Depth d) = takeDepth >>= test
   where
-    takeDepth = Text.length <$> takeWhile1 (== '*')
-    test n | n <= d    = fail $ printf "Headline depth of %d cannot be higher than a depth constraint of %d" n d
-           | otherwise = pure $ Depth n
+    takeDepth = fromIntegral . Text.length <$> takeWhile1 (== '*')
+
+    test :: Natural -> Attoparsec.Parser Text Depth
+    test n | n <= d    = fail (printf "Headline depth of %d cannot be higher than a depth constraint of %d" n d)
+           | otherwise = pure (Depth n)
 
 -- | Parse the state indicator.
 --

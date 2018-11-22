@@ -1,1 +1,1 @@
-(import ./release.nix).orgmode-parse.env
+(import ./release.nix { }).orgmode-parse.env

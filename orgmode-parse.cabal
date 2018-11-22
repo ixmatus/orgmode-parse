@@ -30,31 +30,38 @@ Library
   Default-Language:     Haskell2010
   HS-Source-Dirs:       src
   Ghc-options:
-                 -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
+                 -Wall -Werror -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind
 
   Exposed-Modules:
                   Data.OrgMode.Parse,
+                  Data.OrgMode.Parse.Attoparsec.Constants,
+                  Data.OrgMode.Parse.Attoparsec.Content,
+                  Data.OrgMode.Parse.Attoparsec.Content.List,
+                  Data.OrgMode.Parse.Attoparsec.Content.Markup,
+                  Data.OrgMode.Parse.Attoparsec.Content.Paragraph,
                   Data.OrgMode.Parse.Attoparsec.Document,
-                  Data.OrgMode.Parse.Attoparsec.Headline,
                   Data.OrgMode.Parse.Attoparsec.Drawer,
+                  Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Logbook,
                   Data.OrgMode.Parse.Attoparsec.Drawer.Property,
-                  Data.OrgMode.Parse.Attoparsec.Drawer.Generic,
+                  Data.OrgMode.Parse.Attoparsec.Headline,
                   Data.OrgMode.Parse.Attoparsec.Section,
                   Data.OrgMode.Parse.Attoparsec.Time,
                   Data.OrgMode.Parse.Attoparsec.Util,
+                  Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill,
                   Data.OrgMode.Types
 
   Build-Depends:
                 base                      >= 4.8 && < 5
-              , semigroups
-              , aeson                     >= 0.11
+              , aeson                     >= 1.0
               , attoparsec                >= 0.13
               , bytestring                >= 0.10.4
               , containers                >= 0.5.6
               , free                      >= 4.9
               , hashable                  >= 1.2
+              , insert-ordered-containers >= 0.2.0.0
               , old-locale                >= 1.0
+              , semigroups
               , text                      >= 1.2
               , thyme                     >= 0.3
               , unordered-containers      >= 0.2.7
@@ -62,35 +69,41 @@ Library
 Test-Suite tests
   Type:                 exitcode-stdio-1.0
   Default-Language:     Haskell2010
-  Hs-Source-Dirs:       test, src
+  Hs-Source-Dirs:       test
   Ghc-Options:          -Wall -fwarn-tabs -funbox-strict-fields -fno-warn-orphans -fno-warn-unused-do-bind  -fbreak-on-error
   Main-Is:              Test.hs
-  Other-Modules:
-                Document,
-                Headline,
-                Drawer,
-                Timestamps,
-                Util,
-                Weekdays
+
+  other-modules:
+                Content.Contents
+              , Content.List
+              , Content.Paragraph
+              , Document
+              , Drawer
+              , Headline
+              , Timestamps
+              , Util
+              , Util.Builder
+              , Weekdays
 
   Build-Depends:
                 base                      >= 4.8 && < 5
-              , orgmode-parse
-              , semigroups
-              , aeson                     >= 0.11
+              , HUnit                     >= 1.3
+              , aeson                     >= 1.0
               , attoparsec                >= 0.13
               , bytestring                >= 0.10.4
               , containers                >= 0.5.6
               , free                      >= 4.9
               , hashable                  >= 1.2
+              , insert-ordered-containers >= 0.2.0.0
+              , neat-interpolation        >= 0.3
               , old-locale                >= 1.0
+              , orgmode-parse
+              , semigroups
+              , tasty                     >= 0.11
+              , tasty-hunit               >= 0.9
               , text                      >= 1.2
               , thyme                     >= 0.3
               , unordered-containers      >= 0.2.7
-              , HUnit                     >= 1.3
-              , tasty                     >= 0.11
-              , tasty-hunit               >= 0.9
-              , neat-interpolation        >= 0.3
 
 Source-Repository head
   Type:                 git
