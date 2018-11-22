@@ -44,6 +44,8 @@ import           Data.OrgMode.Types
 
 -- | Intermediate type for parsing titles in a headline after the
 -- state keyword and priority have been parsed.
+type Tag = Text
+
 newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe [Tag])
   deriving (Eq, Show)
 
@@ -60,7 +62,7 @@ newtype TitleMeta = TitleMeta (Text, Maybe Stats, Maybe [Tag])
 -- Headlines may contain:
 --
 -- - A section with Planning and Clock entries
--- - A number of other not-yet-implemented entities (code blocks, lists)
+-- - A number of other entities (code blocks, lists)
 -- - Unstructured text
 -- - Sub-headlines
 --
@@ -144,8 +146,8 @@ headingPriority = start *> zipChoice <* end
 -- > :HOMEWORK:POETRY:WRITING:
 parseTitle :: Attoparsec.Parser Text TitleMeta
 parseTitle =
-  mkTitleMeta            <$>
-    titleStart           <*>
+  mkTitleMeta          <$>
+    titleStart         <*>
     optMeta parseStats <*>
     optMeta parseTags  <*>
     -- Parse what's leftover AND till end of line or input; discarding
