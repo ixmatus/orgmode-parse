@@ -12,22 +12,56 @@ You can find the package on [Hackage](https://hackage.haskell.org/package/orgmod
   
 ## What's Finished
 We have built attoparsec parsers for parsing org-mode document structures and
-meta-data. Here is a list of all the syntax features that have a complete
+meta-data. Here is a list of [all the syntax features](https://orgmode.org/worg/dev/org-syntax.html) that have a complete
 parsing implementation and not:
 
-- [X] Headlines
+- [X] Headlines and Sections
   - [X] State keywords
   - [X] Priority indicator
   - [X] Title
   - [X] Status / progress indicator
   - [X] Tag list
-- [X] Property drawers
-- [X] State keyword changelogs
-- [X] Scheduled and deadline timestamps (timestamp, range, duration, periodicity)
-  - [X] Active and inactive timestamps
-- [X] Clock timestamps
-- [-] Markup
-  - [-] Emphasis
+- [ ] Affiliated Keywords
+- [-] Greater Elements
+  - [ ] Greater Blocks
+  - [X] Drawers 
+  - [ ] Dynamic Blocks
+  - [ ] Footnote Definitions
+  - [ ] Inlinetasks
+  - [ ] Plain Lists and Items
+    - [X] Unordered lists
+    - [X] Numbered lists
+    - [ ] Checkbox modified lists
+  - [X] Property Drawers
+  - [ ] Tables
+- [ ] Elements
+  - [ ] Babel Cell
+  - [ ] Blocks
+  - [X] Clock, Diary Sexp and Planning
+    - [X] Scheduled and deadline timestamps (timestamp, range, duration, periodicity)
+      - [X] Active and inactive timestamps
+    - [X] Clock timestamps
+  - [ ] Comments
+  - [ ] Fixed Width Areas
+  - [ ] Horizontal Rules
+  - [X] Keywords
+  - [ ] LaTeX Environments
+  - [X] Node Properties
+  - [X] Paragraphs
+  - [ ] Table Rows
+- [ ] Objects
+  - [-] Entities and LaTeX Fragments
+  - [ ] Export Snippets
+  - [ ] Footnote References
+  - [ ] Inline Babel Calls and Source Blocks
+  - [ ] Line Breaks (\\)
+  - [ ] Links
+  - [ ] Macros
+  - [ ] Targets and Radio Targets
+  - [ ] Statistics Cookies
+  - [ ] Table Cells
+  - [-] Timestamps
+  - [ ] Text Markup
     - [X] Bold
     - [X] Italic
     - [X] Strikethrough
@@ -35,12 +69,6 @@ parsing implementation and not:
     - [ ] Superscript
     - [ ] Subscript
     - [X] Code / monospaced
-  - [ ] Tables
-  - [-] Lists
-    - [X] Unordered lists
-    - [X] Numbered lists
-    - [ ] Checkbox modified lists
-  - [ ] Blocks (src / quote / example blocks)
 - [ ] Position Annotated AST
 
 ## Building
