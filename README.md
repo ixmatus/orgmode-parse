@@ -16,11 +16,6 @@ meta-data. Here is a list of [all the syntax features](https://orgmode.org/worg/
 parsing implementation and not:
 
 - [X] Headlines and Sections
-  - [X] State keywords
-  - [X] Priority indicator
-  - [X] Title
-  - [X] Status / progress indicator
-  - [X] Tag list
 - [ ] Affiliated Keywords
 - [-] Greater Elements
   - [ ] Greater Blocks
