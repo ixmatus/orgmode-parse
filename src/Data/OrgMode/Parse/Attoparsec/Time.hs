@@ -36,6 +36,7 @@ import           Prelude                    hiding (repeat)
 import           System.Locale              (defaultTimeLocale)
 
 import           Data.OrgMode.Types
+import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 
 import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
 import qualified Data.ByteString.Char8      as BS
@@ -49,7 +50,7 @@ import qualified Data.Text                  as Text
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: Attoparsec.Parser Text [Planning]
-parsePlannings = many' (skipSpace *> planning <* skipSpace)
+parsePlannings = many' (skipSpace *> planning <* Util.skipOnlySpace)
   where
     planning = Planning <$> keyword <* char ':' <*> (skipSpace *> parseTimestamp)
     keyword  =

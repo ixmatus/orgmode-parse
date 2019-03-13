@@ -43,4 +43,3 @@ parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines
      <*> option mempty parseProperties
      <*> option mempty parseLogbook
      <*> parseContents
-
