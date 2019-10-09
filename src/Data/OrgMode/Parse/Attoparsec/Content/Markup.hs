@@ -19,11 +19,12 @@ module Data.OrgMode.Parse.Attoparsec.Content.Markup
 )
 where
 
+import           Control.Applicative  (optional)
 import           Data.Semigroup       ((<>))
 #if __GLASGOW_HASKELL__ >= 810
 import           Data.Bifoldable      (bifoldMap)
 #endif
-import           Data.Attoparsec.Text (Parser, anyChar, char, choice, option,
+import           Data.Attoparsec.Text (Parser, anyChar, char, choice,
                                        endOfInput, isEndOfLine, manyTill,
                                        parseOnly, skipSpace, takeWhile)
 import           Data.Char            (isSpace)
@@ -62,7 +63,7 @@ parseHyperLink = do
   _ <- char '['
 
   link        <- parseLink
-  description <- option Nothing (Just <$> parseDescription)
+  description <- optional parseDescription
 
   _ <- char ']'
 

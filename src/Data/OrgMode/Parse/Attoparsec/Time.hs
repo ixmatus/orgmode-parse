@@ -68,9 +68,8 @@ parsePlannings = many' (skipSpace *> planning <* Util.skipOnlySpace)
 parseClock :: Attoparsec.Parser Text Clock
 parseClock = Clock <$> ((,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur)
   where
-    ts  = option Nothing (Just <$> parseTimestamp)
-    dur = option Nothing (Just <$> (string " => "
-                                    *> skipSpace *> parseHM))
+    ts  = optional parseTimestamp
+    dur = optional (string " => " *> skipSpace *> parseHM)
 
 -- | Parse a timestamp.
 --
@@ -112,7 +111,7 @@ parseTimestamp = do
 
   where
     optionalBracketedDateTime =
-      option Nothing (Just <$> (string "--" *> parseBracketedDateTime))
+      optional (string "--" *> parseBracketedDateTime)
 
 
 -- | Parse a single time part.
@@ -139,7 +138,7 @@ parseBracketedDateTime = do
   closingBracket <- char '>' <|> char ']'
   finally brkDateTime openingBracket closingBracket
   where
-    optionalParse p  = option Nothing (Just <$> p) <* skipSpace
+    optionalParse p  = optional p <* skipSpace
     maybeListParse p = listToMaybe <$> many' p  <* skipSpace
     activeBracket ((=='<') -> active) =
       if active then Active else Inactive

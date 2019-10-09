@@ -13,7 +13,7 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                   ()
+import           Control.Applicative                   (optional)
 import           Data.Attoparsec.Text                  (many', option,
                                                         skipSpace)
 import           Data.Monoid                           ()
@@ -37,7 +37,7 @@ parseSection :: Attoparsec.Text.Parser Section
 parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines
   where
     parseSection' = Section
-     <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
+     <$> optional (skipSpace *> parseTimestamp <* skipSpace)
      <*> parsePlannings
      <*> many' parseClock
      <*> option mempty parseProperties
