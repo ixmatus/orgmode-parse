@@ -39,6 +39,7 @@ import           Data.Thyme.LocalTime       (Hours, Minutes)
 import           System.Locale              (defaultTimeLocale)
 import           Data.Semigroup             ((<>))
 import           Data.OrgMode.Types
+import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
 
 -- | Parse a planning line.
 --
@@ -48,7 +49,7 @@ import           Data.OrgMode.Types
 --
 -- > DEADLINE: <2015-05-10 17:00> CLOSED: <2015-04-1612:00>
 parsePlannings :: Attoparsec.Parser Text (HashMap PlanningKeyword Timestamp)
-parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
+parsePlannings = fromList <$> many' (skipSpace *> planning <* Util.skipOnlySpace)
   where
     planning =  (,) <$> pType <* char ':' <*> (skipSpace *> parseTimestamp)
     pType    = choice [string "SCHEDULED" $>  SCHEDULED
@@ -65,9 +66,8 @@ parsePlannings = fromList <$> many' (skipSpace *> planning <* skipSpace)
 parseClock :: Attoparsec.Parser Text Clock
 parseClock = Clock <$> ((,) <$> (skipSpace *> string "CLOCK: " *> ts) <*> dur)
   where
-    ts  = option Nothing (Just <$> parseTimestamp)
-    dur = option Nothing (Just <$> (string " => "
-                                    *> skipSpace *> parseHM))
+    ts  = optional parseTimestamp
+    dur = optional (string " => " *> skipSpace *> parseHM)
 
 -- | Parse a timestamp.
 --
@@ -109,7 +109,7 @@ parseTimestamp = do
 
   where
     optionalBracketedDateTime =
-      option Nothing (Just <$> (string "--" *> parseBracketedDateTime))
+      optional (string "--" *> parseBracketedDateTime)
 
 
 -- | Parse a single time part.
@@ -136,7 +136,7 @@ parseBracketedDateTime = do
   closingBracket <- char '>' <|> char ']'
   finally brkDateTime openingBracket closingBracket
   where
-    optionalParse p  = option Nothing (Just <$> p) <* skipSpace
+    optionalParse p  = optional p <* skipSpace
     maybeListParse p = listToMaybe <$> many' p  <* skipSpace
     activeBracket ((=='<') -> active) =
       if active then Active else Inactive

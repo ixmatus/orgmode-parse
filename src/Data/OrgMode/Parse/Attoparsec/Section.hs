@@ -13,13 +13,10 @@
 
 module Data.OrgMode.Parse.Attoparsec.Section where
 
-import           Control.Applicative                  ()
-import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types                as Attoparsec
-import           Data.Monoid                          ()
-import           Data.Text                            (Text)
-import qualified Data.Text                            as Text
-
+import           Control.Applicative                   (optional)
+import           Data.Attoparsec.Text                  (many', option,
+                                                        skipSpace)
+import           Data.Monoid                           ()
 import           Data.OrgMode.Parse.Attoparsec.Drawer
 import           Data.OrgMode.Parse.Attoparsec.Time
 import qualified Data.OrgMode.Parse.Attoparsec.Util   as Util
@@ -31,13 +28,13 @@ import           Data.OrgMode.Types
 -- Headline sections contain optionally a property drawer,
 -- a list of clock entries, code blocks (not yet implemented),
 -- plain lists (not yet implemented), and unstructured text.
-parseSection :: Attoparsec.Parser Text Section
-parseSection =
-  Section
-   <$> option Nothing (Just <$> (skipSpace *> parseTimestamp <* skipSpace))
-   <*> (Plns <$> parsePlannings)
-   <*> many' parseClock
-   <*> option mempty parseProperties
-   <*> option mempty parseLogbook
-   <*> many' parseDrawer
-   <*> (Text.unlines <$> many' Util.nonHeadline)
+parseSection :: Attoparsec.Text.Parser Section
+parseSection = skipEmptyLines *> parseSection' <* skipEmptyLines
+  where
+    parseSection' = Section
+     <$> optional (skipSpace *> parseTimestamp <* skipSpace)
+     <*> parsePlannings
+     <*> many' parseClock
+     <*> option mempty parseProperties
+     <*> option mempty parseLogbook
+     <*> parseContents
