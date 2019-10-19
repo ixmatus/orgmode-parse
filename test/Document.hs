@@ -29,10 +29,10 @@ parserSmallDocumentTests = testGroup "Attoparsec Small Document"
   , testCase "Parse Headline with Planning" $
       testDocS samplePText samplePParse
 
-  , testCase "Parse Headline with properties and sublist" $
+  , testCase "Parse Headline with properties" $
       testDocS sampleP2Text sampleP2Parse
 
-  , testCase "Parse Headline with scheduled and sublist" $
+  , testCase "Parse Headline with scheduled" $
       testDocS sampleP3Text sampleP3Parse
 
   , testCase "Parse Headline no \n" $
@@ -100,11 +100,9 @@ samplePParse = Document
 sampleP2Text :: Text
 sampleP2Text =
     Text.concat ["* Test3_1\n"
-                ,"    :PROPERTIES:\n"
-                ,"    :CATEGORY: testCategory\n"
-                ,"    :END:\n"
-                ,"    * One bullet list element\n"
-                ,"* Test3_2\n"
+                ,"  :PROPERTIES:\n"
+                ,"  :CATEGORY: testCategory\n"
+                ,"  :END:"
                 ]
 
 sampleP2Parse :: Document
@@ -112,16 +110,12 @@ sampleP2Parse =
     Document "" [ emptyHeadline {
                       title = "Test3_1"
                     , section = emptySection {
-                          sectionProperties = Properties (fromList [("CATEGORY", "testCategory")])
-                        , sectionContents = [UnorderedList [Item [Paragraph [Plain "One bullet list element"]]]]}}
-                , emptyHeadline { title = "Test3_2"}]
+                          sectionProperties = Properties (fromList [("CATEGORY", "testCategory")])}}]
 
 sampleP3Text :: Text
 sampleP3Text =
     Text.concat ["* Test4_1\n"
-                ,"    SCHEDULED: <2004-02-29 Sun 10:20>\n"
-                ,"    * One bullet list element\n"
-                ,"* Test4_2\n"
+                ,"  SCHEDULED: <2004-02-29 Sun 10:20>"
                 ]
 
 sampleP3Parse :: Document
@@ -129,21 +123,9 @@ sampleP3Parse =
     Document "" [ emptyHeadline {
                       title = "Test4_1"
                     , section = emptySection {
-                          sectionPlannings = [Planning SCHEDULED curTimestamp]
-                        , sectionContents = [UnorderedList [Item [Paragraph [Plain "One bullet list element"]]]]}}
-                , emptyHeadline { title = "Test4_2"}]
+                          sectionPlannings = Plns con}}]
   where
-    curTimestamp =
-          Timestamp
-            (DateTime
-              (YearMonthDay 2004 2 29)
-              (Just "Sun")
-              (Just (10,20))
-              Nothing Nothing
-            )
-            Active
-            Nothing
-
+    Right con = parseOnly parsePlannings "SCHEDULED: <2004-02-29 Sun 10:20>"
 
 emptyHeadline :: Headline
 emptyHeadline =

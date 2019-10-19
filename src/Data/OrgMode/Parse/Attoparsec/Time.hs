@@ -22,24 +22,25 @@ module Data.OrgMode.Parse.Attoparsec.Time
 )
 where
 
-import           Control.Applicative        
-import qualified Data.Attoparsec.ByteString as Attoparsec.ByteString
-import           Data.Attoparsec.Combinator as Attoparsec
+import           Control.Applicative
+import qualified Data.Attoparsec.ByteString         as Attoparsec.ByteString
+import           Data.Attoparsec.Combinator         as Attoparsec
 import           Data.Attoparsec.Text
-import           Data.Attoparsec.Types      as Attoparsec (Parser)
-import qualified Data.ByteString.Char8      as BS
-import           Data.Functor               (($>))
-import           Data.HashMap.Strict        (HashMap, fromList)
-import           Data.Maybe                 (listToMaybe)
-import           Data.Monoid                ()
-import           Data.Text                  (Text)
-import qualified Data.Text                  as Text
-import           Data.Thyme.Format          (buildTime, timeParser)
-import           Data.Thyme.LocalTime       (Hours, Minutes)
-import           System.Locale              (defaultTimeLocale)
-import           Data.Semigroup             ((<>))
-import           Data.OrgMode.Types
+import           Data.Attoparsec.Types              as Attoparsec (Parser)
+import qualified Data.ByteString.Char8              as BS
+import           Data.Functor                       (($>))
+import           Data.HashMap.Strict                (HashMap, fromList)
+import           Data.Maybe                         (listToMaybe)
+import           Data.Monoid                        ()
 import qualified Data.OrgMode.Parse.Attoparsec.Util as Util
+import           Data.OrgMode.Types
+import           Data.Semigroup                     ((<>))
+import           Data.Text                          (Text)
+import qualified Data.Text                          as Text
+import           Data.Thyme.Format                  (buildTime, timeParser)
+import           Data.Thyme.LocalTime               (Hours, Minutes)
+import           Prelude                            hiding (repeat)
+import           System.Locale                      (defaultTimeLocale)
 
 -- | Parse a planning line.
 --
