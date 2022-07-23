@@ -11,6 +11,7 @@ Types for the AST of an org-mode document.
 {-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DisambiguateRecordFields   #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -56,6 +57,7 @@ import           Data.Aeson                 (FromJSON (..), ToJSON (..),
                                              Value (..), defaultOptions,
                                              genericToEncoding, object, (.:),
                                              (.=))
+import           Data.Data                  (Data(..), Typeable)
 import           Data.HashMap.Strict.InsOrd (InsOrdHashMap)
 import           Data.Semigroup             (Semigroup)
 import           Data.Text                  (Text)
@@ -79,7 +81,7 @@ instance Monoid Natural where
 data Document = Document
   { documentText      :: Text       -- ^ Text occurring before any Org headlines
   , documentHeadlines :: [Headline] -- ^ Toplevel Org headlines
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Document where
   toEncoding = genericToEncoding defaultOptions
@@ -97,7 +99,7 @@ data Headline = Headline
   , tags         :: [Text]             -- ^ Tags on the headline
   , section      :: Section            -- ^ The body underneath a headline
   , subHeadlines :: [Headline]         -- ^ A list of sub-headlines
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Headline where
   toEncoding = genericToEncoding defaultOptions
@@ -106,7 +108,7 @@ instance FromJSON Headline
 
 -- | Headline nesting depth.
 newtype Depth = Depth Natural
-  deriving (Eq, Show, Num, ToJSON, FromJSON, Generic)
+  deriving (Eq, Show, Num, ToJSON, FromJSON, Generic, Typeable, Data)
 
 -- | Section of text directly following a headline.
 data Section = Section
@@ -116,7 +118,7 @@ data Section = Section
   , sectionProperties :: Properties      -- ^ A map of properties from the :PROPERTY: drawer
   , sectionLogbook    :: Logbook         -- ^ A list of clocks from the :LOGBOOK: drawer
   , sectionContents   :: [Content]       -- ^ Content of Section
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Section where
   toEncoding = genericToEncoding defaultOptions
@@ -130,7 +132,7 @@ sectionDrawer s = filter isDrawer (sectionContents s)
   isDrawer _            = False
 
 newtype Properties = Properties { unProperties :: InsOrdHashMap Text Text }
-  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic, Typeable, Data)
 
 data MarkupText
   = Plain         Text
@@ -145,7 +147,7 @@ data MarkupText
     { link        :: Text
     , description :: Maybe Text
     }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON MarkupText where
   toEncoding = genericToEncoding defaultOptions
@@ -153,7 +155,7 @@ instance ToJSON MarkupText where
 instance FromJSON MarkupText
 
 newtype Item = Item [Content]
-  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic, Typeable, Data)
 
 data Content
   =
@@ -163,7 +165,7 @@ data Content
   | Drawer
     { name     :: Text
     , contents :: Text
-    } deriving (Show, Eq, Generic)
+    } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Content where
   toEncoding = genericToEncoding defaultOptions
@@ -173,13 +175,13 @@ instance FromJSON Content
 type Drawer = Content
 
 newtype Logbook = Logbook { unLogbook :: [Clock] }
-  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic, Typeable, Data)
 
 -- | Sum type indicating the active state of a timestamp.
 data ActiveState
   = Active
   | Inactive
-  deriving (Show, Eq, Read, Generic)
+  deriving (Show, Eq, Read, Generic, Typeable, Data)
 
 instance ToJSON ActiveState where
   toEncoding = genericToEncoding defaultOptions
@@ -187,7 +189,7 @@ instance ToJSON ActiveState where
 instance FromJSON ActiveState
 
 newtype Clock = Clock { unClock :: (Maybe Timestamp, Maybe Duration) }
-  deriving (Show, Eq, ToJSON, FromJSON, Generic)
+  deriving (Show, Eq, ToJSON, FromJSON, Generic, Typeable, Data)
 
 -- | A generic data type for parsed org-mode time stamps, e.g:
 --
@@ -198,7 +200,7 @@ data Timestamp = Timestamp
   { tsTime    :: DateTime       -- ^ A datetime stamp
   , tsActive  :: ActiveState    -- ^ Active or inactive?
   , tsEndTime :: Maybe DateTime -- ^ A end-of-range datetime stamp
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Timestamp where
   toEncoding = genericToEncoding defaultOptions
@@ -242,7 +244,7 @@ data BracketedDateTime = BracketedDateTime
 data TimePart
   = AbsoluteTime   AbsTime
   | TimeStampRange (AbsTime, AbsTime)
-  deriving (Eq, Ord, Show, Generic)
+  deriving (Eq, Ord, Show, Generic, Typeable, Data)
 
 instance ToJSON TimePart where
   toEncoding = genericToEncoding defaultOptions
@@ -260,7 +262,7 @@ data DateTime
     , hourMinute   :: Maybe (Hour,Minute)
     , repeater     :: Maybe Repeater
     , delay        :: Maybe Delay
-    } deriving (Show, Eq, Generic)
+    } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON DateTime where
   toEncoding = genericToEncoding defaultOptions
@@ -273,7 +275,7 @@ data RepeaterType
   = RepeatCumulate
   | RepeatCatchUp
   | RepeatRestart
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON RepeaterType where
   toEncoding = genericToEncoding defaultOptions
@@ -286,7 +288,7 @@ data Repeater = Repeater
   { repeaterType  :: RepeaterType -- ^ Type of repeater
   , repeaterValue :: Natural      -- ^ Repeat value
   , repeaterUnit  :: TimeUnit     -- ^ Repeat time unit
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Repeater where
   toEncoding = genericToEncoding defaultOptions
@@ -297,7 +299,7 @@ instance FromJSON Repeater
 data DelayType
   = DelayAll
   | DelayFirst
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON DelayType where
   toEncoding = genericToEncoding defaultOptions
@@ -309,7 +311,7 @@ data Delay = Delay
   { delayType  :: DelayType -- ^ Type of delay
   , delayValue :: Natural   -- ^ Delay value
   , delayUnit  :: TimeUnit  -- ^ Delay time unit
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Delay where
   toEncoding = genericToEncoding defaultOptions
@@ -323,7 +325,7 @@ data TimeUnit
   | UnitMonth
   | UnitDay
   | UnitHour
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON TimeUnit where
   toEncoding = genericToEncoding defaultOptions
@@ -333,11 +335,11 @@ instance FromJSON TimeUnit
 -- | A type representing a headline state keyword, e.g: @TODO@,
 -- @DONE@, @WAITING@, etc.
 newtype StateKeyword = StateKeyword { unStateKeyword :: Text }
-  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic)
+  deriving (Show, Eq, Semigroup, Monoid, ToJSON, FromJSON, Generic, Typeable, Data)
 
 -- | A sum type representing the planning keywords.
 data PlanningKeyword = SCHEDULED | DEADLINE | CLOSED
-  deriving (Show, Eq, Enum, Ord, Generic)
+  deriving (Show, Eq, Enum, Ord, Generic, Typeable, Data)
 
 instance ToJSON PlanningKeyword where
   toEncoding = genericToEncoding defaultOptions
@@ -348,7 +350,7 @@ instance FromJSON PlanningKeyword
 data Planning = Planning
   { keyword   :: PlanningKeyword
   , timestamp :: Timestamp
-  } deriving (Show, Eq, Generic)
+  } deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Planning where
   toEncoding = genericToEncoding defaultOptions
@@ -358,7 +360,7 @@ instance FromJSON Planning
 -- | A sum type representing the three default priorities: @A@, @B@,
 -- and @C@.
 data Priority = A | B | C
-  deriving (Show, Read, Eq, Ord, Generic)
+  deriving (Show, Read, Eq, Ord, Generic, Typeable, Data)
 
 instance ToJSON Priority where
   toEncoding = genericToEncoding defaultOptions
@@ -372,7 +374,7 @@ instance FromJSON Priority
 data Stats
   = StatsPct Natural
   | StatsOf  Natural Natural
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Generic, Typeable, Data)
 
 instance ToJSON Stats where
   toEncoding = genericToEncoding defaultOptions
