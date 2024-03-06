@@ -1,4 +1,4 @@
-{-|
+{- |
 Module      :  Data.OrgMode.Parse.Attoparsec.Util
 Copyright   :  © 2017 Parnell Springmeyer
 License     :  All Rights Reserved
@@ -7,37 +7,36 @@ Stability   :  stable
 
 Attoparsec utilities.
 -}
-
-
-module Data.OrgMode.Parse.Attoparsec.Util
-( skipOnlySpace,
-  nonHeadline,
-  module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
+module Data.OrgMode.Parse.Attoparsec.Util (
+    skipOnlySpace,
+    nonHeadline,
+    module Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill,
 )
-
 where
 
-import           Data.Attoparsec.Text                              (Parser,
-                                                                    endOfLine,
-                                                                    isEndOfLine,
-                                                                    isHorizontalSpace,
-                                                                    notChar,
-                                                                    takeTill)
-import           Data.Functor                                      (($>))
-import           Data.Semigroup                                    ((<>))
-import           Data.Text                                         (Text, cons)
+import Data.Attoparsec.Text (
+    Parser,
+    endOfLine,
+    isEndOfLine,
+    isHorizontalSpace,
+    notChar,
+    takeTill,
+ )
+import Data.Functor (($>))
+import Data.Text (Text, cons)
 
-import           Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
+import Data.OrgMode.Parse.Attoparsec.Util.ParseLinesTill
 
-import qualified Data.Attoparsec.Text                              as Attoparsec.Text
-import qualified Data.Text                                         as Text
+import qualified Data.Attoparsec.Text as Attoparsec.Text
+import qualified Data.Text as Text
 
--- | Skip whitespace characters, only!
---
--- @Data.Attoparsec.Text.skipSpace@ uses the @isSpace@ predicate from
--- @Data.Char@ which also includes control characters such as a return
--- and newline which we need to *not* consume in some cases during
--- parsing.
+{- | Skip whitespace characters, only!
+
+@Data.Attoparsec.Text.skipSpace@ uses the @isSpace@ predicate from
+@Data.Char@ which also includes control characters such as a return
+and newline which we need to *not* consume in some cases during
+parsing.
+-}
 skipOnlySpace :: Parser ()
 skipOnlySpace = Attoparsec.Text.skipWhile isHorizontalSpace
 
